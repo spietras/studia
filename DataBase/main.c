@@ -11,11 +11,15 @@ struct Club
 	unsigned int leaguePosition;
 };
 
+void ShowClub(struct Club);
+
 int main()
 {
     struct Club c1 = { "abc", 2, 435435, 123123, 3453454, 1};
 
     ShowClub(c1);
+
+    return 0;
 }
 
 void ShowClub(struct Club c)
