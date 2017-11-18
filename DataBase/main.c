@@ -6,34 +6,46 @@ struct Club
 {
 	char name[256];
 	int league;
-	unsigned long long fansNumber;
-	unsigned long long stadiumCapacity;
-	unsigned long long budget;
+	unsigned long fansNumber;
+	unsigned long stadiumCapacity;
+	unsigned long budget;
 	unsigned int leaguePosition;
 };
 
 int Initialize(struct Club **, int *);
 struct Club * Allocate(struct Club *, int n);
 struct Club * Reallocate(struct Club *, int n);
-void ShowClub(struct Club *);
+void ShowClub(struct Club *, int);
 void ShowAll(struct Club *, int);
 int AddClub(struct Club **, int *);
+int RemoveClub(struct Club **, int *, int);
 
 int main()
 {
 	struct Club *clubs;
 	int length;
 
-    if(Initialize(&clubs, &length) == 0)
+    if(!Initialize(&clubs, &length))
 	{
-		printf("Blad inicjalizacji");
+		printf("\nBlad inicjalizacji");
 		return 0;
 	}
 
-    if(AddClub(&clubs, &length) == 0)
+    if(!AddClub(&clubs, &length))
 	{
-		printf("Blad przy dodawaniu klubu");
+		printf("\nBlad przy dodawaniu klubu");
 		return 0;
+	}
+
+	ShowAll(clubs, length);
+
+	int p;
+	printf("\nZ jakiej pozycji chcesz usunac klub?\n");
+	scanf("%d", &p);
+
+	if(!RemoveClub(&clubs, &length, p - 1))
+	{
+		printf("\nBlad przy usuwaniu klubu");
 	}
 
     ShowAll(clubs, length);
@@ -73,9 +85,9 @@ struct Club * Reallocate(struct Club *clubArray, int length)
 	return realloc(clubArray, length * sizeof(*clubArray));
 }
 
-void ShowClub(struct Club *club)
+void ShowClub(struct Club *club, int index)
 {
-	printf("\nNazwa: %s\nLiga: %u\nLiczba kibicow: %llu\nPojemnosc stadionu: %llu\nBudzet: %llu\nPozycja w lidze: %u\n", (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
+	printf("\n%d.\nNazwa: %s\nLiga: %u\nLiczba kibicow: %lu\nPojemnosc stadionu: %lu\nBudzet: %lu\nPozycja w lidze: %u\n", index+1, (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
 }
 
 void ShowAll(struct Club *clubArray, int length)
@@ -84,7 +96,7 @@ void ShowAll(struct Club *clubArray, int length)
 
 	for(i = 0; i < length; i++)
 	{
-		ShowClub(&(clubArray[i]));
+		ShowClub(&(clubArray[i]), i);
 	}
 }
 
@@ -92,6 +104,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 {
 	int n, r;
 	char c;
+	char s[256];
 
 	(*length)++;
 
@@ -106,7 +119,9 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	{
 		r = 0;
 		printf("\nPodaj nazwe klubu: ");
-		n = scanf(" %255[^\n]s %*s", &((*clubArrayPointer)[*length - 1].name));
+		n = scanf(" %255[^\n]s", &((*clubArrayPointer)[*length - 1].name));
+		while(getchar() != '\n');
+
 
 		if(n == 0)
 		{
@@ -119,23 +134,23 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	{
 		r = 0;
 		printf("\nPodaj lige (1, 2, 3): ");
-		n = scanf(" %c", &c);
+		n = scanf(" %255[^\n]s", &s);
 		while(getchar() != '\n');
 
-		if((c != '1' && c != '2' && c != '3') || n == 0)
+		if((strcmp(s, "1") && strcmp(s, "2") && strcmp(s, "3")) || n == 0)
 		{
 			printf("\nNieprawidlowa liga");
 			r = 1;
 		}
 	}while(r == 1);
 
-	(*clubArrayPointer)[*length - 1].league = c - '0';
+	(*clubArrayPointer)[*length - 1].league = s[0] - '0';
 
 	do
 	{
 		r = 0;
 		printf("\nPodaj liczbe fanow: ");
-		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].fansNumber));
+		n = scanf(" %lu", &((*clubArrayPointer)[*length - 1].fansNumber));
 		while(getchar() != '\n');
 
 		if(n == 0)
@@ -149,7 +164,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	{
 		r = 0;
 		printf("\nPodaj pojemnosc stadionu: ");
-		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].stadiumCapacity));
+		n = scanf(" %lu", &((*clubArrayPointer)[*length - 1].stadiumCapacity));
 		while(getchar() != '\n');
 
 		if(n == 0)
@@ -162,8 +177,8 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	do
 	{
 		r = 0;
-		printf("\nPodaj budzet: ");
-		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].budget));
+		printf("\nPodaj budzet (w zl): ");
+		n = scanf(" %lu", &((*clubArrayPointer)[*length - 1].budget));
 		while(getchar() != '\n');
 
 		if(n == 0)
@@ -187,6 +202,27 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 			r = 1;
 		}
 	}while(r == 1);
+
+	return 1;
+}
+
+int RemoveClub(struct Club **clubArrayPointer, int *length, int index)
+{
+	int i;
+
+	(*length)--;
+
+	for(i = index; i < *length; i++)
+	{
+		(*clubArrayPointer)[i] = (*clubArrayPointer)[i+1];
+	}
+
+	*clubArrayPointer = Reallocate(*clubArrayPointer, *length);
+
+	if(*clubArrayPointer == NULL)
+	{
+		return 0;
+	}
 
 	return 1;
 }
