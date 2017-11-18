@@ -11,15 +11,40 @@ struct Club
 	unsigned int leaguePosition;
 };
 
+struct Club * Allocate(struct Club **, int);
+void Initialize(struct Club **, int *);
 void ShowClub(struct Club);
 
 int main()
 {
-    struct Club c1 = { "abc", 2, 435435, 123123, 3453454, 1};
+	struct Club *clubs;
+	int length;
 
-    ShowClub(c1);
+    Initialize(&clubs, &length);
+
+    ShowClub(clubs[2]);
 
     return 0;
+}
+
+struct Club * Allocate(struct Club **c, int n)
+{
+	return malloc(n * sizeof(**c));
+}
+
+void Initialize(struct Club **c, int *n)
+{
+	struct Club c1 = { "Legia Warszawa", 1, 100000, 60000, 200000000, 1};
+	struct Club c2 = { "Wislaw Krakow" , 1, 80000, 50000, 100000000, 2};
+	struct Club c3 = { "Arka Gdynia", 1, 50000, 45000, 50000000, 3};
+
+	*c = Allocate(c, 3);
+
+	(*c)[0] = c1;
+	(*c)[1] = c2;
+	(*c)[2] = c3;
+
+	*n = 3;
 }
 
 void ShowClub(struct Club c)
