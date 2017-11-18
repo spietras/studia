@@ -5,80 +5,188 @@
 struct Club
 {
 	char name[256];
-	unsigned int league;
+	int league;
 	unsigned long long fansNumber;
 	unsigned long long stadiumCapacity;
 	unsigned long long budget;
 	unsigned int leaguePosition;
 };
 
-void Initialize(struct Club *, int *);
+int Initialize(struct Club **, int *);
+struct Club * Allocate(struct Club *, int n);
+struct Club * Reallocate(struct Club *, int n);
 void ShowClub(struct Club *);
 void ShowAll(struct Club *, int);
-void AddClub(struct Club *, int *);
+int AddClub(struct Club **, int *);
 
 int main()
 {
-	struct Club clubs[100];
+	struct Club *clubs;
 	int length;
 
-    Initialize(clubs, &length);
+    if(Initialize(&clubs, &length) == 0)
+	{
+		printf("Blad inicjalizacji");
+		return 0;
+	}
 
-    AddClub(clubs, &length);
+    if(AddClub(&clubs, &length) == 0)
+	{
+		printf("Blad przy dodawaniu klubu");
+		return 0;
+	}
 
     ShowAll(clubs, length);
 
     return 0;
 }
 
-void Initialize(struct Club *c, int *n)
+int Initialize(struct Club **clubArrayPointer, int *length)
 {
 	struct Club c1 = { "Legia Warszawa", 1, 100000, 60000, 200000000, 1};
 	struct Club c2 = { "Wislaw Krakow" , 1, 80000, 50000, 100000000, 2};
 	struct Club c3 = { "Arka Gdynia", 1, 50000, 45000, 50000000, 3};
 
+	*length = 3;
 
-	c[0] = c1;
-	c[1] = c2;
-	c[2] = c3;
+	*clubArrayPointer = Allocate(*clubArrayPointer, *length);
 
-	*n = 3;
+	if(*clubArrayPointer == NULL)
+	{
+		return 0;
+	}
+
+	(*clubArrayPointer)[0] = c1;
+	(*clubArrayPointer)[1] = c2;
+	(*clubArrayPointer)[2] = c3;
+
+	return 1;
 }
 
-void ShowClub(struct Club *c)
+struct Club * Allocate(struct Club *clubArray, int length)
 {
-	printf("\nNazwa: %s\nLiga: %u\nLiczba kibicow: %llu\nPojemnosc stadionu: %llu\nBudzet: %llu\nPozycja w lidze: %u\n", (*c).name, (*c).league, (*c).fansNumber, (*c).stadiumCapacity, (*c).budget, (*c).leaguePosition);
+	return malloc(length * sizeof(*clubArray));
 }
 
-void ShowAll(struct Club *c, int n)
+struct Club * Reallocate(struct Club *clubArray, int length)
+{
+	return realloc(clubArray, length * sizeof(*clubArray));
+}
+
+void ShowClub(struct Club *club)
+{
+	printf("\nNazwa: %s\nLiga: %u\nLiczba kibicow: %llu\nPojemnosc stadionu: %llu\nBudzet: %llu\nPozycja w lidze: %u\n", (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
+}
+
+void ShowAll(struct Club *clubArray, int length)
 {
 	int i;
 
-	for(i = 0; i < n; i++)
+	for(i = 0; i < length; i++)
 	{
-		ShowClub(&c[i]);
+		ShowClub(&(clubArray[i]));
 	}
 }
 
-void AddClub(struct Club *c, int *n)
+int AddClub(struct Club **clubArrayPointer, int *length)
 {
-	*n = *n + 1;
+	int n, r;
+	char c;
 
-	printf("\nPodaj nazwe klubu: ");
-	scanf("%s", &(c[*n - 1].name));
+	(*length)++;
 
-	printf("\nPodaj lige (1, 2, 3): ");
-	scanf("%u", &(c[*n - 1].league));
+	*clubArrayPointer = Reallocate(*clubArrayPointer, *length);
 
-	printf("\nPodaj liczbe fanow: ");
-	scanf("%llu", &(c[*n - 1].fansNumber));
+	if(*clubArrayPointer == NULL)
+	{
+		return 0;
+	}
 
-	printf("\nPodaj pojemnosc stadionu: ");
-	scanf("%llu", &(c[*n - 1].stadiumCapacity));
+	do
+	{
+		r = 0;
+		printf("\nPodaj nazwe klubu: ");
+		n = scanf(" %255[^\n]s %*s", &((*clubArrayPointer)[*length - 1].name));
 
-	printf("\nPodaj budzet: ");
-	scanf("%llu", &(c[*n - 1].budget));
+		if(n == 0)
+		{
+			printf("\nNieprawidlowa nazwa");
+			r = 1;
+		}
+	} while(r == 1);
 
-	printf("\nPodaj pozycje w lidze: ");
-	scanf("%u", &(c[*n - 1].leaguePosition));
+	do
+	{
+		r = 0;
+		printf("\nPodaj lige (1, 2, 3): ");
+		n = scanf(" %c", &c);
+		while(getchar() != '\n');
+
+		if((c != '1' && c != '2' && c != '3') || n == 0)
+		{
+			printf("\nNieprawidlowa liga");
+			r = 1;
+		}
+	}while(r == 1);
+
+	(*clubArrayPointer)[*length - 1].league = c - '0';
+
+	do
+	{
+		r = 0;
+		printf("\nPodaj liczbe fanow: ");
+		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].fansNumber));
+		while(getchar() != '\n');
+
+		if(n == 0)
+		{
+			printf("Nieprawidlowa liczba fanow");
+			r = 1;
+		}
+	}while(r == 1);
+
+	do
+	{
+		r = 0;
+		printf("\nPodaj pojemnosc stadionu: ");
+		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].stadiumCapacity));
+		while(getchar() != '\n');
+
+		if(n == 0)
+		{
+			printf("Nieprawidlowa pojemnosc stadionu");
+			r = 1;
+		}
+	}while(r == 1);
+
+	do
+	{
+		r = 0;
+		printf("\nPodaj budzet: ");
+		n = scanf(" %llu", &((*clubArrayPointer)[*length - 1].budget));
+		while(getchar() != '\n');
+
+		if(n == 0)
+		{
+			printf("Nieprawidlowy budzet");
+			r = 1;
+		}
+	}
+	while(r == 1);
+
+	do
+	{
+		r = 0;
+		printf("\nPodaj pozycje w lidze: ");
+		n = scanf(" %u", &((*clubArrayPointer)[*length - 1].leaguePosition));
+		while(getchar() != '\n');
+
+		if(n == 0)
+		{
+			printf("Nieprawidlowa pozycja");
+			r = 1;
+		}
+	}while(r == 1);
+
+	return 1;
 }
