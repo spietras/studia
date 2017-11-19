@@ -4,3 +4,4 @@
 *.save
 *.o
 *.depend
+*.layout
