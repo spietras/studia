@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 struct Club
 {
@@ -19,13 +20,15 @@ struct Club * Reallocate(struct Club *, int n);
 void ShowClub(struct Club *);
 void ShowAll(struct Club *, int);
 int AddClub(struct Club **, int *);
-int RemoveClub(struct Club **, int *, int);
-struct Club * Search(struct Club *, int, struct Club *, int *);
-struct Club * SearchByExact(struct Club *, int, struct Club *, int *, int);
-struct Club * SearchByRange(struct Club *, int, struct Club *, int *, int);
-struct Club * SearchByMore(struct Club *, int, struct Club *, int *, int);
-struct Club * SearchByLess(struct Club *, int, struct Club *, int *, int);
+int RemoveClub(struct Club **, int *);
+struct Club * Search(struct Club *, int, struct Club **, int *);
+struct Club * SearchByExact(struct Club *, int, struct Club **, int *, int);
+struct Club * SearchByRange(struct Club *, int, struct Club **, int *, int);
+struct Club * SearchByMore(struct Club *, int, struct Club **, int *, int);
+struct Club * SearchByLess(struct Club *, int, struct Club **, int *, int);
 unsigned long long GetValue(struct Club *, int, int);
+int ShowMenu(struct Club **, int *, struct Club **, int *);
+int ToNumber(char *, int);
 
 int main()
 {
@@ -38,34 +41,7 @@ int main()
 		return 0;
 	}
 
-    if(!AddClub(&clubs, &length))
-	{
-		printf("\nBlad przy dodawaniu klubu\n");
-		return 0;
-	}
-
-	ShowAll(clubs, length);
-
-	int p;
-	printf("\nZ jakiej pozycji chcesz usunac klub?\n");
-	scanf("%d", &p);
-
-	if(!RemoveClub(&clubs, &length, p - 1))
-	{
-		printf("\nBlad przy usuwaniu klubu\n");
-	}
-
-    ShowAll(clubs, length);
-
-	out = Search(clubs, length, out, &outLength);
-	if(out != NULL)
-	{
-		ShowAll(out, outLength);
-	}
-	else
-	{
-		printf("\nNie znaleziono\n");
-	}
+    while(ShowMenu(&clubs, &length, &out, &outLength));
 
     return 0;
 }
@@ -86,7 +62,7 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 		return 0;
 	}
 
-	(*outLength)++;
+	*outLength = 1;
 	*out = Allocate(*out, *outLength);
 
 	if(*out == NULL)
@@ -147,6 +123,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	if(p == NULL)
 	{
 		(*length)--;
+		*clubArrayPointer = Allocate(*clubArrayPointer, *length);
 		return 0;
 	}
 
@@ -266,12 +243,32 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 
 /* Usuwanie istniejacego klubu o podanym indeksie
    Indeks klubu w strukturze pokrywa sie z indeksem klubu w glownej tablicy + 1 */
-int RemoveClub(struct Club **clubArrayPointer, int *length, int index)
+int RemoveClub(struct Club **clubArrayPointer, int *length)
 {
-	int i;
-	/* Kopia zapasowa usuwanego klubu, w razie gdyby trzeba bedzie sie cofnac */
-	struct Club t = (*clubArrayPointer)[index];
+	int i, r, n, index;
+	char s[256];
+	struct Club t;
 	struct Club *p;
+
+	do
+	{
+		r = 0;
+		printf("\nPodaj indeks klubu do usuniecia: ");
+		n = scanf(" %255[^\n]s", &s);
+		while(getchar() != '\n');
+
+		index = ToNumber(s, 256);
+
+		if(index == 0 || n == 0)
+		{
+			printf("\nNieprawidlowy indeks\n");
+			r = 1;
+		}
+	}while(r == 1);
+
+	index--;
+	/* Kopia zapasowa usuwanego klubu, w razie gdyby trzeba bedzie sie cofnac */
+	t = (*clubArrayPointer)[index];
 
 	(*length)--;
 
@@ -289,7 +286,9 @@ int RemoveClub(struct Club **clubArrayPointer, int *length, int index)
 	{
 		(*length)++;
 
-		for(i = *length - 1; i < index; i--)
+		*clubArrayPointer = Allocate(*clubArrayPointer, *length);
+
+		for(i = *length - 1; i > index; i--)
 		{
 			(*clubArrayPointer)[i] = (*clubArrayPointer)[i-1];
 			(*clubArrayPointer)[i].index++;
@@ -306,7 +305,7 @@ int RemoveClub(struct Club **clubArrayPointer, int *length, int index)
 }
 
 /* Wyszukiwanie klubu */
-struct Club * Search(struct Club *clubArray, int length, struct Club *out, int *outLength)
+struct Club * Search(struct Club *clubArray, int length, struct Club **out, int *outLength)
 {
 	int field, mode, r, n;
 	char s[256];
@@ -361,7 +360,7 @@ struct Club * Search(struct Club *clubArray, int length, struct Club *out, int *
 }
 
 /* Szukanie dokladnej wartosci */
-struct Club * SearchByExact(struct Club *clubArray, int length, struct Club *out, int *outLength, int field)
+struct Club * SearchByExact(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int r, n, i;
 	unsigned long value;
@@ -384,8 +383,8 @@ struct Club * SearchByExact(struct Club *clubArray, int length, struct Club *out
 	{
 		if(GetValue(clubArray, i, field) == value)
 		{
-			out = Reallocate(out, *outLength + 1);
-			out[*outLength] = clubArray[i];
+			*out = Reallocate(*out, *outLength + 1);
+			(*out)[*outLength] = clubArray[i];
 			(*outLength)++;
 		}
 	}
@@ -395,11 +394,11 @@ struct Club * SearchByExact(struct Club *clubArray, int length, struct Club *out
 		return NULL;
 	}
 
-	return out;
+	return *out;
 }
 
 /* Szukanie wartosci w przedziale */
-struct Club * SearchByRange(struct Club *clubArray, int length, struct Club *out, int *outLength, int field)
+struct Club * SearchByRange(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int r, n, i;
 	unsigned long valueMin, valueMax, v;
@@ -437,8 +436,8 @@ struct Club * SearchByRange(struct Club *clubArray, int length, struct Club *out
 		v = GetValue(clubArray, i, field);
 		if(v >= valueMin && v <= valueMax)
 		{
-			out = Reallocate(out, *outLength + 1);
-			out[*outLength] = clubArray[i];
+			*out = Reallocate(*out, *outLength + 1);
+			(*out)[*outLength] = clubArray[i];
 			(*outLength)++;
 		}
 	}
@@ -448,11 +447,11 @@ struct Club * SearchByRange(struct Club *clubArray, int length, struct Club *out
 		return NULL;
 	}
 
-	return out;
+	return *out;
 }
 
 /* Szukanie wartosci wiekszej niz podana */
-struct Club * SearchByMore(struct Club *clubArray, int length, struct Club *out, int *outLength, int field)
+struct Club * SearchByMore(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 int r, n, i;
 	unsigned long value;
@@ -475,8 +474,8 @@ int r, n, i;
 	{
 		if(GetValue(clubArray, i, field) > value)
 		{
-			out = Reallocate(out, *outLength + 1);
-			out[*outLength] = clubArray[i];
+			*out = Reallocate(*out, *outLength + 1);
+			(*out)[*outLength] = clubArray[i];
 			(*outLength)++;
 		}
 	}
@@ -486,11 +485,11 @@ int r, n, i;
 		return NULL;
 	}
 
-	return out;
+	return *out;
 }
 
 /* Szukanie wartosci mniejszej niz podana */
-struct Club * SearchByLess(struct Club *clubArray, int length, struct Club *out, int *outLength, int field)
+struct Club * SearchByLess(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int r, n, i;
 	unsigned long value;
@@ -513,8 +512,8 @@ struct Club * SearchByLess(struct Club *clubArray, int length, struct Club *out,
 	{
 		if(GetValue(clubArray, i, field) < value)
 		{
-			out = Reallocate(out, *outLength + 1);
-			out[*outLength] = clubArray[i];
+			*out = Reallocate(*out, *outLength + 1);
+			(*out)[*outLength] = clubArray[i];
 			(*outLength)++;
 		}
 	}
@@ -524,7 +523,7 @@ struct Club * SearchByLess(struct Club *clubArray, int length, struct Club *out,
 		return NULL;
 	}
 
-	return out;
+	return *out;
 }
 
 /* Funkcja zwracajaca wartosc w danym polu */
@@ -539,4 +538,132 @@ unsigned long long GetValue(struct Club *clubArray, int index, int field)
 	}
 
 	return 0;
+}
+
+/* Wyswietlanie glownego menu */
+int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int *outLength)
+{
+	int r, n, m;
+	char s[256];
+	printf("\nBaza danych klubow pilkarskich\n");
+
+	do
+	{
+		r = 0;
+		printf("\nCo chcesz zrobic?\n");
+		printf("\n1. Pokazac wszystkie kluby\n2. Wyszukac kluby\n3. Dodac klub\n4. Usunac klub\n5. Wyjsc\n\n");
+		n = scanf(" %255[^\n]s", &s);
+		while(getchar() != '\n');
+
+		if((strcmp(s, "1") && strcmp(s, "2") && strcmp(s, "3") && strcmp(s, "4") && strcmp(s, "5")) || n == 0)
+		{
+			printf("\nNieprawidlowy wybor\n");
+			r = 1;
+		}
+	}while(r == 1);
+
+	m = s[0] - '0';
+
+	switch(m)
+	{
+	case 1:
+		ShowAll(*clubArrayPointer, *length);
+		printf("\nNacisnij enter, zeby kontynuowac...\n");
+		while(getchar() != '\n');
+		return 1;
+	case 2:
+		*out = Search(*clubArrayPointer, *length, out, outLength);
+		if(*out == NULL)
+		{
+			printf("\nNie znaleziono\n");
+			printf("\nNacisnij enter, zeby kontynuowac...\n");
+			while(getchar() != '\n');
+			return 1;
+		}
+		else
+		{
+			ShowAll(*out, *outLength);
+			printf("\nNacisnij enter, zeby kontynuowac...\n");
+			while(getchar() != '\n');
+			return 1;
+		}
+		return 0;
+	case 3:
+		if(!AddClub(clubArrayPointer, length))
+		{
+			printf("\nBlad przy dodawaniu klubu\n");
+			return 1;
+		}
+		else
+		{
+			printf("\nPomyslnie dodano klub\n");
+			printf("\nNacisnij enter, zeby kontynuowac...\n");
+			while(getchar() != '\n');
+			return 1;
+		}
+		return 0;
+	case 4:
+		if(!RemoveClub(clubArrayPointer, length))
+		{
+			printf("\nBlad przy usuwaniu klubu\n");
+			printf("\nNacisnij enter, zeby kontynuowac...\n");
+			while(getchar() != '\n');
+			return 1;
+		}
+		else
+		{
+			printf("\nPomyslnie usunieto klub\n");
+			printf("\nNacisnij enter, zeby kontynuowac...\n");
+			while(getchar() != '\n');
+			return 1;
+		}
+		return 0;
+	case 5:
+		return 0;
+	}
+
+	return 0;
+}
+
+/* Konwersja (i sprawdzanie) liczby w stringu na inta */
+int ToNumber(char *string, int length)
+{
+	int i, j, n = 0;
+	char c;
+
+	for(i = 0; i < length; i++)
+	{
+		if(string[i] == '\0')
+		{
+			length = i;
+			break;
+		}
+	}
+
+	for(i = length - 1, j = 0; i > 0; i--, j++)
+	{
+		c = string[i];
+
+		if(c >= '0' && c <= '9')
+		{
+			n += (c - '0')*pow(10, j);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	c = string[0];
+
+	if(c >= '1' && c <= '9')
+	{
+		n += (c - '0')*pow(10, j);
+	}
+	else
+	{
+		return 0;
+	}
+
+	return n;
 }
