@@ -4,6 +4,7 @@
 
 int main()
 {
+	/* tablice z klubami i z wynikami szukania */
 	struct Club *clubs, *out;
 	int length, outLength;
 
