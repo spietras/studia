@@ -37,7 +37,7 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 /* Alokacja pamieci na tablice klubow */
 struct Club * Allocate(int length)
 {
-	if(clubArray == NULL || length <= 0)
+	if(length <= 0)
 	{
 		return NULL;
 	}

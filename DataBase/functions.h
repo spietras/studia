@@ -13,7 +13,7 @@ struct Club
 };
 
 int Initialize(struct Club **, int *, struct Club **, int *);
-struct Club * Allocate(struct Club *, int n);
+struct Club * Allocate(int n);
 struct Club * Reallocate(struct Club *, int n);
 void ShowClub(struct Club *);
 void ShowAll(struct Club *, int);
