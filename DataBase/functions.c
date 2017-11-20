@@ -12,7 +12,7 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 
 	*length = 3;
 
-	*clubArrayPointer = Allocate(*clubArrayPointer, *length);
+	*clubArrayPointer = Allocate(*length);
 
 	if(*clubArrayPointer == NULL)
 	{
@@ -20,7 +20,7 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 	}
 
 	*outLength = 1;
-	*out = Allocate(*out, *outLength);
+	*out = Allocate(*outLength);
 
 	if(*out == NULL)
 	{
@@ -35,13 +35,13 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 }
 
 /* Alokacja pamieci na tablice klubow */
-struct Club * Allocate(struct Club *clubArray, int length)
+struct Club * Allocate(int length)
 {
 	if(clubArray == NULL || length <= 0)
 	{
 		return NULL;
 	}
-	return malloc(length * sizeof(*clubArray));
+	return malloc(length * sizeof(struct Club));
 }
 
 /* Realokacja pamieci na tablice klubow o nowej dlugosci */
@@ -98,7 +98,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	if(p == NULL)
 	{
 		(*length)--;
-		*clubArrayPointer = Allocate(*clubArrayPointer, *length);
+		*clubArrayPointer = Allocate(*length);
 		return 0;
 	}
 
@@ -199,7 +199,7 @@ int RemoveClub(struct Club **clubArrayPointer, int *length)
 	{
 		(*length)++;
 
-		*clubArrayPointer = Allocate(*clubArrayPointer, *length);
+		*clubArrayPointer = Allocate(*length);
 
 		for(i = *length - 1; i > index; i--)
 		{
