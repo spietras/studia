@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "functions.h"
 
 /* Dodanie przykladowych klubow na poczatku programu */
