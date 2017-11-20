@@ -15,5 +15,8 @@ int main()
 
     while(ShowMenu(&clubs, &length, &out, &outLength));
 
+    free(clubs);
+    free(out);
+
     return 0;
 }
