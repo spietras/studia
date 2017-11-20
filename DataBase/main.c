@@ -84,18 +84,31 @@ int Initialize(struct Club **clubArrayPointer, int *length, struct Club **out, i
 /* Alokacja pamieci na tablice klubow */
 struct Club * Allocate(struct Club *clubArray, int length)
 {
+	if(clubArray == NULL || length <= 0)
+	{
+		return NULL;
+	}
 	return malloc(length * sizeof(*clubArray));
 }
 
 /* Realokacja pamieci na tablice klubow o nowej dlugosci */
 struct Club * Reallocate(struct Club *clubArray, int length)
 {
+	if(clubArray == NULL || length <= 0)
+	{
+		return NULL;
+	}
 	return realloc(clubArray, length * sizeof(*clubArray));
 }
 
 /* Wypisanie informacji o klubie */
 void ShowClub(struct Club *club)
 {
+	if(club == NULL)
+	{
+		printf("Blad przy wyswietlaniu klubu");
+		return;
+	}
 	printf("\n%d.\nNazwa: %s\nLiga: %u\nLiczba kibicow: %lu\nPojemnosc stadionu: %lu\nBudzet: %lu\nPozycja w lidze: %lu\n", (*club).index, (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
 }
 
@@ -103,6 +116,12 @@ void ShowClub(struct Club *club)
 void ShowAll(struct Club *clubArray, int length)
 {
 	int i;
+
+	if(clubArray == NULL || length <= 0)
+	{
+		printf("Blad przy wyswietlaniu");
+		return;
+	}
 
 	for(i = 0; i < length; i++)
 	{
@@ -406,6 +425,11 @@ struct Club * SearchByLess(struct Club *clubArray, int length, struct Club **out
 /* Funkcja zwracajaca wartosc w danym polu */
 unsigned long GetValue(struct Club *clubArray, int index, int field)
 {
+	if(clubArray == NULL || index < 0 || (field < 1 || field > 2))
+	{
+		return 0UL;
+	}
+
 	switch(field)
 	{
 	case 1:
@@ -414,7 +438,7 @@ unsigned long GetValue(struct Club *clubArray, int index, int field)
 		return clubArray[index].stadiumCapacity;
 	}
 
-	return 0;
+	return 0UL;
 }
 
 /* Wyswietlanie glownego menu */
@@ -498,6 +522,11 @@ unsigned long ToNumber(char *string, int length)
 	int i, j;
 	unsigned long n = 0;
 	char c;
+
+	if(string == NULL || length <= 0)
+	{
+		return 0UL;
+	}
 
 	/* Trzeba sprawdzic kiedy ciag znakow sie konczy */
 	for(i = 0; i < length; i++)
@@ -604,6 +633,11 @@ unsigned long TenPower(int n)
 {
 	int i;
 	unsigned long v = 1;
+
+	if(n <= 0)
+	{
+		return 1UL;
+	}
 
 	for(i = 0; i < n; i++)
 	{
