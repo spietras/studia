@@ -218,7 +218,7 @@ int RemoveClub(struct Club **clubArrayPointer, int *length)
 }
 
 /* Wyszukiwanie klubu */
-struct Club * Search(struct Club *clubArray, int length, struct Club **out, int *outLength)
+int Search(struct Club *clubArray, int length, struct Club **out, int *outLength)
 {
 	int field, mode, r, input;
 
@@ -253,6 +253,8 @@ struct Club * Search(struct Club *clubArray, int length, struct Club **out, int 
 
 	mode = input;
 
+	*out = Allocate(1);
+
 	switch(mode)
 	{
 	case 1:
@@ -265,11 +267,11 @@ struct Club * Search(struct Club *clubArray, int length, struct Club **out, int 
 		return SearchByLess(clubArray, length, out, outLength, field);
 	}
 
-	return NULL;
+	return 0;
 }
 
 /* Szukanie dokladnej wartosci */
-struct Club * SearchByExact(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
+int SearchByExact(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int i;
 	unsigned long value;
@@ -288,14 +290,14 @@ struct Club * SearchByExact(struct Club *clubArray, int length, struct Club **ou
 
 	if(*outLength == 0)
 	{
-		return NULL;
+		return 0;
 	}
 
-	return *out;
+	return 1;
 }
 
 /* Szukanie wartosci w przedziale */
-struct Club * SearchByRange(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
+int SearchByRange(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int i;
 	unsigned long valueMin, valueMax;
@@ -317,14 +319,14 @@ struct Club * SearchByRange(struct Club *clubArray, int length, struct Club **ou
 
 	if(*outLength == 0)
 	{
-		return NULL;
+		return 0;
 	}
 
-	return *out;
+	return 1;
 }
 
 /* Szukanie wartosci wiekszej niz podana */
-struct Club * SearchByMore(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
+int SearchByMore(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int i;
 	unsigned long value;
@@ -343,14 +345,14 @@ struct Club * SearchByMore(struct Club *clubArray, int length, struct Club **out
 
 	if(*outLength == 0)
 	{
-		return NULL;
+		return 0;
 	}
 
-	return *out;
+	return 1;
 }
 
 /* Szukanie wartosci mniejszej niz podana */
-struct Club * SearchByLess(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
+int SearchByLess(struct Club *clubArray, int length, struct Club **out, int *outLength, int field)
 {
 	int i;
 	unsigned long value;
@@ -369,10 +371,10 @@ struct Club * SearchByLess(struct Club *clubArray, int length, struct Club **out
 
 	if(*outLength == 0)
 	{
-		return NULL;
+		return 0;
 	}
 
-	return *out;
+	return 1;
 }
 
 /* Funkcja zwracajaca wartosc w danym polu */
@@ -421,8 +423,7 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 		WaitToContinue();
 		return 1;
 	case 2: /* Wyszukiwanie */
-		*out = Search(*clubArrayPointer, *length, out, outLength);
-		if(*out == NULL)
+		if(!Search(*clubArrayPointer, *length, out, outLength))
 		{
 			printf("\nNie znaleziono\n");
 			WaitToContinue();
