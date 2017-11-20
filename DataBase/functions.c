@@ -91,6 +91,8 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 	struct Club *p;
 	struct Club cl;
 
+	/* Alokujemy pamiec na tablice o 1 element wieksza */
+
 	(*length)++;
 
 	p = Reallocate(*clubArrayPointer, *length);
@@ -192,7 +194,7 @@ int RemoveClub(struct Club **clubArrayPointer, int *length)
 	p = Reallocate(*clubArrayPointer, *length);
 
 	/*
-		Jezeli nie udalo sie zrealokowac pamieci na mniejsza tablice, to musimy ponownie zaalokowac wieksza,
+		Jezeli nie udalo sie realokowac pamieci na mniejsza tablice, to musimy ponownie zaalokowac wieksza,
 		przesunac wszystko w gore i wstawic usuniety element
 	 */
 	if(p == NULL)
@@ -252,6 +254,8 @@ int Search(struct Club *clubArray, int length, struct Club **out, int *outLength
 	}while(r == 1);
 
 	mode = input;
+
+	/* Na wszelki wypadek alokujemy tablice do zapisywania od nowa. I tak zostanie nadpisana */
 
 	*out = Allocate(1);
 
@@ -401,6 +405,8 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 {
 	int r, m, input;
 	printf("\nBaza danych klubow pilkarskich\n");
+
+	/* Uzytkownik wybiera co chce zrobic */
 
 	do
 	{
