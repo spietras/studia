@@ -32,4 +32,4 @@ void GetStringInput(char *, char *, char *);
 void WaitToContinue();
 unsigned long TenPower(int);
 
-#endif // FUNCTIONS_H_INCLUDED
+#endif
