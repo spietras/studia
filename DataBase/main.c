@@ -11,7 +11,7 @@ struct Club
 	unsigned long fansNumber;
 	unsigned long stadiumCapacity;
 	unsigned long budget;
-	unsigned int leaguePosition;
+	unsigned long leaguePosition;
 };
 
 int Initialize(struct Club **, int *, struct Club **, int *);
@@ -28,10 +28,11 @@ struct Club * SearchByMore(struct Club *, int, struct Club **, int *, int);
 struct Club * SearchByLess(struct Club *, int, struct Club **, int *, int);
 unsigned long GetValue(struct Club *, int, int);
 int ShowMenu(struct Club **, int *, struct Club **, int *);
-int ToNumber(char *, int);
-int GetNumberInput(char*, char*);
+unsigned long ToNumber(char *, int);
+unsigned long GetNumberInput(char*, char*);
 void GetStringInput(char *, char *, char *);
 void WaitToContinue();
+unsigned long TenPower(int);
 
 int main()
 {
@@ -95,7 +96,7 @@ struct Club * Reallocate(struct Club *clubArray, int length)
 /* Wypisanie informacji o klubie */
 void ShowClub(struct Club *club)
 {
-	printf("\n%d.\nNazwa: %s\nLiga: %u\nLiczba kibicow: %lu\nPojemnosc stadionu: %lu\nBudzet: %lu\nPozycja w lidze: %u\n", (*club).index, (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
+	printf("\n%d.\nNazwa: %s\nLiga: %u\nLiczba kibicow: %lu\nPojemnosc stadionu: %lu\nBudzet: %lu\nPozycja w lidze: %lu\n", (*club).index, (*club).name, (*club).league, (*club).fansNumber, (*club).stadiumCapacity, (*club).budget, (*club).leaguePosition);
 }
 
 /* Wypisanie wszystkich klubow */
@@ -112,8 +113,8 @@ void ShowAll(struct Club *clubArray, int length)
 /* Dodawanie nowego klubu */
 int AddClub(struct Club **clubArrayPointer, int *length)
 {
-	int r, i, input;
-	unsigned int uInput;
+	int r, i;
+	unsigned long input;
 	char s[256];
 	struct Club *p;
 	struct Club cl;
@@ -133,9 +134,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 
 	(*clubArrayPointer)[*length - 1].index = *length;
 
-	/* Ponizej odbieranie od uzytkownika danych
-		Jezeli uzytkownik podal bledne dane, to powtarzamy pobieranie az poda poprawne
-	*/
+	/* Ponizej odbieranie od uzytkownika danych	*/
 
 	GetStringInput("\nPodaj nazwe klubu: ", "\nNieprawidlowa nazwa\n", s);
 	strcpy((*clubArrayPointer)[*length - 1].name, s);
@@ -153,24 +152,24 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 		}
 	}while(r == 1);
 
-	(*clubArrayPointer)[*length - 1].league = input;
+	(*clubArrayPointer)[*length - 1].league = (int)input;
 
-	(*clubArrayPointer)[*length - 1].fansNumber = (unsigned long)GetNumberInput("\nPodaj liczbe kibicow: ", "\nNieprawidlowa liczba kibicow\n");
+	(*clubArrayPointer)[*length - 1].fansNumber = GetNumberInput("\nPodaj liczbe kibicow: ", "\nNieprawidlowa liczba kibicow\n");
 
-	(*clubArrayPointer)[*length - 1].stadiumCapacity = (unsigned long)GetNumberInput("\nPodaj pojemnosc stadionu: ", "\nNieprawidlowa pojemnosc stadionu\n");
+	(*clubArrayPointer)[*length - 1].stadiumCapacity = GetNumberInput("\nPodaj pojemnosc stadionu: ", "\nNieprawidlowa pojemnosc stadionu\n");
 
-	(*clubArrayPointer)[*length - 1].budget = (unsigned long)GetNumberInput("\nPodaj budzet (w zl): ", "\nNieprawidlowy budzet\n");
+	(*clubArrayPointer)[*length - 1].budget = GetNumberInput("\nPodaj budzet (w zl): ", "\nNieprawidlowy budzet\n");
 
 	do
 	{
 		r = 0;
-		uInput = (unsigned int)GetNumberInput("\nPodaj pozycje w lidze: ", "\nNieprawidlowa pozycja\n");
+		input = GetNumberInput("\nPodaj pozycje w lidze: ", "\nNieprawidlowa pozycja\n");
 
 		for(i = 0; i < *length - 1; i++)
 		{
 			cl = (*clubArrayPointer)[i];
 
-			if((cl.league == (*clubArrayPointer)[*length - 1].league) && cl.leaguePosition == uInput)
+			if((cl.league == (*clubArrayPointer)[*length - 1].league) && cl.leaguePosition == input)
 			{
 				printf("\nNieprawidlowa pozycja\n");
 				r = 1;
@@ -179,7 +178,7 @@ int AddClub(struct Club **clubArrayPointer, int *length)
 		}
 	}while(r == 1);
 
-	(*clubArrayPointer)[*length - 1].leaguePosition = uInput;
+	(*clubArrayPointer)[*length - 1].leaguePosition = input;
 
 	return 1;
 }
@@ -195,7 +194,7 @@ int RemoveClub(struct Club **clubArrayPointer, int *length)
 	do
 	{
 		r = 0;
-		index = GetNumberInput("\nPodaj indeks klubu do usuniecia: ", "\nNieprawidlowy indeks\n");
+		index = (int)GetNumberInput("\nPodaj indeks klubu do usuniecia: ", "\nNieprawidlowy indeks\n");
 
 		if(index > *length)
 		{
@@ -220,6 +219,10 @@ int RemoveClub(struct Club **clubArrayPointer, int *length)
 
 	p = Reallocate(*clubArrayPointer, *length);
 
+	/*
+		Jezeli nie udalo sie zrealokowac pamieci na mniejsza tablice, to musimy ponownie zaalokowac wieksza,
+		przesunac wszystko w gore i wstawic usuniety element
+	 */
 	if(p == NULL)
 	{
 		(*length)++;
@@ -253,7 +256,7 @@ struct Club * Search(struct Club *clubArray, int length, struct Club **out, int 
 	{
 		r = 0;
 
-		input = GetNumberInput("\nWybierz wedlug czego chcesz wyszukac:\n1. Wedlug liczby kibicow\n2. Wedlug pojemnosci stadionu\n\n", "\nNieprawidlowy wybor\n");
+		input = (int)GetNumberInput("\nWybierz wedlug czego chcesz wyszukac:\n1. Wedlug liczby kibicow\n2. Wedlug pojemnosci stadionu\n\n", "\nNieprawidlowy wybor\n");
 
 		if(input < 1 || input > 2)
 		{
@@ -268,7 +271,7 @@ struct Club * Search(struct Club *clubArray, int length, struct Club **out, int 
 	{
 		r = 0;
 
-		input = GetNumberInput("\nWybierz jak chcesz wyszukac:\n1. Dokladna wartosc\n2. Pomiedzy\n3. Wiecej niz\n4. Mniej niz\n\n", "\nNieprawidlowy wybor\n");
+		input = (int)GetNumberInput("\nWybierz jak chcesz wyszukac:\n1. Dokladna wartosc\n2. Pomiedzy\n3. Wiecej niz\n4. Mniej niz\n\n", "\nNieprawidlowy wybor\n");
 
 		if(input < 1 || input > 4)
 		{
@@ -299,7 +302,7 @@ struct Club * SearchByExact(struct Club *clubArray, int length, struct Club **ou
 	int i;
 	unsigned long value;
 
-	value = (unsigned long)GetNumberInput("\nPodaj dokladna wartosc: ","\nNieprawidlowa wartosc\n");
+	value = GetNumberInput("\nPodaj dokladna wartosc: ","\nNieprawidlowa wartosc\n");
 
 	for(i = 0, *outLength = 0; i < length; i++)
 	{
@@ -325,9 +328,9 @@ struct Club * SearchByRange(struct Club *clubArray, int length, struct Club **ou
 	int i;
 	unsigned long valueMin, valueMax, v;
 
-	valueMin = (unsigned long)GetNumberInput("\nPodaj wartosc minimalna: ", "\nNieprawidlowa wartosc\n");
+	valueMin = GetNumberInput("\nPodaj wartosc minimalna: ", "\nNieprawidlowa wartosc\n");
 
-	valueMax = (unsigned long)GetNumberInput("\nPodaj wartosc maksymalna: ", "\nNieprawidlowa wartosc\n");
+	valueMax = GetNumberInput("\nPodaj wartosc maksymalna: ", "\nNieprawidlowa wartosc\n");
 
 	for(i = 0, *outLength = 0; i < length; i++)
 	{
@@ -354,7 +357,7 @@ struct Club * SearchByMore(struct Club *clubArray, int length, struct Club **out
 	int i;
 	unsigned long value;
 
-	value = (unsigned long)GetNumberInput("\nPodaj wartosc: ","\nNieprawidlowa wartosc\n");
+	value = GetNumberInput("\nPodaj wartosc: ","\nNieprawidlowa wartosc\n");
 
 	for(i = 0, *outLength = 0; i < length; i++)
 	{
@@ -380,7 +383,7 @@ struct Club * SearchByLess(struct Club *clubArray, int length, struct Club **out
 	int i;
 	unsigned long value;
 
-	value = (unsigned long)GetNumberInput("\nPodaj wartosc: ","\nNieprawidlowa wartosc\n");
+	value = GetNumberInput("\nPodaj wartosc: ","\nNieprawidlowa wartosc\n");
 
 	for(i = 0, *outLength = 0; i < length; i++)
 	{
@@ -424,7 +427,7 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 	{
 		r = 0;
 
-		input = GetNumberInput("\nCo chcesz zrobic?\n\n1. Pokazac wszystkie kluby\n2. Wyszukac kluby\n3. Dodac klub\n4. Usunac klub\n5. Wyjsc\n\n", "\nNieprawidlowy wybor\n");
+		input = (int)GetNumberInput("\nCo chcesz zrobic?\n\n1. Pokazac wszystkie kluby\n2. Wyszukac kluby\n3. Dodac klub\n4. Usunac klub\n5. Wyjsc\n\n", "\nNieprawidlowy wybor\n");
 
 		if(input < 1 || input > 5)
 		{
@@ -436,11 +439,11 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 	m = input;
 	switch(m)
 	{
-	case 1:
+	case 1: /* Wyswietlanie wszystkich */
 		ShowAll(*clubArrayPointer, *length);
 		WaitToContinue();
 		return 1;
-	case 2:
+	case 2: /* Wyszukiwanie */
 		*out = Search(*clubArrayPointer, *length, out, outLength);
 		if(*out == NULL)
 		{
@@ -455,7 +458,7 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 			return 1;
 		}
 		return 0;
-	case 3:
+	case 3: /* Dodawanie */
 		if(!AddClub(clubArrayPointer, length))
 		{
 			printf("\nBlad przy dodawaniu klubu\n");
@@ -468,7 +471,7 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 			return 1;
 		}
 		return 0;
-	case 4:
+	case 4: /* Usuwanie */
 		if(!RemoveClub(clubArrayPointer, length))
 		{
 			printf("\nBlad przy usuwaniu klubu\n");
@@ -482,7 +485,7 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 			return 1;
 		}
 		return 0;
-	case 5:
+	case 5: /* Wyjscie */
 		return 0;
 	}
 
@@ -490,11 +493,13 @@ int ShowMenu(struct Club **clubArrayPointer, int *length, struct Club **out, int
 }
 
 /* Konwersja (i sprawdzanie) liczby w stringu na inta */
-int ToNumber(char *string, int length)
+unsigned long ToNumber(char *string, int length)
 {
-	int i, j, n = 0;
+	int i, j;
+	unsigned long n = 0;
 	char c;
 
+	/* Trzeba sprawdzic kiedy ciag znakow sie konczy */
 	for(i = 0; i < length; i++)
 	{
 		if(string[i] == '\0')
@@ -504,14 +509,14 @@ int ToNumber(char *string, int length)
 		}
 	}
 
+	/* Zamiana wszystkich cyfr oprocz pierwszej */
 	for(i = length - 1, j = 0; i > 0; i--, j++)
 	{
 		c = string[i];
 
 		if(c >= '0' && c <= '9')
 		{
-			/* TODO: fix that. */
-			n += (c - '0')*pow(10, j);
+			n += (c - '0')*TenPower(j);
 		}
 		else
 		{
@@ -519,12 +524,13 @@ int ToNumber(char *string, int length)
 		}
 	}
 
+
+	/* Pierwsza cyfra nie moze byc zerem */
 	c = string[0];
 
 	if(c >= '1' && c <= '9')
 	{
-		/* TODO: fix that. */
-		n += (c - '0')*round(pow(10, (double)j));
+		n += (c - '0')*TenPower(j);
 	}
 	else
 	{
@@ -535,18 +541,24 @@ int ToNumber(char *string, int length)
 }
 
 /* Pobieranie od uzytkownika liczby */
-int GetNumberInput(char* message, char* errorMessage)
+unsigned long GetNumberInput(char* message, char* errorMessage)
 {
-	int r, n, input;
+	int r, n;
+	unsigned long input;
 	char s[256];
 
 	do
 	{
 		r = 0;
 		printf("%s", message);
+		/* Pobieramy kazdy znak oprocz nowej linii */
 		n = scanf(" %255[^\n]s", s);
 		while(getchar() != '\n');
 
+		/*
+			Zamieniamy ciag znakow na liczbe
+			Jezeli zwroci sie 0 to ciag znakow jest nieprawidlowy
+		*/
 		input = ToNumber(s, 256);
 
 		if(input == 0 || n == 0)
@@ -554,7 +566,7 @@ int GetNumberInput(char* message, char* errorMessage)
 			printf("%s", errorMessage);
 			r = 1;
 		}
-	}while(r == 1);
+	}while(r == 1); /* Powtarzamy az uzytkownik wprowadzi poprawna liczbe */
 
 	return input;
 }
@@ -568,6 +580,7 @@ void GetStringInput(char *message, char *errorMessage, char *output)
 	{
 		r = 0;
 		printf("%s", message);
+		/* Pobieramy wszystko oprocz nowej linii */
 		n = scanf(" %255[^\n]s", output);
 		while(getchar() != '\n');
 
@@ -584,4 +597,18 @@ void WaitToContinue()
 {
 	printf("\nNacisnij enter, zeby kontynuowac...\n");
 	while(getchar() != '\n');
+}
+
+/* Podnosi 10 do n-tej potegi */
+unsigned long TenPower(int n)
+{
+	int i;
+	unsigned long v = 1;
+
+	for(i = 0; i < n; i++)
+	{
+		v *= 10;
+	}
+
+	return v;
 }
