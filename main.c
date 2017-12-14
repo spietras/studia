@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_VOLUME_SIZE 1073741824
+#define MAX_DIR_TABLE_SIZE 134217728
+#define MAX_FAT_SIZE 939524096
+
 typedef enum EntryType { FileType, FolderType } EntryType;
 
 typedef struct Entry Entry;
@@ -9,6 +13,7 @@ typedef struct FileStruct FileStruct;
 typedef struct FolderStruct FolderStruct;
 typedef struct Cluster Cluster;
 typedef struct FAT FAT;
+typedef struct Volume Volume;
 
 struct Entry
 {
@@ -18,14 +23,14 @@ struct Entry
 
 struct FileStruct
 {
-	char name[10];
-	char extension[10];
+	char name[8];
+	char extension[4];
 	Cluster* firstCluster;
 };
 
 struct FolderStruct
 {
-	char name[10];
+	char name[8];
 	Entry** entries;
 	int entriesAmount;
 };
@@ -33,7 +38,7 @@ struct FolderStruct
 struct Cluster
 {
 	int occupied;
-	unsigned char data[512];
+	unsigned char data[504];
 	Cluster* next;
 };
 
@@ -43,61 +48,79 @@ struct FAT
 	int size;
 };
 
-int Initialize(FolderStruct*, FAT*);
-int AddFile(FolderStruct*, char*, FAT*);
+struct Volume
+{
+	FolderStruct* root;
+	FAT* fat;
+	unsigned int size;
+};
+
+int Initialize(Volume*);
+int AddFile(FolderStruct*, char*, unsigned char*, unsigned int, Volume*);
 int CheckFileName(char*);
-int AddFolder(FolderStruct*, char*, FAT*);
+int AddFolder(FolderStruct*, char*, Volume*);
+int CheckFolderSize(Volume *);
+int CheckFileSize(unsigned int, Volume *);
 int CheckFolderName(char*);
 Cluster * FindEmptyCluster(FAT*);
+int AddContent(unsigned char*, unsigned int, Cluster*, FAT*);
 void ViewDirectories(FolderStruct*, int);
 
 int main()
 {
-    FolderStruct root;
-    root.entriesAmount;
-    FAT fat;
+    Volume vol;
 
-    Initialize(&root, &fat);
+    Initialize(&vol);
 
-    ViewDirectories(&root, 0);
+    ViewDirectories(vol.root, 0);
 
     return 0;
 }
 
-int Initialize(FolderStruct* root, FAT* fat)
+int Initialize(Volume* vol)
 {
-	root->entriesAmount = 0;
+	vol->root = (FolderStruct*)malloc(sizeof(FolderStruct));
+	vol->root->entries = (Entry**)malloc(sizeof(Entry*));
+	vol->root->entriesAmount = 0;
 
 	int i, n = 10;
-	fat->table = (Cluster**)malloc(n*sizeof(Cluster*));
+	vol->fat = (FAT*)malloc(sizeof(FAT));
+	vol->fat->table = (Cluster**)malloc(n*sizeof(Cluster*));
 
 	for(i = 0; i < n; i++)
 	{
-		fat->table[i] = (Cluster*)malloc(sizeof(Cluster));
-		fat->table[i]->occupied = 0;
-		fat->table[i]->next = NULL;
+		vol->fat->table[i] = (Cluster*)malloc(sizeof(Cluster));
+		vol->fat->table[i]->occupied = 0;
+		vol->fat->table[i]->next = NULL;
 	}
 
-	strcpy(root->name, "root");
-	AddFile(root, "gitara.txt", fat);
-	AddFile(root, "abcd.jpg", fat);
-	AddFolder(root, "folder1", fat);
-	FolderStruct* f = (FolderStruct*)root->entries[root->entriesAmount-1]->pointer;
-	AddFile(f, "makar.gif", fat);
-	AddFile(f, "gowno.rar", fat);
-	AddFile(root, "siema.elo", fat);
+	vol->fat->size = 10;
+
+	strcpy(vol->root->name, "root");
+	AddFile(vol->root, "gitara.txt", NULL, 0, vol);
+	AddFile(vol->root, "abcd.jpg", NULL, 0, vol);
+	AddFolder(vol->root, "folder1", vol);
+	FolderStruct* f = (FolderStruct*)vol->root->entries[vol->root->entriesAmount-1]->pointer;
+	AddFile(f, "makar.gif", NULL, 0, vol);
+	AddFile(f, "gowno.rar", NULL, 0, vol);
+	AddFile(vol->root, "siema.elo", NULL, 0, vol);
 
 	return 1;
 }
 
-int AddFile(FolderStruct* subdirectory, char* name, FAT* fat)
+int AddFile(FolderStruct* subdirectory, char* name, unsigned char * content, unsigned int contentSize, Volume* vol)
 {
 	if(!CheckFileName(name))
 	{
 		return 0;
 	}
 
-	Cluster* c = FindEmptyCluster(fat);
+	if(!CheckFileSize(contentSize, vol))
+	{
+		return 0;
+	}
+
+	Cluster* c = FindEmptyCluster(vol->fat);
 	if(c == NULL)
 	{
 		return 0;
@@ -134,6 +157,11 @@ int AddFile(FolderStruct* subdirectory, char* name, FAT* fat)
 	c->occupied = 1;
 	f->firstCluster = c;
 
+	if(!AddContent(NULL, 0, c, vol->fat))
+	{
+		return 0;
+	}
+
 	e->pointer = f;
 
 	subdirectory->entries[n] = e;
@@ -142,15 +170,19 @@ int AddFile(FolderStruct* subdirectory, char* name, FAT* fat)
 	return 1;
 }
 
-
 int CheckFileName(char* name)
 {
 	return 1;
 }
 
-int AddFolder(FolderStruct* subdirectory, char* name, FAT* fat)
+int AddFolder(FolderStruct* subdirectory, char* name, Volume* vol)
 {
 	if(!CheckFolderName(name))
+	{
+		return 0;
+	}
+
+	if(!CheckFolderSize(vol))
 	{
 		return 0;
 	}
@@ -192,12 +224,20 @@ int AddFolder(FolderStruct* subdirectory, char* name, FAT* fat)
 	return 1;
 }
 
-
 int CheckFolderName(char* name)
 {
 	return 1;
 }
 
+int CheckFolderSize(Volume *vol)
+{
+	return sizeof(FolderStruct) < (MAX_DIR_TABLE_SIZE - vol->root->entriesAmount*sizeof(FolderStruct));
+}
+
+int CheckFileSize(unsigned int dataSize, Volume *vol)
+{
+	return (sizeof(FileStruct) < (MAX_DIR_TABLE_SIZE - vol->root->entriesAmount*sizeof(FileStruct))) && dataSize < (MAX_FAT_SIZE - vol->fat->size*sizeof(Cluster));
+}
 
 Cluster * FindEmptyCluster(FAT* f)
 {
@@ -213,7 +253,52 @@ Cluster * FindEmptyCluster(FAT* f)
 		n++;
 	}
 
-	return NULL;
+	if(sizeof(Cluster) < (MAX_FAT_SIZE - f->size*sizeof(Cluster)))
+	{
+		return NULL;
+	}
+
+	Cluster* c = (Cluster*)malloc(sizeof(Cluster));
+	c->occupied = 0;
+	c->next = NULL;
+
+	f->table = (Cluster**)realloc(f->table, (f->size + 1)*sizeof(Cluster*));
+	f->table[f->size] = c;
+	f->size++;
+
+	return c;
+
+}
+
+int AddContent(unsigned char * content, unsigned int contentSize, Cluster *firstCluster, FAT * f)
+{
+	unsigned int clusterDataSize = sizeof(firstCluster->data);
+	Cluster *currentCluster = firstCluster;
+	Cluster *previousCluster = firstCluster;
+
+	unsigned int i = 0, j = 0;
+
+	for(i = 0, j = 0; i < contentSize; i++, j++)
+	{
+		if(j < clusterDataSize)
+		{
+			currentCluster->data[j] = content[i];
+		}
+		else
+		{
+			currentCluster = FindEmptyCluster(f);
+			if(currentCluster == NULL)
+			{
+				return 0;
+			}
+			currentCluster->occupied = 1;
+			previousCluster->next = currentCluster;
+			j = 0;
+		}
+	}
+
+	currentCluster->next = NULL;
+	return 1;
 }
 
 void ViewDirectories(FolderStruct* root, int level)
