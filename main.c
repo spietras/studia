@@ -80,6 +80,7 @@ void ViewFileData(TextFile*);
 int AddDataToFile(Volume*, TextFile*, const char*);
 int ClearFileData(Volume *, Cluster*);
 int DeleteFile(Volume*, Directory*, FileNode*);
+void OrganizeFileListAfterDeletion(Directory*, FileNode*);
 
 int main()
 {
@@ -114,7 +115,16 @@ int DeleteFile(Volume* v, Directory* parent, FileNode* n)
     free(f->data);
     free(f);
 
-    if(n->previous == NULL && n->next == NULL)
+    OrganizeFileListAfterDeletion(parent, n);
+
+	free(n);
+
+	return 1;
+}
+
+void OrganizeFileListAfterDeletion(Directory* parent, FileNode* n)
+{
+	if(n->previous == NULL && n->next == NULL)
 	{
         parent->files = NULL;
 	}
@@ -132,10 +142,6 @@ int DeleteFile(Volume* v, Directory* parent, FileNode* n)
 		n->previous->next = n->next;
 		n->next->previous = n->previous;
 	}
-
-	free(n);
-
-	return 1;
 }
 
 int InitializeVolume(Volume* v)
