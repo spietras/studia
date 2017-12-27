@@ -34,6 +34,7 @@ struct DirectoryNode
 {
 	Directory* dir;
 	DirectoryNode* next;
+	DirectoryNode* previous;
 };
 
 struct TextFile
@@ -47,6 +48,7 @@ struct FileNode
 {
 	TextFile* file;
 	FileNode* next;
+	FileNode* previous;
 };
 
 struct Cluster
@@ -77,6 +79,7 @@ int AddDataToClusterChain(Volume*, TextFile*, const char*, int);
 void ViewFileData(TextFile*);
 int AddDataToFile(Volume*, TextFile*, const char*);
 int ClearFileData(Volume *, Cluster*);
+int DeleteFile(Volume*, Directory*, FileNode*);
 
 int main()
 {
@@ -88,7 +91,52 @@ int main()
 	}
 	ViewStructureTree(v.root);
 	ViewFileData(v.root->subdirs->dir->files->file);
+	DeleteFile(&v, v.root->subdirs->dir, v.root->subdirs->dir->files);
+	ViewStructureTree(v.root);
+	ViewFileData(v.root->subdirs->dir->files->file);
 	return 0;
+}
+
+int DeleteFile(Volume* v, Directory* parent, FileNode* n)
+{
+	if(v == NULL || parent == NULL || n == NULL || parent->files == NULL || n->file == NULL || n->file->data == NULL)
+	{
+		return 0;
+	}
+
+    TextFile* f = n->file;
+
+    if(!ClearFileData(v, f->data))
+	{
+		/* CORRUPTED FILE ERROR */
+		return 0;
+	}
+    v->clusterTable[f->data->id] = NULL;
+    free(f->data);
+    free(f);
+
+    if(n->previous == NULL && n->next == NULL)
+	{
+        parent->files = NULL;
+	}
+	else if(n->previous == NULL && n->next != NULL)
+	{
+		n->next->previous = NULL;
+		parent->files = n->next;
+	}
+	else if(n->previous != NULL && n->next == NULL)
+	{
+		n->previous->next = NULL;
+	}
+	else if(n->previous != NULL && n->next != NULL)
+	{
+		n->previous->next = n->next;
+		n->next->previous = n->previous;
+	}
+
+	free(n);
+
+	return 1;
 }
 
 int InitializeVolume(Volume* v)
@@ -192,6 +240,7 @@ int AddDirectory(Volume *v, Directory* parent, const char* name)
 	else
 	{
 		last->next = create;
+		create->previous = last;
 	}
 
     if(!AddEntrySpace(v, parent))
@@ -232,6 +281,7 @@ int AddFile(Volume *v, Directory* parent, const char* name, const char* extensio
 	else
 	{
 		last->next = create;
+		create->previous = last;
 	}
 
     if(!AddEntrySpace(v, parent))
@@ -418,6 +468,7 @@ DirectoryNode* CreateDirectory(Volume *v, const char* name)
 	}
 
 	create->next = NULL;
+	create->previous = NULL;
 
 	create->dir = (Directory*)malloc(sizeof(Directory));
 	if(create->dir == NULL)
@@ -456,6 +507,7 @@ FileNode* CreateFile(Volume *v, const char* name, const char* extension)
 	}
 
 	create->next = NULL;
+	create->previous = NULL;
 
 	create->file = (TextFile*)malloc(sizeof(TextFile));
 	if(create->file == NULL)
@@ -602,17 +654,19 @@ void ViewStructureTree(Directory *d)
 {
 	if(d == NULL)
 	{
-		printf("Directory does not exist");
+		printf("Directory does not exist\n");
 	}
 
 	if(d->files == NULL && d->subdirs == NULL)
 	{
-		printf("Empty directory");
+		printf("Empty directory\n");
 	}
 
 	int startLevel = 0;
 
 	ViewLevel(d, startLevel);
+
+    printf("\n");
 }
 
 void ViewLevel(Directory *d, int level)
@@ -670,12 +724,12 @@ void ViewFileData(TextFile* f)
 {
 	if(f == NULL)
 	{
-		printf("File does not exist");
+		printf("File does not exist\n");
 		return;
 	}
 	if(f->data == NULL || strlen(f->data->data) == 0)
 	{
-		printf("File is empty");
+		printf("File is empty\n");
 		return;
 	}
 
@@ -688,4 +742,6 @@ void ViewFileData(TextFile* f)
 		printf("%s", current->data);
 		current = current->next;
 	}while(current != NULL);
+
+	printf("\n\n");
 }
