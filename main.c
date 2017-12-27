@@ -108,7 +108,6 @@ int DeleteFile(Volume* v, Directory* parent, FileNode* n)
 
     if(!ClearFileData(v, f->data))
 	{
-		/* CORRUPTED FILE ERROR */
 		return 0;
 	}
     v->clusterTable[f->data->id] = NULL;
@@ -317,7 +316,6 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 
 	if(!ClearFileData(v, f->data))
 	{
-		/* CORRUPTED CLASTER ERROR */
 		return 0;
 	}
 
