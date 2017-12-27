@@ -81,6 +81,10 @@ int AddDataToFile(Volume*, TextFile*, const char*);
 int ClearFileData(Volume *, Cluster*);
 int DeleteFile(Volume*, Directory*, FileNode*);
 void OrganizeFileListAfterDeletion(Directory*, FileNode*);
+int DeleteFileByPath(Volume*, const char*);
+int IsFile(const char*);
+DirectoryNode* FindDirectoryByNameAndParent(Directory*, const char*);
+FileNode* FindFileByNameAndParent(Directory*, const char*);
 
 int main()
 {
@@ -95,7 +99,112 @@ int main()
 	DeleteFile(&v, v.root->subdirs->dir, v.root->subdirs->dir->files);
 	ViewStructureTree(v.root);
 	ViewFileData(v.root->subdirs->dir->files->file);
+	DeleteFileByPath(&v, "root/Folder1/File2.txt");
+	ViewStructureTree(v.root);
 	return 0;
+}
+
+int DeleteFileByPath(Volume* v, const char* path)
+{
+	if(v == NULL || path == NULL)
+	{
+        return 0;
+	}
+
+    char* pathClone = malloc(strlen(path) + 1);
+    strcpy(pathClone, path);
+
+    char* pathPart;
+    pathPart = strtok(pathClone, "/");
+
+    if(strcmp(pathPart, "root") != 0)
+	{
+		free(pathClone);
+		return 0;
+	}
+	pathPart = strtok(NULL, "/");
+
+	Directory* current = v->root;
+
+	while(!IsFile(pathPart))
+	{
+        current = FindDirectoryByNameAndParent(current, pathPart)->dir;
+        pathPart = strtok(NULL, "/");
+	}
+
+    FileNode* f = FindFileByNameAndParent(current, pathPart);
+    if(f == NULL)
+	{
+		free(pathClone);
+		return 0;
+	}
+
+    if(!DeleteFile(v, current, f))
+	{
+		free(pathClone);
+		return 0;
+	}
+
+	free(pathClone);
+    return 1;
+}
+
+int IsFile(const char* name)
+{
+	return strstr(name, ".") != NULL;
+}
+
+DirectoryNode* FindDirectoryByNameAndParent(Directory* parent, const char* name)
+{
+	if(parent == NULL)
+	{
+		return NULL;
+	}
+
+	DirectoryNode* t = parent->subdirs;
+
+    while(t != NULL)
+	{
+		if(strcmp(t->dir->name, name) == 0)
+		{
+			return t;
+		}
+
+		t = t->next;
+	}
+
+	return NULL;
+}
+
+FileNode* FindFileByNameAndParent(Directory* parent, const char* name)
+{
+	if(parent == NULL)
+	{
+		return NULL;
+	}
+
+	char* nameClone = malloc(strlen(name) + 1);
+	strcpy(nameClone, name);
+	const char* nameTok = strtok(nameClone, ".");
+	if(nameTok == NULL)
+	{
+		free(nameClone);
+		return NULL;
+	}
+	FileNode* t = parent->files;
+
+    while(t != NULL)
+	{
+		if(strcmp(t->file->name, nameTok) == 0)
+		{
+			return t;
+		}
+
+		t = t->next;
+	}
+
+	free(nameClone);
+	return NULL;
 }
 
 int DeleteFile(Volume* v, Directory* parent, FileNode* n)
