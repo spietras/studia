@@ -6,6 +6,8 @@
 #define EXTENSION_LENGTH 4
 #define CLUSTER_DATA_LENGTH 128
 #define DEFAULT_CLUSTER_NUM 100
+#define FILE_INVALID_CHARACTERS "/ \\"
+#define DIRECTORY_INVALID_CHARACTERS "/ \\."
 
 typedef struct Volume Volume;
 typedef struct Directory Directory;
@@ -85,6 +87,9 @@ int DeleteFileByPath(Volume*, const char*);
 int IsFile(const char*);
 DirectoryNode* FindDirectoryByNameAndParent(Directory*, const char*);
 FileNode* FindFileByNameAndParent(Directory*, const char*);
+int IsValidFilePath(const char*);
+int IsDirectory(const char*);
+int IsValidDirectoryPath(const char*);
 
 int main()
 {
@@ -101,12 +106,13 @@ int main()
 	ViewFileData(v.root->subdirs->dir->files->file);
 	DeleteFileByPath(&v, "root/Folder1/File2.txt");
 	ViewStructureTree(v.root);
+
 	return 0;
 }
 
 int DeleteFileByPath(Volume* v, const char* path)
 {
-	if(v == NULL || path == NULL)
+	if(v == NULL || path == NULL || !IsValidFilePath(path))
 	{
         return 0;
 	}
@@ -149,9 +155,102 @@ int DeleteFileByPath(Volume* v, const char* path)
     return 1;
 }
 
+int IsValidFilePath(const char* path)
+{
+	if(path == NULL || strstr(path, "//") != NULL)
+	{
+		return 0;
+	}
+
+    char *pathClone = malloc(strlen(path) + 1);
+    strcpy(pathClone, path);
+
+    char* t = malloc(strlen(pathClone) + 1);
+
+    pathClone = strtok(pathClone, "/");
+
+    if(strcmp(pathClone, "root") != 0)
+	{
+		free(pathClone);
+		free(t);
+		return 0;
+	}
+
+	do
+	{
+		t = pathClone;
+		pathClone = strtok(NULL, "/");
+
+		if(!IsDirectory(t) && pathClone != NULL)
+		{
+			free(pathClone);
+			free(t);
+			return 0;
+		}
+	}while(pathClone != NULL);
+
+	if(!IsFile(t))
+	{
+		free(pathClone);
+		free(t);
+		return 0;
+	}
+
+	free(pathClone);
+	free(t);
+	return 1;
+}
+
+int IsValidDirectoryPath(const char* path)
+{
+	if(path == NULL || strstr(path, "//") != NULL)
+	{
+		return 0;
+	}
+
+    char *pathClone = malloc(strlen(path) + 1);
+    strcpy(pathClone, path);
+
+    pathClone = strtok(pathClone, "/");
+
+    if(strcmp(pathClone, "root") != 0)
+	{
+		free(pathClone);
+		return 0;
+	}
+
+	do
+	{
+		if(!IsDirectory(pathClone))
+		{
+			free(pathClone);
+			return 0;
+		}
+
+		pathClone = strtok(NULL, "/");
+	}while(pathClone != NULL);
+
+	free(pathClone);
+	return 1;
+}
+
 int IsFile(const char* name)
 {
-	return strstr(name, ".") != NULL;
+	if(name == NULL || name[0] == '.' || name[strlen(name) - 1] == '.')
+	{
+		return 0;
+	}
+
+	return strstr(name, ".") != NULL && strpbrk(name, FILE_INVALID_CHARACTERS) == NULL;
+}
+
+int IsDirectory(const char* name)
+{
+	if(name == NULL)
+	{
+		return 0;
+	}
+	return strpbrk(name, DIRECTORY_INVALID_CHARACTERS) == NULL;
 }
 
 DirectoryNode* FindDirectoryByNameAndParent(Directory* parent, const char* name)
@@ -197,6 +296,7 @@ FileNode* FindFileByNameAndParent(Directory* parent, const char* name)
 	{
 		if(strcmp(t->file->name, nameTok) == 0)
 		{
+			free(nameClone);
 			return t;
 		}
 
@@ -233,6 +333,11 @@ int DeleteFile(Volume* v, Directory* parent, FileNode* n)
 
 void OrganizeFileListAfterDeletion(Directory* parent, FileNode* n)
 {
+	if(parent == NULL || n == NULL)
+	{
+		return;
+	}
+
 	if(n->previous == NULL && n->next == NULL)
 	{
         parent->files = NULL;
