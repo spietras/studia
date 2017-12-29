@@ -18,7 +18,7 @@ typedef struct Cluster Cluster;
 
 struct Volume
 {
-	Directory* root;
+	DirectoryNode* root;
 	Cluster** clusterTable;
 	int clustersNum;
 };
@@ -90,6 +90,8 @@ FileNode* FindFileByNameAndParent(Directory*, const char*);
 int IsValidFilePath(const char*);
 int IsDirectory(const char*);
 int IsValidDirectoryPath(const char*);
+DirectoryNode* FindDirectoryByPath(DirectoryNode*, const char*);
+FileNode* FindFileByPath(DirectoryNode*, const char*);
 
 int main()
 {
@@ -99,60 +101,49 @@ int main()
 		printf("Initialization error");
 		return 1;
 	}
-	ViewStructureTree(v.root);
-	ViewFileData(v.root->subdirs->dir->files->file);
-	DeleteFile(&v, v.root->subdirs->dir, v.root->subdirs->dir->files);
-	ViewStructureTree(v.root);
-	ViewFileData(v.root->subdirs->dir->files->file);
+	ViewStructureTree(v.root->dir);
+	ViewFileData(v.root->dir->subdirs->dir->files->file);
+	DeleteFile(&v, v.root->dir->subdirs->dir, v.root->dir->subdirs->dir->files);
+	ViewStructureTree(v.root->dir);
+	ViewFileData(v.root->dir->subdirs->dir->files->file);
 	DeleteFileByPath(&v, "root/Folder1/File2.txt");
-	ViewStructureTree(v.root);
+	ViewStructureTree(v.root->dir);
 
 	return 0;
 }
 
 int DeleteFileByPath(Volume* v, const char* path)
 {
-	if(v == NULL || path == NULL || !IsValidFilePath(path))
+	if(v == NULL || path == NULL)
 	{
         return 0;
 	}
 
-    char* pathClone = malloc(strlen(path) + 1);
-    strcpy(pathClone, path);
+	char *last = strrchr(path, '/');
+    char *dirPath = malloc(last - path + 1);
+    strncpy(dirPath, path, last-path);
 
-    char* pathPart;
-    pathPart = strtok(pathClone, "/");
-
-    if(strcmp(pathPart, "root") != 0)
+    DirectoryNode* parent = FindDirectoryByPath(v->root, dirPath);
+    if(parent == NULL)
 	{
-		free(pathClone);
+		free(dirPath);
 		return 0;
 	}
-	pathPart = strtok(NULL, "/");
-
-	Directory* current = v->root;
-
-	while(!IsFile(pathPart))
-	{
-        current = FindDirectoryByNameAndParent(current, pathPart)->dir;
-        pathPart = strtok(NULL, "/");
-	}
-
-    FileNode* f = FindFileByNameAndParent(current, pathPart);
+    FileNode *f = FindFileByNameAndParent(parent->dir, last+1);
     if(f == NULL)
 	{
-		free(pathClone);
+		free(dirPath);
 		return 0;
 	}
 
-    if(!DeleteFile(v, current, f))
+    if(!DeleteFile(v, parent->dir, f))
 	{
-		free(pathClone);
+		free(dirPath);
 		return 0;
 	}
 
-	free(pathClone);
-    return 1;
+	free(dirPath);
+	return 1;
 }
 
 int IsValidFilePath(const char* path)
@@ -251,6 +242,48 @@ int IsDirectory(const char* name)
 		return 0;
 	}
 	return strpbrk(name, DIRECTORY_INVALID_CHARACTERS) == NULL;
+}
+
+FileNode* FindFileByPath(DirectoryNode* root, const char* path)
+{
+	if(root == NULL || !IsValidFilePath(path))
+	{
+		return NULL;
+	}
+
+    char *last = strrchr(path, '/');
+    char *dirPath = malloc(last - path + 1);
+    strncpy(dirPath, path, last-path);
+
+    DirectoryNode* parent = FindDirectoryByPath(root, dirPath);
+
+    free(dirPath);
+    return FindFileByNameAndParent(parent->dir, last+1);
+}
+
+DirectoryNode* FindDirectoryByPath(DirectoryNode* root, const char* path)
+{
+	if(root == NULL || !IsValidDirectoryPath(path))
+	{
+		return NULL;
+	}
+
+	char* pathClone = malloc(strlen(path) + 1);
+    strcpy(pathClone, path);
+
+    pathClone = strtok(pathClone, "/");
+    pathClone = strtok(NULL, "/");
+
+	DirectoryNode* current = root;
+
+	while(pathClone != NULL)
+	{
+		current = FindDirectoryByNameAndParent(current->dir, pathClone);
+		pathClone = strtok(NULL, "/");
+	}
+
+	free(pathClone);
+	return current;
 }
 
 DirectoryNode* FindDirectoryByNameAndParent(Directory* parent, const char* name)
@@ -364,21 +397,25 @@ int InitializeVolume(Volume* v)
 	{
 		return 0;
 	}
-    v->root = (Directory*)malloc(sizeof(Directory));
+    v->root = (DirectoryNode*)malloc(sizeof(DirectoryNode));
     if(v->root == NULL)
 	{
 		return 0;
 	}
-    strcpy(v->root->name, "root");
-    v->root->files = NULL;
-    v->root->subdirs = NULL;
-    v->root->entriesNum = 0;
+	v->root->next = NULL;
+	v->root->previous = NULL;
+	v->root->dir = (Directory*)malloc(sizeof(Directory));
+    strcpy(v->root->dir->name, "root");
+    v->root->dir->files = NULL;
+    v->root->dir->subdirs = NULL;
+    v->root->dir->entriesNum = 0;
 
     /* DEFAULT_CLUSTER_NUM clusters */
 
     v->clusterTable = (Cluster**)malloc(DEFAULT_CLUSTER_NUM*sizeof(Cluster*));
     if(v->clusterTable == NULL)
 	{
+		free(v->root->dir);
 		free(v->root);
 		return 0;
 	}
@@ -394,6 +431,7 @@ int InitializeVolume(Volume* v)
     v->clusterTable[0] = (Cluster*)malloc(sizeof(Cluster));
     if(v->clusterTable[0] == NULL)
 	{
+		free(v->root->dir);
 		free(v->root);
 		free(v->clusterTable);
 		v->clustersNum = 0;
@@ -402,10 +440,11 @@ int InitializeVolume(Volume* v)
     v->clusterTable[0]->next = NULL;
     v->clusterTable[0]->data[0] = '\0';
     v->clusterTable[0]->id = 0;
-    v->root->data = v->clusterTable[0];
+    v->root->dir->data = v->clusterTable[0];
 
     if(!AddExampleEntries(v))
 	{
+		free(v->root->dir);
 		free(v->root);
 		free(v->clusterTable);
 		v->clustersNum = 0;
@@ -423,19 +462,19 @@ int AddExampleEntries(Volume* v)
 	}
 
 	return
-	AddDirectory(v, v->root, "Folder1") &&
-	AddDirectory(v, v->root, "Folder2") &&
-	AddDirectory(v, v->root->subdirs->dir, "Folder1") &&
-	AddDirectory(v, v->root->subdirs->dir, "Folder2") &&
-	AddDirectory(v, v->root->subdirs->next->dir, "Folder1") &&
-	AddDirectory(v, v->root->subdirs->next->dir, "Folder2") &&
-	AddDirectory(v, v->root->subdirs->next->dir, "Folder3") &&
-	AddDirectory(v, v->root->subdirs->dir->subdirs->next->dir, "Folder1") &&
-	AddFile(v, v->root, "File1", "txt") &&
-	AddFile(v, v->root->subdirs->dir, "File1", "txt") &&
-	AddDataToFile(v, v->root->subdirs->dir->files->file, "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") &&
-	AddFile(v, v->root->subdirs->dir, "File2", "txt") &&
-	AddFile(v, v->root->subdirs->next->dir->subdirs->dir, "File1", "txt");
+	AddDirectory(v, v->root->dir, "Folder1") &&
+	AddDirectory(v, v->root->dir, "Folder2") &&
+	AddDirectory(v, v->root->dir->subdirs->dir, "Folder1") &&
+	AddDirectory(v, v->root->dir->subdirs->dir, "Folder2") &&
+	AddDirectory(v, v->root->dir->subdirs->next->dir, "Folder1") &&
+	AddDirectory(v, v->root->dir->subdirs->next->dir, "Folder2") &&
+	AddDirectory(v, v->root->dir->subdirs->next->dir, "Folder3") &&
+	AddDirectory(v, v->root->dir->subdirs->dir->subdirs->next->dir, "Folder1") &&
+	AddFile(v, v->root->dir, "File1", "txt") &&
+	AddFile(v, v->root->dir->subdirs->dir, "File1", "txt") &&
+	AddDataToFile(v, v->root->dir->subdirs->dir->files->file, "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") &&
+	AddFile(v, v->root->dir->subdirs->dir, "File2", "txt") &&
+	AddFile(v, v->root->dir->subdirs->next->dir->subdirs->dir, "File1", "txt");
 
 }
 
