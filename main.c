@@ -51,7 +51,7 @@ struct Cluster
 };
 
 int InitializeVolume(Volume*);
-int AddDirectory(Volume *, Directory*, const char*);
+Directory* AddDirectory(Volume *, Directory*, const char*);
 Directory* FindLastInDirectoryList(Directory*);
 int IsAnotherClusterNeededForEntry(int);
 int FindEmptyClusterIndex(Cluster**, int);
@@ -63,14 +63,14 @@ Cluster* FindEmptyCluster(Volume *);
 void ViewLevel(Directory *, int);
 TextFile* FindLastInFileList(TextFile*);
 TextFile* CreateEmptyFile(Volume *, const char*, const char*);
-int AddFile(Volume *, Directory*, const char*, const char*);
+TextFile* AddFile(Volume *, Directory*, const char*, const char*);
 int AddExampleEntries(Volume*);
 int NumberOfNeededClusters(const char*);
 int IsEnoughFreeClusters(Cluster**, int, int);
 int AddDataToClusterChain(Volume*, TextFile*, const char*, int);
 void ViewFileData(TextFile*);
 int AddDataToFile(Volume*, TextFile*, const char*);
-int ClearFileData(Volume *, Cluster*);
+int ClearData(Volume *, Cluster*);
 int DeleteFile(Volume*, TextFile*);
 int DeleteFileByPath(Volume*, const char*);
 int IsFile(const char*);
@@ -82,24 +82,242 @@ int IsValidDirectoryPath(const char*);
 Directory* FindDirectoryByPath(Directory*, const char*);
 TextFile* FindFileByPath(Directory*, const char*);
 void OrganizeFileListAfterDeletion(TextFile*);
+void OrganizeSubdirectoryListAfterDeletion(Directory*);
+int DeleteSingleDirectory(Volume*, Directory*);
+int DeleteDirectoryTree(Volume*, Directory*);
+int DeleteDirectoryByPath(Volume* v, const char* path);
+TextFile* AddFileByPath(Volume*, const char*);
+Directory* AddDirectoryByPath(Volume*, const char*);
+int AddDataToFileByPath(Volume*, const char*, const char*);
+void ViewFileDataByPath(Directory*, const char*);
+void ViewStructureTreeByPath(Directory*, const char*);
 
 int main()
 {
 	Volume v;
 	if(!InitializeVolume(&v))
 	{
-		printf("Initialization error");
+		printf("\nInitialization error\n");
 		return 1;
 	}
 	ViewStructureTree(v.root);
-	ViewFileData(v.root->subdirs->files);
-	DeleteFile(&v, v.root->subdirs->files);
+	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
+	DeleteFileByPath(&v, "root/Folder1/File1.txt");
 	ViewStructureTree(v.root);
-	ViewFileData(v.root->subdirs->files);
+	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
 	DeleteFileByPath(&v, "root/Folder1/File2.txt");
+	ViewStructureTree(v.root);
+	DeleteDirectoryByPath(&v, "root/Folder2");
+	ViewStructureTree(v.root);
+	AddFileByPath(&v, "root/Folder1/Folder2/Folder1/F/G/H/XD.txt");
+	AddDirectoryByPath(&v, "root/Folder1/A/B");
 	ViewStructureTree(v.root);
 
 	return 0;
+}
+
+void ViewStructureTreeByPath(Directory* root, const char* path)
+{
+	if(root == NULL)
+	{
+		printf("\nNo root folder\n");
+		return;
+	}
+
+	if(!IsValidDirectoryPath(path))
+	{
+		printf("\nInvalid path\n");
+		return;
+	}
+
+	Directory* d = FindDirectoryByPath(root, path);
+
+	if(d == NULL)
+	{
+		printf("\nDirectory does not exist\n");
+		return;
+	}
+
+	ViewStructureTree(d);
+}
+
+void ViewFileDataByPath(Directory* root, const char* path)
+{
+	if(root == NULL)
+	{
+		printf("\nNo root folder\n");
+		return;
+	}
+
+	if(!IsValidFilePath(path))
+	{
+		printf("\nInvalid path\n");
+		return;
+	}
+
+	TextFile* f = FindFileByPath(root, path);
+
+	if(f == NULL)
+	{
+		printf("\nFile does not exist\n");
+		return;
+	}
+
+	ViewFileData(f);
+}
+
+int AddDataToFileByPath(Volume* v, const char* path, const char* data)
+{
+	if(v == NULL || !IsValidFilePath(path) || data == NULL)
+	{
+		return 0;
+	}
+
+	TextFile *f = FindFileByPath(v->root, path);
+	if(f == NULL)
+	{
+		return 0;
+	}
+
+	return AddDataToFile(v, f, data);
+}
+
+Directory* AddDirectoryByPath(Volume*v, const char* path)
+{
+	if(v == NULL || !IsValidDirectoryPath(path))
+	{
+		return NULL;
+	}
+
+	char *pathClone = malloc(strlen(path)+1);
+	strcpy(pathClone, path);
+
+	char* cName = strtok(pathClone, "/");
+	cName = strtok(NULL, "/");
+
+	Directory* current = v->root;
+	Directory* t = current;
+
+	while(cName != NULL)
+	{
+		current = FindDirectoryByNameAndParent(current, cName);
+
+		if(current == NULL)
+		{
+			current = AddDirectory(v, t, cName);
+			if(current == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		t = current;
+		cName = strtok(NULL, "/");
+	}
+
+	return current;
+}
+
+TextFile* AddFileByPath(Volume* v, const char* path)
+{
+	if(v == NULL || !IsValidFilePath(path))
+	{
+		return NULL;
+	}
+
+	char *pathClone = malloc(strlen(path)+1);
+	strcpy(pathClone, path);
+
+	char* cName = strtok(pathClone, "/");
+	cName = strtok(NULL, "/");
+
+	Directory* current = v->root;
+	Directory* t = current;
+
+	while(!IsFile(cName))
+	{
+		current = FindDirectoryByNameAndParent(current, cName);
+
+		if(current == NULL)
+		{
+			current = AddDirectory(v, t, cName);
+			if(current == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		t = current;
+		cName = strtok(NULL, "/");
+	}
+
+	char* name = strtok(cName, ".");
+	char* ext = strtok(NULL, ".");
+
+	return AddFile(v, current, name, ext);
+}
+
+/* Delete directory (and all subdirectories and files within it) with given path */
+int DeleteDirectoryByPath(Volume* v, const char* path)
+{
+	if(v == NULL || path == NULL)
+	{
+        return 0;
+	}
+
+    Directory* d = FindDirectoryByPath(v->root, path);
+
+    if(!DeleteDirectoryTree(v, d))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/* Deletes recursively all subdirectories and files within given directory (and that directory) */
+int DeleteDirectoryTree(Volume*v, Directory* d)
+{
+	if(v == NULL || d == NULL)
+	{
+		return 0;
+	}
+
+	while(d->subdirs != NULL)
+	{
+		DeleteDirectoryTree(v, d->subdirs);
+	}
+
+	while(d->files != NULL)
+	{
+		DeleteFile(v, d->files);
+	}
+
+	DeleteSingleDirectory(v, d);
+
+	return 1;
+}
+
+/* Deletes d directory (with no subdirectories) */
+int DeleteSingleDirectory(Volume* v, Directory* d)
+{
+	if(v == NULL  || d == NULL || d->dataClusters == NULL || d->parent == NULL || d->parent->subdirs == NULL || d->subdirs != NULL)
+	{
+		return 0;
+	}
+
+    if(!ClearData(v, d->dataClusters))
+	{
+		return 0;
+	}
+    v->clusterTable[d->dataClusters->id] = NULL;
+    free(d->dataClusters);
+
+    OrganizeSubdirectoryListAfterDeletion(d);
+
+	free(d);
+
+	return 1;
 }
 
 /* Deletes file by given path */
@@ -234,11 +452,12 @@ TextFile* FindFileByPath(Directory* root, const char* path)
     char *dirPath = malloc(last - path + 1);
     strncpy(dirPath, path, last-path);
     dirPath[last-path] = '\0';
+    last = last+1;
 
     Directory* parent = FindDirectoryByPath(root, dirPath);
 
     free(dirPath);
-    return FindFileByNameAndParent(parent, last+1);
+    return FindFileByNameAndParent(parent, last);
 }
 
 /* Finds directory by path */
@@ -331,7 +550,7 @@ int DeleteFile(Volume* v, TextFile* f)
 		return 0;
 	}
 
-    if(!ClearFileData(v, f->dataClusters))
+    if(!ClearData(v, f->dataClusters))
 	{
 		return 0;
 	}
@@ -343,6 +562,34 @@ int DeleteFile(Volume* v, TextFile* f)
 	free(f);
 
 	return 1;
+}
+
+/* Cleans up list of subdirectories when deleting one */
+void OrganizeSubdirectoryListAfterDeletion(Directory* d)
+{
+	if(d == NULL || d->parent == NULL)
+	{
+		return;
+	}
+
+	if(d->previous == NULL && d->next == NULL)
+	{
+        d->parent->subdirs = NULL;
+	}
+	else if(d->previous == NULL && d->next != NULL)
+	{
+		d->next->previous = NULL;
+		d->parent->subdirs = d->next;
+	}
+	else if(d->previous != NULL && d->next == NULL)
+	{
+		d->previous->next = NULL;
+	}
+	else if(d->previous != NULL && d->next != NULL)
+	{
+		d->previous->next = d->next;
+		d->next->previous = d->previous;
+	}
 }
 
 /* Cleans up list of files when deleting one */
@@ -429,34 +676,34 @@ int AddExampleEntries(Volume* v)
 	}
 
 	return
-	AddDirectory(v, v->root, "Folder1") &&
-	AddDirectory(v, v->root, "Folder2") &&
-	AddDirectory(v, v->root->subdirs, "Folder1") &&
-	AddDirectory(v, v->root->subdirs, "Folder2") &&
-	AddDirectory(v, v->root->subdirs->next, "Folder1") &&
-	AddDirectory(v, v->root->subdirs->next, "Folder2") &&
-	AddDirectory(v, v->root->subdirs->next, "Folder3") &&
-	AddDirectory(v, v->root->subdirs->subdirs->next, "Folder1") &&
-	AddFile(v, v->root, "File1", "txt") &&
-	AddFile(v, v->root->subdirs, "File1", "txt") &&
-	AddDataToFile(v, v->root->subdirs->files, "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") &&
-	AddFile(v, v->root->subdirs, "File2", "txt") &&
-	AddFile(v, v->root->subdirs->next->subdirs, "File1", "txt");
+	AddDirectoryByPath(v, "root/Folder1") != NULL &&
+	AddDirectoryByPath(v, "root/Folder2") != NULL &&
+	AddDirectoryByPath(v, "root/Folder1/Folder1") != NULL &&
+	AddDirectoryByPath(v, "root/Folder1/Folder2") != NULL &&
+	AddDirectoryByPath(v, "root/Folder2/Folder1") != NULL &&
+	AddDirectoryByPath(v, "root/Folder2/Folder2") != NULL &&
+	AddDirectoryByPath(v, "root/Folder2/Folder3") != NULL &&
+	AddDirectoryByPath(v, "root/Folder1/Folder2/Folder1") != NULL &&
+	AddFileByPath(v, "root/File1.txt") != NULL &&
+	AddFileByPath(v, "root/Folder1/File1.txt") != NULL &&
+	AddDataToFileByPath(v, "root/Folder1/File1.txt", "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") != 0 &&
+	AddFileByPath(v, "root/Folder1/File2.txt") != NULL &&
+	AddFileByPath(v, "root/Folder2/Folder1/File1.txt") != NULL;
 
 }
 
 /* Adds directory with given name to parent directory */
-int AddDirectory(Volume *v, Directory* parent, const char* name)
+Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_LENGTH)
 	{
-		return 0;
+		return NULL;
 	}
 	Directory* last = FindLastInDirectoryList(parent->subdirs);
     Directory* create = CreateEmptyDirectory(v, name);
     if(create == NULL)
 	{
-		return 0;
+		return NULL;
 	}
 
     if(last == NULL)
@@ -482,25 +729,25 @@ int AddDirectory(Volume *v, Directory* parent, const char* name)
 			last->next = NULL;
 		}
 		free(create);
-		return 0;
+		return NULL;
 	}
 
-    return 1;
+    return create;
 }
 
 /* Adds file with given name and extension to parent directory */
-int AddFile(Volume *v, Directory* parent, const char* name, const char* extension)
+TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* extension)
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_LENGTH || strlen(extension) > EXTENSION_LENGTH)
 	{
-		return 0;
+		return NULL;
 	}
 
 	TextFile* last = FindLastInFileList(parent->files);
     TextFile* create = CreateEmptyFile(v, name, extension);
     if(create == NULL)
 	{
-		return 0;
+		return NULL;
 	}
 
     if(last == NULL)
@@ -526,10 +773,10 @@ int AddFile(Volume *v, Directory* parent, const char* name, const char* extensio
 			last->next = NULL;
 		}
 		free(create);
-		return 0;
+		return NULL;
 	}
 
-    return 1;
+    return create;
 }
 
 /* Adds data to file */
@@ -547,7 +794,7 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 		return 0;
 	}
 
-	if(!ClearFileData(v, f->dataClusters))
+	if(!ClearData(v, f->dataClusters))
 	{
 		return 0;
 	}
@@ -568,7 +815,7 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 }
 
 /* Clears data of file (given file's data cluster) */
-int ClearFileData(Volume *v, Cluster*  dataCluster)
+int ClearData(Volume *v, Cluster*  dataCluster)
 {
 	if(v == NULL || dataCluster == NULL)
 	{
@@ -873,15 +1120,16 @@ void ViewStructureTree(Directory *d)
 {
 	if(d == NULL)
 	{
-		printf("Directory does not exist\n");
+		printf("\nDirectory does not exist\n");
 	}
 
 	if(d->files == NULL && d->subdirs == NULL)
 	{
-		printf("Empty directory\n");
+		printf("\nEmpty directory\n");
 	}
 
 	int startLevel = 0;
+	printf("\n%s\n", d->name);
 
 	ViewLevel(d, startLevel);
 
@@ -901,28 +1149,20 @@ void ViewLevel(Directory *d, int level)
 	}
 
 	Directory* t = d->subdirs;
-	if(t != NULL)
+	while(t != NULL)
 	{
-		do
-		{
-			Indent(level);
-			printf("%s\n", t->name);
-			ViewLevel(t, level+1);
-			t = t->next;
-		}while(t != NULL);
-
+		Indent(level);
+		printf("%s\n", t->name);
+		ViewLevel(t, level+1);
+		t = t->next;
 	}
 
 	TextFile* f = d->files;
-	if(f != NULL)
+	while(f != NULL)
 	{
-		do
-		{
-			Indent(level);
-			printf("%s.%s\n", f->name, f->extension);
-			f = f->next;
-		}while(f != NULL);
-
+		Indent(level);
+		printf("%s.%s\n", f->name, f->extension);
+		f = f->next;
 	}
 
 }
@@ -946,12 +1186,12 @@ void ViewFileData(TextFile* f)
 {
 	if(f == NULL)
 	{
-		printf("File does not exist\n");
+		printf("\nFile does not exist\n");
 		return;
 	}
 	if(f->dataClusters == NULL || strlen(f->dataClusters->data) == 0)
 	{
-		printf("File is empty\n");
+		printf("\nFile is empty\n");
 		return;
 	}
 
