@@ -2,10 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NAME_LENGTH 16
-#define EXTENSION_LENGTH 4
-#define CLUSTER_DATA_LENGTH 128
-#define DEFAULT_CLUSTER_NUM 100
+#define NAME_SIZE 20
+#define EXTENSION_SIZE 8
+#define ENTRIES_PER_CLUSTER 4
+#define MAX_VOLUME_SIZE 1048576
+#define DEFAULT_CLUSTER_FRACTION 0.125
+#define ENTRY_DATA_SIZE (NAME_SIZE+EXTENSION_SIZE+4)
+#define CLUSTER_DATA_SIZE (ENTRIES_PER_CLUSTER*ENTRY_DATA_SIZE)
+#define MAX_CLUSTER_NUM ((MAX_VOLUME_SIZE)/(CLUSTER_DATA_SIZE))
+#define DEFAULT_CLUSTER_NUM (DEFAULT_CLUSTER_FRACTION * MAX_CLUSTER_NUM)
 #define FILE_INVALID_CHARACTERS "/ \\"
 #define DIRECTORY_INVALID_CHARACTERS "/ \\."
 
@@ -23,7 +28,7 @@ struct Volume
 
 struct Directory
 {
-	char name[NAME_LENGTH+1];
+	char name[NAME_SIZE+1];
 	Directory* subdirs;
 	TextFile* files;
 	int entriesNum;
@@ -35,8 +40,8 @@ struct Directory
 
 struct TextFile
 {
-	char name[NAME_LENGTH+1];
-	char extension[EXTENSION_LENGTH+1];
+	char name[NAME_SIZE+1];
+	char extension[EXTENSION_SIZE+1];
 	Cluster* dataClusters;
 	Directory* parent;
 	TextFile* next;
@@ -46,7 +51,7 @@ struct TextFile
 struct Cluster
 {
 	int id;
-	char data[CLUSTER_DATA_LENGTH+1];
+	char data[CLUSTER_DATA_SIZE+1];
 	Cluster* next;
 };
 
@@ -700,7 +705,7 @@ int AddExampleEntries(Volume* v)
 /* Adds directory with given name to parent directory */
 Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 {
-	if(v == NULL || parent == NULL || strlen(name) > NAME_LENGTH)
+	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE)
 	{
 		return NULL;
 	}
@@ -743,7 +748,7 @@ Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 /* Adds file with given name and extension to parent directory */
 TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* extension)
 {
-	if(v == NULL || parent == NULL || strlen(name) > NAME_LENGTH || strlen(extension) > EXTENSION_LENGTH)
+	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE)
 	{
 		return NULL;
 	}
@@ -879,7 +884,7 @@ int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, int neededCl
 
 	while(c != '\0')
 	{
-		for(n = 0; n < CLUSTER_DATA_LENGTH; n++, m++)
+		for(n = 0; n < CLUSTER_DATA_SIZE; n++, m++)
 		{
 			c = data[m];
 			if(c == '\0')
@@ -933,18 +938,18 @@ int NumberOfNeededClusters(const char* data)
 
 	int dataSize = strlen(data);
 
-	if(dataSize % CLUSTER_DATA_LENGTH == 0)
+	if(dataSize % CLUSTER_DATA_SIZE == 0)
 	{
-		return dataSize / CLUSTER_DATA_LENGTH;
+		return dataSize / CLUSTER_DATA_SIZE;
 	}
 
-	return dataSize / CLUSTER_DATA_LENGTH + 1;
+	return dataSize / CLUSTER_DATA_SIZE + 1;
 }
 
 /* Creates empty directory and returns pointer to it */
 Directory* CreateEmptyDirectory(Volume *v, const char* name)
 {
-	if(v == NULL || strlen(name) > NAME_LENGTH)
+	if(v == NULL || strlen(name) > NAME_SIZE)
 	{
 		return NULL;
 	}
@@ -971,7 +976,7 @@ Directory* CreateEmptyDirectory(Volume *v, const char* name)
 /* Creates empty file and returns pointer to it */
 TextFile* CreateEmptyFile(Volume *v, const char* name, const char* extension)
 {
-	if(v == NULL || strlen(name) > NAME_LENGTH || strlen(extension) > EXTENSION_LENGTH)
+	if(v == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE)
 	{
 		return NULL;
 	}
@@ -1096,7 +1101,7 @@ int IsAnotherClusterNeededForEntry(int entriesNum)
 		entriesNum = 0;
 	}
 
-	return (entriesNum % 4) + 1 > 4;
+	return (entriesNum % ENTRIES_PER_CLUSTER) + 1 > ENTRIES_PER_CLUSTER;
 }
 
 /* Returns index of first empty cluster in clusterTable */
