@@ -52,6 +52,7 @@ struct Cluster
 {
 	int id;
 	char data[CLUSTER_DATA_SIZE+1];
+	Cluster* previous;
 	Cluster* next;
 };
 
@@ -96,6 +97,11 @@ Directory* AddDirectoryByPath(Volume*, const char*);
 int AddDataToFileByPath(Volume*, const char*, const char*);
 void ViewFileDataByPath(Directory*, const char*);
 void ViewStructureTreeByPath(Directory*, const char*);
+Cluster* FindLastInClusterList(Cluster*);
+int IsLastClusterNeededAfterDeletingEntry(int);
+int MoveFileToDirectoryByPaths(Volume*v, const char*, const char*);
+int MoveFileToDirectory(Volume*, TextFile*, Directory*);
+int RemoveEntrySpace(Volume*, Directory*);
 
 int main()
 {
@@ -117,8 +123,80 @@ int main()
 	AddFileByPath(&v, "root/Folder1/Folder2/Folder1/F/G/H/XD.txt");
 	AddDirectoryByPath(&v, "root/Folder1/A/B");
 	ViewStructureTree(v.root);
+	MoveFileToDirectoryByPaths(&v, "root/File1.txt", "root/Folder1/Folder2/Folder1/F/G/H");
+	ViewStructureTree(v.root);
 
 	return 0;
+}
+
+int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
+{
+	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
+	{
+		return 0;
+	}
+
+	TextFile* f = FindFileByPath(v->root, fPath);
+	if(f == NULL)
+	{
+		return 0;
+	}
+
+	Directory* d = FindDirectoryByPath(v->root, dirPath);
+	if(d == NULL)
+	{
+		return 0;
+	}
+
+	if(!MoveFileToDirectory(v, f, d))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
+{
+    if(!AddEntrySpace(v, d))
+	{
+		return 0;
+	}
+
+	if(!RemoveEntrySpace(v, d))
+	{
+		return 0;
+	}
+	OrganizeFileListAfterDeletion(f);
+
+	f->parent = d;
+
+	TextFile *last = FindLastInFileList(d->files);
+	if(last == NULL)
+	{
+		d->files = f;
+	}
+	else
+	{
+		last->next = f;
+		f->previous = last;
+	}
+
+	return 1;
+}
+
+Cluster* CopyClusterList(Cluster* first)
+{
+	if(first == NULL)
+	{
+		return NULL;
+	}
+
+	Cluster* t = (Cluster*)malloc(sizeof(Cluster));
+	strcpy(t->data, first->data);
+	t->id = first->id;
+	t->next = CopyClusterList(first->next);
+	return t;
 }
 
 /* Views tree structure of directory with given path */
@@ -628,6 +706,10 @@ void OrganizeFileListAfterDeletion(TextFile* f)
 		f->previous->next = f->next;
 		f->next->previous = f->previous;
 	}
+
+	f->previous = NULL;
+	f->next = NULL;
+	f->parent = NULL;
 }
 
 /* Volume initialization */
@@ -875,6 +957,7 @@ int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, int neededCl
 			f->dataClusters->next = NULL;
 			return 0;
 		}
+		previous->next->previous = previous;
 		previous = previous->next;
 	}
 
@@ -1049,10 +1132,34 @@ int AddEntrySpace(Volume *v, Directory* parent)
 		}
 		v->clusterTable[i]->data[0] = '\0';
 		v->clusterTable[i]->id = i;
-		parent->dataClusters->next = v->clusterTable[i];
+
+		Cluster* last = FindLastInClusterList(parent->dataClusters);
+		last->next = v->clusterTable[i];
+		last->next->previous = last;
 	}
 
 	parent->entriesNum++;
+
+	return 1;
+}
+
+int RemoveEntrySpace(Volume* v, Directory* parent)
+{
+	if(v == NULL || parent == NULL || parent->entriesNum <= 0)
+	{
+		return 0;
+	}
+
+	if(IsLastClusterNeededAfterDeletingEntry(parent->entriesNum))
+	{
+		Cluster* last = FindLastInClusterList(parent->dataClusters);
+
+		last->previous->next = NULL;
+		v->clusterTable[last->id] = NULL;
+		free(last);
+	}
+
+	parent->entriesNum--;
 
 	return 1;
 }
@@ -1093,6 +1200,23 @@ TextFile* FindLastInFileList(TextFile* first)
 	return t;
 }
 
+Cluster* FindLastInClusterList(Cluster* first)
+{
+	if(first == NULL)
+	{
+		return NULL;
+	}
+
+    Cluster* t = first;
+
+    while(t->next != NULL)
+	{
+		t = t->next;
+	}
+
+	return t;
+}
+
 /* Checks if there is another cluster needed for one more entry with given number of previousEntries */
 int IsAnotherClusterNeededForEntry(int entriesNum)
 {
@@ -1101,7 +1225,17 @@ int IsAnotherClusterNeededForEntry(int entriesNum)
 		entriesNum = 0;
 	}
 
-	return (entriesNum % ENTRIES_PER_CLUSTER) + 1 > ENTRIES_PER_CLUSTER;
+	return entriesNum % ENTRIES_PER_CLUSTER == 0;
+}
+
+int IsLastClusterNeededAfterDeletingEntry(int entriesNum)
+{
+	if(entriesNum <= 1)
+	{
+		return 0;
+	}
+
+	return entriesNum % ENTRIES_PER_CLUSTER == 1;
 }
 
 /* Returns index of first empty cluster in clusterTable */
