@@ -116,6 +116,7 @@ int main()
 	return 0;
 }
 
+/* Views tree structure of directory with given path */
 void ViewStructureTreeByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
@@ -141,6 +142,7 @@ void ViewStructureTreeByPath(Directory* root, const char* path)
 	ViewStructureTree(d);
 }
 
+/* Views data of file with given path */
 void ViewFileDataByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
@@ -166,6 +168,7 @@ void ViewFileDataByPath(Directory* root, const char* path)
 	ViewFileData(f);
 }
 
+/* Adds given data to file with given path */
 int AddDataToFileByPath(Volume* v, const char* path, const char* data)
 {
 	if(v == NULL || !IsValidFilePath(path) || data == NULL)
@@ -182,6 +185,7 @@ int AddDataToFileByPath(Volume* v, const char* path, const char* data)
 	return AddDataToFile(v, f, data);
 }
 
+/* Adds directory with given path */
 Directory* AddDirectoryByPath(Volume*v, const char* path)
 {
 	if(v == NULL || !IsValidDirectoryPath(path))
@@ -218,6 +222,7 @@ Directory* AddDirectoryByPath(Volume*v, const char* path)
 	return current;
 }
 
+/* Adds file with given path */
 TextFile* AddFileByPath(Volume* v, const char* path)
 {
 	if(v == NULL || !IsValidFilePath(path))
