@@ -102,6 +102,8 @@ int IsLastClusterNeededAfterDeletingEntry(int);
 int MoveFileToDirectoryByPaths(Volume*v, const char*, const char*);
 int MoveFileToDirectory(Volume*, TextFile*, Directory*);
 int RemoveEntrySpace(Volume*, Directory*);
+int MoveDirectoryToDirectoryByPaths(Volume*, const char*, const char*);
+int MoveDirectoryToDirectory(Volume*, Directory*, Directory*);
 
 int main()
 {
@@ -125,8 +127,71 @@ int main()
 	ViewStructureTree(v.root);
 	MoveFileToDirectoryByPaths(&v, "root/File1.txt", "root/Folder1/Folder2/Folder1/F/G/H");
 	ViewStructureTree(v.root);
+	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1/Folder2/Folder1");
+	ViewStructureTree(v.root);
 
 	return 0;
+}
+
+int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
+{
+	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || strstr(destPath, dirPath) != NULL)
+	{
+		return 0;
+	}
+
+	Directory* d = FindDirectoryByPath(v->root, dirPath);
+	if(d == NULL)
+	{
+		return 0;
+	}
+
+	Directory* dest = FindDirectoryByPath(v->root, destPath);
+	if(dest == NULL)
+	{
+		return 0;
+	}
+
+	if(dest == d->parent)
+	{
+		return 0;
+	}
+
+	if(!MoveDirectoryToDirectory(v, d, dest))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
+{
+	if(!AddEntrySpace(v, destination))
+	{
+		return 0;
+	}
+
+	if(!RemoveEntrySpace(v, d->parent))
+	{
+		return 0;
+	}
+	OrganizeSubdirectoryListAfterDeletion(d);
+
+	d->parent = destination;
+
+	Directory *last = FindLastInDirectoryList(destination->subdirs);
+	if(last == NULL)
+	{
+		destination->subdirs = d;
+	}
+	else
+	{
+		last->next = d;
+		d->previous = last;
+	}
+
+	return 1;
 }
 
 /* Moves file with given path to file to directory with given path to directory */
@@ -165,7 +230,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 		return 0;
 	}
 
-	if(!RemoveEntrySpace(v, d))
+	if(!RemoveEntrySpace(v, f->parent))
 	{
 		return 0;
 	}
