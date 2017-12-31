@@ -110,6 +110,10 @@ Directory* CopySingleDirectoryToDirectory(Volume*, Directory*, Directory*);
 int CopyDirectoryToDirectory(Volume*, Directory*, Directory*);
 int CopyDirectoryToDirectoryByPaths(Volume*, const char*, const char*);
 int IsDestinationDirectoryPathBelowInHierarchy(const char*, const char*);
+int RenameFile(TextFile*, const char*);
+int RenameFileByPath(Directory*, const char*, const char*);
+int RenameDirectory(Directory*, const char*);
+int RenameDirectoryByPath(Directory*, const char*, const char*);
 
 int main()
 {
@@ -156,7 +160,101 @@ int main()
 	CopyDirectoryToDirectoryByPaths(&v, "root/Folder1/F", "root/Folder1/Folder1");
 	ViewStructureTree(v.root);
 
+	RenameFileByPath(v.root, "root/Folder1/F/G/H/XD.txt", "File1");
+	ViewStructureTree(v.root);
+
+	RenameFileByPath(v.root, "root/Folder1/F/G/H/XD.txt", "Filefgdfg");
+	ViewStructureTree(v.root);
+
+	RenameFileByPath(v.root, "root/File1.txt", "eeee");
+	ViewStructureTree(v.root);
+
+	RenameDirectoryByPath(v.root, "root", "boot");
+	ViewStructureTree(v.root);
+
+	RenameDirectoryByPath(v.root, "root/Folder1", "Bolber1");
+	ViewStructureTree(v.root);
+
 	return 0;
+}
+
+/* Sets directory with given path name to newName */
+int RenameDirectoryByPath(Directory* root, const char* path, const char* newName)
+{
+	if(path == NULL || newName == NULL || !IsValidDirectoryPath(path))
+	{
+		return 0;
+	}
+
+	Directory* d = FindDirectoryByPath(root, path);
+
+	if(d == NULL || d == root)
+	{
+		return 0;
+	}
+
+	return RenameDirectory(d, newName);
+}
+
+/* Sets directory d name to newName */
+int RenameDirectory(Directory* d, const char* newName)
+{
+	if(d == NULL || newName == NULL || strlen(newName) > NAME_SIZE)
+	{
+		return 0;
+	}
+
+	if(FindDirectoryByNameAndParent(d->parent, newName) != NULL)
+	{
+		return 0;
+	}
+
+	strcpy(d->name, newName);
+
+	return 1;
+}
+
+/* Sets file with given path name to newName */
+int RenameFileByPath(Directory* root, const char* path, const char* newName)
+{
+	if(path == NULL || newName == NULL || !IsValidFilePath(path))
+	{
+		return 0;
+	}
+
+	TextFile* f = FindFileByPath(root, path);
+
+	if(f == NULL)
+	{
+		return 0;
+	}
+
+	return RenameFile(f, newName);
+}
+
+/* Sets file f name to newName */
+int RenameFile(TextFile* f, const char* newName)
+{
+    if(f == NULL || newName == NULL || strlen(newName) > NAME_SIZE)
+	{
+		return 0;
+	}
+
+	char* fullName = malloc(strlen(newName) + 1 + strlen(f->extension) + 1);
+	strcpy(fullName, newName);
+	strcat(fullName, ".");
+	strcat(fullName, f->extension);
+
+	if(FindFileByNameAndParent(f->parent, fullName) != NULL)
+	{
+		free(fullName);
+		return 0;
+	}
+
+	strcpy(f->name, newName);
+
+	free(fullName);
+	return 1;
 }
 
 /* Checks if directory with destPath is below in hierarchy than directory with dirPath */
