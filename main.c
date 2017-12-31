@@ -127,12 +127,13 @@ int main()
 	ViewStructureTree(v.root);
 	MoveFileToDirectoryByPaths(&v, "root/File1.txt", "root/Folder1/Folder2/Folder1/F/G/H");
 	ViewStructureTree(v.root);
-	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1/Folder2/Folder1");
+	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1");
 	ViewStructureTree(v.root);
 
 	return 0;
 }
 
+/* Moves directory with given path to directory with given path */
 int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
 	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || strstr(destPath, dirPath) != NULL)
@@ -165,6 +166,7 @@ int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 	return 1;
 }
 
+/* Moves directory d to directory destination */
 int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
 	if(!AddEntrySpace(v, destination))
@@ -194,7 +196,7 @@ int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 	return 1;
 }
 
-/* Moves file with given path to file to directory with given path to directory */
+/* Moves file with given path to directory with given path */
 int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 {
 	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
