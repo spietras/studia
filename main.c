@@ -129,6 +129,8 @@ int main()
 	ViewStructureTree(v.root);
 	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1");
 	ViewStructureTree(v.root);
+	AddFileByPath(&v, "root/Folder1/F/G/H/File1.txt");
+	ViewStructureTree(v.root);
 
 	return 0;
 }
@@ -169,6 +171,16 @@ int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 /* Moves directory d to directory destination */
 int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
+	if(v == NULL || d == NULL || destination == NULL)
+	{
+		return 0;
+	}
+
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
+	{
+		return 0;
+	}
+
 	if(!AddEntrySpace(v, destination))
 	{
 		return 0;
@@ -227,6 +239,21 @@ int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 /* Moves file f to directory d */
 int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
+	if(v == NULL || f == NULL || d == NULL)
+	{
+		return NULL;
+	}
+
+    char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
+	strcpy(fullName, f->name);
+	strcat(fullName, ".");
+	strcat(fullName, f->extension);
+
+	if(FindFileByNameAndParent(d, fullName) != NULL)
+	{
+		return NULL;
+	}
+
     if(!AddEntrySpace(v, d))
 	{
 		return 0;
@@ -872,6 +899,12 @@ Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 	{
 		return NULL;
 	}
+
+	if(FindDirectoryByNameAndParent(parent, name) != NULL)
+	{
+		return NULL;
+	}
+
 	Directory* last = FindLastInDirectoryList(parent->subdirs);
     Directory* create = CreateEmptyDirectory(v, name);
     if(create == NULL)
@@ -912,6 +945,16 @@ Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* extension)
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE)
+	{
+		return NULL;
+	}
+
+	char* fullName = malloc(strlen(name) + 1 + strlen(extension) + 1);
+	strcpy(fullName, name);
+	strcat(fullName, ".");
+	strcat(fullName, extension);
+
+	if(FindFileByNameAndParent(parent, fullName) != NULL)
 	{
 		return NULL;
 	}
