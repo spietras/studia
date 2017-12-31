@@ -129,6 +129,7 @@ int main()
 	return 0;
 }
 
+/* Moves file with given path to file to directory with given path to directory */
 int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 {
 	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
@@ -156,6 +157,7 @@ int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 	return 1;
 }
 
+/* Moves file f to directory d */
 int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
     if(!AddEntrySpace(v, d))
@@ -185,6 +187,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	return 1;
 }
 
+/* Copies list of clusters */
 Cluster* CopyClusterList(Cluster* first)
 {
 	if(first == NULL)
@@ -401,7 +404,13 @@ int DeleteSingleDirectory(Volume* v, Directory* d)
     v->clusterTable[d->dataClusters->id] = NULL;
     free(d->dataClusters);
 
+    if(!RemoveEntrySpace(v, d->parent))
+	{
+		return 0;
+	}
+
     OrganizeSubdirectoryListAfterDeletion(d);
+
 
 	free(d);
 
@@ -644,6 +653,11 @@ int DeleteFile(Volume* v, TextFile* f)
 	}
     v->clusterTable[f->dataClusters->id] = NULL;
     free(f->dataClusters);
+
+    if(!RemoveEntrySpace(v, f->parent))
+	{
+		return 0;
+	}
 
     OrganizeFileListAfterDeletion(f);
 
@@ -1143,6 +1157,7 @@ int AddEntrySpace(Volume *v, Directory* parent)
 	return 1;
 }
 
+/* Removes space for one entry from parent directory entries */
 int RemoveEntrySpace(Volume* v, Directory* parent)
 {
 	if(v == NULL || parent == NULL || parent->entriesNum <= 0)
@@ -1200,6 +1215,7 @@ TextFile* FindLastInFileList(TextFile* first)
 	return t;
 }
 
+/* Returns last cluster in list */
 Cluster* FindLastInClusterList(Cluster* first)
 {
 	if(first == NULL)
@@ -1228,6 +1244,7 @@ int IsAnotherClusterNeededForEntry(int entriesNum)
 	return entriesNum % ENTRIES_PER_CLUSTER == 0;
 }
 
+/* Checks if there will be empty cluster after removing entry */
 int IsLastClusterNeededAfterDeletingEntry(int entriesNum)
 {
 	if(entriesNum <= 1)
