@@ -89,7 +89,7 @@ Directory* FindDirectoryByPath(Directory*, const char*);
 TextFile* FindFileByPath(Directory*, const char*);
 void OrganizeFileListAfterDeletion(TextFile*);
 void OrganizeSubdirectoryListAfterDeletion(Directory*);
-int DeleteSingleDirectory(Volume*, Directory*);
+int DeleteSingleEmptyDirectory(Volume*, Directory*);
 int DeleteDirectoryTree(Volume*, Directory*);
 int DeleteDirectoryByPath(Volume* v, const char* path);
 TextFile* AddFileByPath(Volume*, const char*);
@@ -106,6 +106,10 @@ int MoveDirectoryToDirectoryByPaths(Volume*, const char*, const char*);
 int MoveDirectoryToDirectory(Volume*, Directory*, Directory*);
 int CopyFileToDirectory(Volume*, TextFile*, Directory*);
 int CopyFileToDirectoryByPaths(Volume* , const char*, const char*);
+Directory* CopySingleDirectoryToDirectory(Volume*, Directory*, Directory*);
+int CopyDirectoryToDirectory(Volume*, Directory*, Directory*);
+int CopyDirectoryToDirectoryByPaths(Volume*, const char*, const char*);
+int IsDestinationDirectoryPathBelowInHierarchy(const char*, const char*);
 
 int main()
 {
@@ -149,7 +153,131 @@ int main()
 	ViewFileDataByPath(v.root, "root/Folder1/F/G/H/File1.txt");
 	ViewFileDataByPath(v.root, "root/File1.txt");
 
+	CopyDirectoryToDirectoryByPaths(&v, "root/Folder1/F", "root/Folder1/Folder1");
+	ViewStructureTree(v.root);
+
 	return 0;
+}
+
+/* Checks if directory with destPath is below in hierarchy than directory with dirPath */
+int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* destPath)
+{
+	if(!IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath))
+	{
+		return 0;
+	}
+
+	if(strstr(destPath, dirPath) == NULL)
+	{
+		return 0;
+	}
+
+	if(strlen(destPath) >= strlen(dirPath))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/* Copies directory (and all within it)  with given path to directory with given path */
+int CopyDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
+{
+	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath))
+	{
+		return 0;
+	}
+
+	Directory* d = FindDirectoryByPath(v->root, dirPath);
+	if(d == NULL)
+	{
+		return 0;
+	}
+
+	Directory* dest = FindDirectoryByPath(v->root, destPath);
+	if(dest == NULL)
+	{
+		return 0;
+	}
+
+	if(dest == d->parent)
+	{
+		return 0;
+	}
+
+	if(!CopyDirectoryToDirectory(v, d, dest))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/* Copies recursively directory d and all its files and subdirectories to directory destination */
+int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
+{
+	if(v == NULL || d == NULL || destination == NULL)
+	{
+		return 0;
+	}
+
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
+	{
+		return 0;
+	}
+
+	Directory* copy = CopySingleDirectoryToDirectory(v, d, destination);
+
+	if(copy == NULL)
+	{
+		return 0;
+	}
+
+    TextFile* currentFile = d->files;
+
+    while(currentFile != NULL)
+	{
+		CopyFileToDirectory(v, currentFile, copy);
+		currentFile = currentFile->next;
+	}
+
+	Directory* currentDir = d->subdirs;
+
+	while(currentDir != NULL)
+	{
+		CopyDirectoryToDirectory(v, currentDir, copy);
+		currentDir = currentDir->next;
+	}
+
+	return 1;
+}
+
+/* Copies single directory d to directory destination */
+Directory* CopySingleDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
+{
+	if(v == NULL || d == NULL || destination == NULL)
+	{
+		return NULL;
+	}
+
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
+	{
+		return NULL;
+	}
+
+	if(!AddEntrySpace(v, destination))
+	{
+		return NULL;
+	}
+
+	Directory* copy = AddDirectory(v, destination, d->name);
+
+	if(copy == NULL)
+	{
+		return NULL;
+	}
+
+	return copy;
 }
 
 /* Copies file with given path to directory with given path */
@@ -241,7 +369,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 /* Moves directory with given path to directory with given path */
 int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
-	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || strstr(destPath, dirPath) != NULL)
+	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath))
 	{
 		return 0;
 	}
@@ -585,13 +713,13 @@ int DeleteDirectoryTree(Volume*v, Directory* d)
 		DeleteFile(v, d->files);
 	}
 
-	DeleteSingleDirectory(v, d);
+	DeleteSingleEmptyDirectory(v, d);
 
 	return 1;
 }
 
 /* Deletes d directory (with no subdirectories) */
-int DeleteSingleDirectory(Volume* v, Directory* d)
+int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
 {
 	if(v == NULL  || d == NULL || d->dataClusters == NULL || d->parent == NULL || d->parent->subdirs == NULL || d->subdirs != NULL)
 	{
