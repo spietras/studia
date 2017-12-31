@@ -104,6 +104,8 @@ int MoveFileToDirectory(Volume*, TextFile*, Directory*);
 int RemoveEntrySpace(Volume*, Directory*);
 int MoveDirectoryToDirectoryByPaths(Volume*, const char*, const char*);
 int MoveDirectoryToDirectory(Volume*, Directory*, Directory*);
+int CopyFileToDirectory(Volume*, TextFile*, Directory*);
+int CopyFileToDirectoryByPaths(Volume* , const char*, const char*);
 
 int main()
 {
@@ -115,24 +117,125 @@ int main()
 	}
 	ViewStructureTree(v.root);
 	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
+
 	DeleteFileByPath(&v, "root/Folder1/File1.txt");
 	ViewStructureTree(v.root);
+
 	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
 	DeleteFileByPath(&v, "root/Folder1/File2.txt");
 	ViewStructureTree(v.root);
+
 	DeleteDirectoryByPath(&v, "root/Folder2");
 	ViewStructureTree(v.root);
+
 	AddFileByPath(&v, "root/Folder1/Folder2/Folder1/F/G/H/XD.txt");
 	AddDirectoryByPath(&v, "root/Folder1/A/B");
 	ViewStructureTree(v.root);
+
 	MoveFileToDirectoryByPaths(&v, "root/File1.txt", "root/Folder1/Folder2/Folder1/F/G/H");
 	ViewStructureTree(v.root);
+
 	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1");
 	ViewStructureTree(v.root);
+
 	AddFileByPath(&v, "root/Folder1/F/G/H/File1.txt");
+	AddDataToFileByPath(&v, "root/Folder1/F/G/H/File1.txt", "XDDDDDDDDDDDDDDDDDDDDDgdfg");
 	ViewStructureTree(v.root);
 
+
+	CopyFileToDirectoryByPaths(&v, "root/Folder1/F/G/H/File1.txt", "root");
+	ViewStructureTree(v.root);
+
+	ViewFileDataByPath(v.root, "root/Folder1/F/G/H/File1.txt");
+	ViewFileDataByPath(v.root, "root/File1.txt");
+
 	return 0;
+}
+
+/* Copies file with given path to directory with given path */
+int CopyFileToDirectoryByPaths(Volume *v, const char* fPath, const char* dirPath)
+{
+	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
+	{
+		return 0;
+	}
+
+	TextFile* f = FindFileByPath(v->root, fPath);
+	if(f == NULL)
+	{
+		return 0;
+	}
+
+	Directory* d = FindDirectoryByPath(v->root, dirPath);
+	if(d == NULL)
+	{
+		return 0;
+	}
+
+	if(!CopyFileToDirectory(v, f, d))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/* Copies file f to directory d */
+int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
+{
+	if(v == NULL || f == NULL || d == NULL)
+	{
+		return 0;
+	}
+
+	char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
+	strcpy(fullName, f->name);
+	strcat(fullName, ".");
+	strcat(fullName, f->extension);
+
+	if(FindFileByNameAndParent(d, fullName) != NULL)
+	{
+		free(fullName);
+		return 0;
+	}
+
+	if(!AddEntrySpace(v, d))
+	{
+		free(fullName);
+		return 0;
+	}
+
+	TextFile* copy = AddFile(v, d, f->name, f->extension);
+
+	if(copy == NULL)
+	{
+		free(fullName);
+		return 0;
+	}
+
+	int i = 1;
+	Cluster* current = f->dataClusters;
+	char* copyData = malloc(1);
+	copyData[0] = '\0';
+
+	do
+	{
+		copyData = realloc(copyData, i*CLUSTER_DATA_SIZE + 1);
+		strcat(copyData, current->data);
+		current = current->next;
+		i++;
+	}while(current != NULL);
+
+	if(!AddDataToFile(v, copy, copyData))
+	{
+		free(fullName);
+		free(copyData);
+		return 0;
+	}
+
+	free(fullName);
+	free(copyData);
+	return 1;
 }
 
 /* Moves directory with given path to directory with given path */
@@ -241,7 +344,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
 	if(v == NULL || f == NULL || d == NULL)
 	{
-		return NULL;
+		return 0;
 	}
 
     char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
@@ -251,16 +354,19 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(FindFileByNameAndParent(d, fullName) != NULL)
 	{
-		return NULL;
+		free(fullName);
+		return 0;
 	}
 
     if(!AddEntrySpace(v, d))
 	{
+		free(fullName);
 		return 0;
 	}
 
 	if(!RemoveEntrySpace(v, f->parent))
 	{
+		free(fullName);
 		return 0;
 	}
 	OrganizeFileListAfterDeletion(f);
@@ -278,6 +384,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 		f->previous = last;
 	}
 
+	free(fullName);
 	return 1;
 }
 
@@ -956,6 +1063,7 @@ TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* ex
 
 	if(FindFileByNameAndParent(parent, fullName) != NULL)
 	{
+		free(fullName);
 		return NULL;
 	}
 
@@ -963,6 +1071,7 @@ TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* ex
     TextFile* create = CreateEmptyFile(v, name, extension);
     if(create == NULL)
 	{
+		free(fullName);
 		return NULL;
 	}
 
@@ -988,10 +1097,12 @@ TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* ex
 		{
 			last->next = NULL;
 		}
+		free(fullName);
 		free(create);
 		return NULL;
 	}
 
+	free(fullName);
     return create;
 }
 
