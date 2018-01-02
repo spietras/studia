@@ -54,3 +54,4 @@ dkms.conf
 *.save
 *.layout
 *.bin
+*.cbp
