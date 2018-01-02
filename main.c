@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define VOLUME_NAME_SIZE 10
 #define NAME_SIZE 20
 #define EXTENSION_SIZE 8
 #define ENTRIES_PER_CLUSTER 4
@@ -21,6 +22,7 @@ typedef struct Cluster Cluster;
 
 struct Volume
 {
+	char name[VOLUME_NAME_SIZE+1];
 	Directory* root;
 	Cluster** clusterTable;
 	int clustersNum;
@@ -114,6 +116,14 @@ int RenameFile(TextFile*, const char*);
 int RenameFileByPath(Directory*, const char*, const char*);
 int RenameDirectory(Directory*, const char*);
 int RenameDirectoryByPath(Directory*, const char*, const char*);
+int SaveClustersData(Volume*, FILE*);
+int SaveFAT(Volume*, FILE*);
+int GetOffset(const int, const int);
+int SaveFileInfo(TextFile*, FILE*, const int);
+int SaveDirectoryInfo(Directory*, FILE*, const int);
+int SaveDirectoryEntries(Directory*, FILE*, const int);
+int SaveAllDirectoriesEntries(Volume*, FILE*);
+int Save(Volume*, const char*);
 
 int main()
 {
@@ -175,7 +185,274 @@ int main()
 	RenameDirectoryByPath(v.root, "root/Folder1", "Bolber1");
 	ViewStructureTree(v.root);
 
+	Save(&v, v.name);
+
 	return 0;
+}
+
+int Save(Volume* v, const char* name)
+{
+	if(v == NULL || name == NULL || strlen(name) > VOLUME_NAME_SIZE)
+	{
+		return 0;
+	}
+
+	char* fullName = malloc(strlen(name) + 1 + 3 + 1);
+	strcpy(fullName, name);
+	strcat(fullName, ".bin");
+
+    FILE* volumeFile = fopen(fullName, "wb");
+
+    if(volumeFile == NULL)
+	{
+		free(fullName);
+		return 0;
+	}
+
+	/*
+		First save FAT:
+			for each item in clusterTable
+				if it's NULL, save 0
+				else if it's next cluster is NULL, save  -1
+				else save next cluster's id
+		Then save clusters data:
+			for each item in clusterTable
+				if it's NULL save CLUSTER_DATA_SIZE byte zeros
+				else if it has data (strlen(data) > 0) save all its data (without null terminator) and fill with zeros to CLUSTER_DATA_SIZE
+			then starting with root recursively save all subdirectories entries
+				for each entry save its name, extension ("dir" for directory) and first cluster id (fill name and extension with zeros to NAME_SIZE and EXTENSION_SIZE)
+				save ENTRIES_PER_CLUSTER entries in one cluster and move to next one if there is next one
+	*/
+
+	if(!SaveFAT(v, volumeFile))
+	{
+		fclose(volumeFile);
+		remove(fullName);
+		free(fullName);
+		return 0;
+	}
+
+	if(!SaveClustersData(v, volumeFile))
+	{
+		fclose(volumeFile);
+		remove(fullName);
+		free(fullName);
+		return 0;
+	}
+
+	if(!SaveAllDirectoriesEntries(v, volumeFile))
+	{
+		fclose(volumeFile);
+		remove(fullName);
+		free(fullName);
+		return 0;
+	}
+
+	fclose(volumeFile);
+	free(fullName);
+	return 1;
+}
+
+int SaveAllDirectoriesEntries(Volume* v, FILE* volumeFile)
+{
+	if(v == NULL || v->clustersNum <= 0 || v->clusterTable == NULL || v->root == NULL || volumeFile == NULL)
+	{
+		return 0;
+	}
+
+	if(!SaveDirectoryEntries(v->root, volumeFile, v->clustersNum))
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int SaveDirectoryEntries(Directory* d, FILE* volumeFile, const int clustersNum)
+{
+	if(d == NULL || volumeFile == NULL || clustersNum <= 0)
+	{
+		return 0;
+	}
+
+	int i = 0;
+	Cluster* currentCluster = d->dataClusters;
+
+	Directory* currentDir = d->subdirs;
+
+	while(currentDir != NULL)
+	{
+		if(!SaveDirectoryInfo(currentDir, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE))
+		{
+			return 0;
+		}
+
+		i++;
+		if(i == ENTRIES_PER_CLUSTER)
+		{
+			i = i % ENTRIES_PER_CLUSTER;
+			currentCluster = currentCluster->next;
+		}
+		currentDir = currentDir->next;
+	}
+
+	TextFile* currentFile = d->files;
+
+	while(currentFile != NULL)
+	{
+		if(!SaveFileInfo(currentFile, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE))
+		{
+			return 0;
+		}
+
+		i++;
+		if(i == ENTRIES_PER_CLUSTER)
+		{
+			i = i % ENTRIES_PER_CLUSTER;
+			currentCluster = currentCluster->next;
+		}
+		currentFile = currentFile->next;
+	}
+
+	currentDir = d->subdirs;
+
+	while(currentDir != NULL)
+	{
+		if(!SaveDirectoryEntries(currentDir, volumeFile, clustersNum))
+		{
+			return 0;
+		}
+
+		currentDir = currentDir->next;
+	}
+
+	return 1;
+
+}
+
+int SaveDirectoryInfo(Directory* d, FILE* volumeFile, const int position)
+{
+	if(d == NULL || d->name == NULL || d->dataClusters == NULL || volumeFile == NULL || position <= 0)
+	{
+		return 0;
+	}
+
+	int i;
+	fseek(volumeFile, position, SEEK_SET);
+
+	fputs(d->name, volumeFile);
+	for(i = strlen(d->name); i < NAME_SIZE; i++)
+	{
+		fputc(0, volumeFile);
+	}
+
+	fputs("dir", volumeFile);
+	for(i = strlen("dir"); i < EXTENSION_SIZE; i++)
+	{
+		fputc(0, volumeFile);
+	}
+
+	fwrite(&(d->dataClusters->id), sizeof(d->dataClusters->id), 1, volumeFile);
+
+	return 1;
+}
+
+int SaveFileInfo(TextFile* f, FILE* volumeFile, const int position)
+{
+	if(f == NULL || f->name == NULL || f->extension == NULL || f->dataClusters == NULL || volumeFile == NULL || position <= 0)
+	{
+		return 0;
+	}
+
+	int i;
+	fseek(volumeFile, position, SEEK_SET);
+
+	fputs(f->name, volumeFile);
+	for(i = strlen(f->name); i < NAME_SIZE; i++)
+	{
+		fputc(0, volumeFile);
+	}
+
+	fputs(f->extension, volumeFile);
+	for(i = strlen(f->extension); i < EXTENSION_SIZE; i++)
+	{
+		fputc(0, volumeFile);
+	}
+
+	fwrite(&(f->dataClusters->id), sizeof(f->dataClusters->id), 1, volumeFile);
+
+	return 1;
+}
+
+int GetOffset(const int clustersNum, const int clusterID)
+{
+    return clustersNum * sizeof(int) + clusterID * CLUSTER_DATA_SIZE;
+}
+
+int SaveFAT(Volume* v, FILE* volumeFile)
+{
+	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0)
+	{
+		return 0;
+	}
+
+	int i;
+	int z = 0;
+	int end = -1;
+	int id;
+
+	for(i = 0; i < v->clustersNum; i++)
+	{
+		if(v->clusterTable[i] == NULL)
+		{
+			fwrite(&z, sizeof(z), 1, volumeFile);
+		}
+		else if(v->clusterTable[i]->next == NULL)
+		{
+			fwrite(&end, sizeof(end), 1, volumeFile);
+		}
+		else
+		{
+			id = v->clusterTable[i]->next->id;
+			fwrite(&id, sizeof(id), 1, volumeFile);
+		}
+	}
+
+	return 1;
+}
+
+int SaveClustersData(Volume* v, FILE* volumeFile)
+{
+	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0)
+	{
+		return 0;
+	}
+
+	int i, j;
+
+	for(i = 0; i < v->clustersNum; i++)
+	{
+		if(v->clusterTable[i] == NULL || strlen(v->clusterTable[i]->data) == 0)
+		{
+			for(j = 0; j < CLUSTER_DATA_SIZE; j++)
+			{
+				fputc(0, volumeFile);
+			}
+		}
+		else
+		{
+			fputs(v->clusterTable[i]->data, volumeFile);
+
+			j = strlen(v->clusterTable[i]->data);
+
+			for(; j < CLUSTER_DATA_SIZE; j++)
+			{
+				fputc(0, volumeFile);
+			}
+		}
+	}
+
+	return 1;
 }
 
 /* Sets directory with given path name to newName */
@@ -1160,6 +1437,9 @@ int InitializeVolume(Volume* v)
 	{
 		return 0;
 	}
+
+	strcpy(v->name, "vol");
+
     v->root = (Directory*)calloc(1, sizeof(Directory));
     if(v->root == NULL)
 	{
