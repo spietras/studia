@@ -58,7 +58,7 @@ struct Cluster
 	Cluster* next;
 };
 
-int InitializeVolume(Volume*);
+Volume* InitializeVolume();
 Directory* AddDirectory(Volume *, Directory*, const char*);
 Directory* FindLastInDirectoryList(Directory*);
 int IsAnotherClusterNeededForEntry(int);
@@ -124,78 +124,389 @@ int SaveDirectoryInfo(Directory*, FILE*, const int);
 int SaveDirectoryEntries(Directory*, FILE*, const int);
 int SaveAllDirectoriesEntries(Volume*, FILE*);
 int Save(Volume*, const char*);
+int GetClustersNumber(const int);
+int GetNextID(FILE*, const int);
+int ReadDirectoryEntries(FILE*, Directory*, Cluster**, const int);
+Volume* Load(const char*);
+int ReadFile(FILE*, Directory*, Cluster**, const int);
+int ReadDirectory(FILE*, Directory*, Cluster**, const int);
 
 int main()
 {
-	Volume v;
-	if(!InitializeVolume(&v))
-	{
-		printf("\nInitialization error\n");
-		return 1;
-	}
-	ViewStructureTree(v.root);
-	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
+    Volume* v = Load("XD");
 
-	DeleteFileByPath(&v, "root/Folder1/File1.txt");
-	ViewStructureTree(v.root);
-
-	ViewFileDataByPath(v.root, "root/Folder1/File1.txt");
-	DeleteFileByPath(&v, "root/Folder1/File2.txt");
-	ViewStructureTree(v.root);
-
-	DeleteDirectoryByPath(&v, "root/Folder2");
-	ViewStructureTree(v.root);
-
-	AddFileByPath(&v, "root/Folder1/Folder2/Folder1/F/G/H/XD.txt");
-	AddDirectoryByPath(&v, "root/Folder1/A/B");
-	ViewStructureTree(v.root);
-
-	MoveFileToDirectoryByPaths(&v, "root/File1.txt", "root/Folder1/Folder2/Folder1/F/G/H");
-	ViewStructureTree(v.root);
-
-	MoveDirectoryToDirectoryByPaths(&v, "root/Folder1/Folder2/Folder1/F", "root/Folder1");
-	ViewStructureTree(v.root);
-
-	AddFileByPath(&v, "root/Folder1/F/G/H/File1.txt");
-	AddDataToFileByPath(&v, "root/Folder1/F/G/H/File1.txt", "XDDDDDDDDDDDDDDDDDDDDDgdfg");
-	ViewStructureTree(v.root);
-
-
-	CopyFileToDirectoryByPaths(&v, "root/Folder1/F/G/H/File1.txt", "root");
-	ViewStructureTree(v.root);
-
-	ViewFileDataByPath(v.root, "root/Folder1/F/G/H/File1.txt");
-	ViewFileDataByPath(v.root, "root/File1.txt");
-
-	CopyDirectoryToDirectoryByPaths(&v, "root/Folder1/F", "root/Folder1/Folder1");
-	ViewStructureTree(v.root);
-
-	RenameFileByPath(v.root, "root/Folder1/F/G/H/XD.txt", "File1");
-	ViewStructureTree(v.root);
-
-	RenameFileByPath(v.root, "root/Folder1/F/G/H/XD.txt", "Filefgdfg");
-	ViewStructureTree(v.root);
-
-	RenameFileByPath(v.root, "root/File1.txt", "eeee");
-	ViewStructureTree(v.root);
-
-	RenameDirectoryByPath(v.root, "root", "boot");
-	ViewStructureTree(v.root);
-
-	RenameDirectoryByPath(v.root, "root/Folder1", "Bolber1");
-	ViewStructureTree(v.root);
-
-	Save(&v, v.name);
+    ViewStructureTree(v->root);
 
 	return 0;
 }
 
-int Save(Volume* v, const char* name)
+/* Loads volume from disk by name */
+Volume* Load(const char* name)
 {
-	if(v == NULL || name == NULL || strlen(name) > VOLUME_NAME_SIZE)
+    if(name == NULL || strlen(name) > VOLUME_NAME_SIZE)
 	{
+		return NULL;
+	}
+
+	char* fullName = malloc(strlen(name) + 1 + 3 + 1);
+	strcpy(fullName, name);
+	strcat(fullName, ".bin");
+
+    FILE* volumeFile = fopen(fullName, "rb");
+
+    if(volumeFile == NULL)
+	{
+		free(fullName);
+		return NULL;
+	}
+
+	fseek(volumeFile, 0, SEEK_END);
+	int size = ftell(volumeFile);
+	fseek(volumeFile, 0, SEEK_SET);
+
+	if(size > MAX_VOLUME_SIZE)
+	{
+		fclose(volumeFile);
+		free(fullName);
+		return NULL;
+	}
+
+	Volume* v = (Volume*)calloc(1, sizeof(Volume));
+	if(v == NULL)
+	{
+		fclose(volumeFile);
+		free(fullName);
+		return NULL;
+	}
+	strcpy(v->name, name);
+
+	v->clustersNum = GetClustersNumber(size);
+
+	v->clusterTable = (Cluster**)calloc(v->clustersNum, sizeof(Cluster*));
+	if(v->clusterTable == NULL)
+	{
+		fclose(volumeFile);
+		free(fullName);
+		free(v);
+		return NULL;
+	}
+
+	v->root = (Directory*)calloc(1, sizeof(Directory));
+	if(v->root == NULL)
+	{
+		fclose(volumeFile);
+		free(fullName);
+		free(v->clusterTable);
+		free(v);
+		return NULL;
+	}
+	strcpy(v->root->name, "root");
+
+	v->root->dataClusters = v->clusterTable[0] = (Cluster*)calloc(1, sizeof(Cluster));
+
+	if(!ReadDirectoryEntries(volumeFile, v->root, v->clusterTable, v->clustersNum))
+	{
+		fclose(volumeFile);
+		free(fullName);
+		free(v->clusterTable);
+		free(v->root);
+		free(v);
+		return NULL;
+	}
+
+	fclose(volumeFile);
+	return v;
+
+}
+
+/* Reads info about all files and directories from volumeFile and creates every file and directory */
+int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** clusterTable, const int clusterNum)
+{
+	if(volumeFile == NULL || d == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
+
+	int i = 0;
+	int currentId = d->dataClusters->id;
+	int beginOffset;
+	char* extension = malloc(EXTENSION_SIZE+1);
+
+	while(1)
+	{
+
+		if(i == ENTRIES_PER_CLUSTER)
+		{
+			if((currentId = GetNextID(volumeFile, currentId)) == -1)
+			{
+				break;
+			}
+
+			i = 0;
+		}
+
+		beginOffset = GetOffset(clusterNum, currentId);
+		if(fseek(volumeFile, beginOffset + i*ENTRY_DATA_SIZE, SEEK_SET))
+		{
+			free(extension);
+			return 0;
+		}
+		int a = fgetc(volumeFile);
+		if(fseek(volumeFile, -1, SEEK_CUR))
+		{
+			free(extension);
+			return 0;
+		}
+		if(a == 0)
+		{
+			break;
+		}
+
+		if(fseek(volumeFile, NAME_SIZE, SEEK_CUR))
+		{
+			free(extension);
+			return 0;
+		}
+		if(fgets(extension, EXTENSION_SIZE+1, volumeFile) == NULL)
+		{
+			free(extension);
+			return 0;
+		}
+
+		if(strcmp(extension, "dir") == 0)
+		{
+			if(!ReadDirectory(volumeFile, d, clusterTable, clusterNum))
+			{
+				free(extension);
+				return 0;
+			}
+			i++;
+		}
+		else
+		{
+			if(!ReadFile(volumeFile, d, clusterTable, clusterNum))
+			{
+				free(extension);
+				return 0;
+			}
+			i++;
+		}
+	}
+
+	Directory* currentDir = d->subdirs;
+
+	while(currentDir != NULL)
+	{
+		if(!ReadDirectoryEntries(volumeFile, currentDir, clusterTable, clusterNum))
+		{
+			free(extension);
+			return 0;
+		}
+		currentDir = currentDir->next;
+	}
+
+	free(extension);
+	return 1;
+}
+
+/* Reads info about file from volumeFile and creates that file */
+int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable, const int clusterNum)
+{
+	if(volumeFile == NULL || parent == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
+
+	TextFile* rf = (TextFile*)calloc(1, sizeof(TextFile));
+	if(rf == NULL) return 0;
+
+	if(fseek(volumeFile, -(NAME_SIZE+EXTENSION_SIZE), SEEK_CUR))
+	{
+		free(rf);
 		return 0;
 	}
+	if(fgets(rf->name, NAME_SIZE+1, volumeFile) == NULL)
+	{
+		free(rf);
+		return 0;
+	}
+
+	if(fgets(rf->extension, EXTENSION_SIZE+1, volumeFile) == NULL)
+	{
+		free(rf);
+		return 0;
+	}
+
+	int ID;
+	if(fread(&ID, sizeof(ID), 1, volumeFile) != 1)
+	{
+		free(rf);
+		return 0;
+	}
+
+	clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
+	if(clusterTable[ID] == NULL)
+	{
+		free(rf);
+		return 0;
+	}
+	clusterTable[ID]->id = ID;
+
+	rf->dataClusters = clusterTable[ID];
+	Cluster* previousCluster = rf->dataClusters;
+	Cluster* currentCluster = previousCluster;
+
+	if(fseek(volumeFile, GetOffset(clusterNum, currentCluster->id), SEEK_SET))
+	{
+		free(rf);
+		return 0;
+	}
+	if(fgets(currentCluster->data, CLUSTER_DATA_SIZE+1, volumeFile) == NULL)
+	{
+		free(rf);
+		return 0;
+	}
+
+	while((ID = GetNextID(volumeFile, ID)) != -1)
+	{
+		currentCluster = clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
+		if(currentCluster == NULL)
+		{
+			free(rf);
+			return 0;
+		}
+		currentCluster->id = ID;
+
+		if(fseek(volumeFile, GetOffset(clusterNum, currentCluster->id), SEEK_SET))
+		{
+			free(rf);
+			return 0;
+		}
+		if(fgets(currentCluster->data, CLUSTER_DATA_SIZE+1, volumeFile) == NULL)
+		{
+			free(rf);
+			return 0;
+		}
+
+		previousCluster->next = currentCluster;
+		previousCluster = currentCluster;
+	}
+
+	if(parent->files == NULL)
+	{
+		parent->files = rf;
+	}
+	else
+	{
+		TextFile* last = FindLastInFileList(parent->files);
+		last->next = rf;
+		rf->previous = last;
+	}
+
+	rf->parent = parent;
+
+	parent->entriesNum++;
+
+	return 1;
+}
+
+/* Reads info about directory from volumeFile and creates that directory */
+int ReadDirectory(FILE* volumeFile, Directory* parent, Cluster** clusterTable, const int clusterNum)
+{
+	if(volumeFile == NULL || parent == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
+
+	Directory* rd = (Directory*)calloc(1, sizeof(Directory));
+	if(rd == NULL) return 0;
+
+	if(fseek(volumeFile, -(NAME_SIZE+EXTENSION_SIZE), SEEK_CUR))
+	{
+		free(rd);
+		return 0;
+	}
+	if(fgets(rd->name, NAME_SIZE+1, volumeFile) == NULL)
+	{
+		free(rd);
+		return 0;
+	}
+
+	if(fseek(volumeFile, EXTENSION_SIZE, SEEK_CUR))
+	{
+		free(rd);
+		return 0;
+	}
+
+	int ID;
+	if(fread(&ID, sizeof(ID), 1, volumeFile) != 1)
+	{
+		free(rd);
+		return 0;
+	}
+
+	clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
+	if(clusterTable[ID] == NULL)
+	{
+		free(rd);
+		return 0;
+	}
+	clusterTable[ID]->id = ID;
+
+	rd->dataClusters = clusterTable[ID];
+	Cluster* previousCluster = rd->dataClusters;
+	Cluster* currentCluster;
+
+	while((ID = GetNextID(volumeFile, ID)) != -1)
+	{
+		currentCluster = clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
+		if(currentCluster == NULL)
+		{
+			free(rd);
+			return 0;
+		}
+		currentCluster->id = ID;
+
+		previousCluster->next = currentCluster;
+		previousCluster = currentCluster;
+	}
+
+	if(parent->subdirs == NULL)
+	{
+		parent->subdirs = rd;
+	}
+	else
+	{
+		Directory* last = FindLastInDirectoryList(parent->subdirs);
+		last->next = rd;
+		rd->previous = last;
+	}
+
+	rd->parent = parent;
+
+	parent->entriesNum++;
+
+	return 1;
+}
+
+/* Gets ID of next cluster from FAT */
+int GetNextID(FILE* volumeFile, const int clusterID)
+{
+	if(volumeFile == NULL || clusterID > MAX_CLUSTER_NUM || clusterID < 0) return -1;
+
+	int pos = clusterID * sizeof(int);
+
+	if(fseek(volumeFile, pos, SEEK_SET)) return -1;
+
+	int value;
+	if(fread(&value, sizeof(value), 1, volumeFile) != 1) return -1;
+
+	return value;
+}
+
+/* Gets number of clusters by volumeSize */
+int GetClustersNumber(const int volumeSize)
+{
+	if(volumeSize > MAX_VOLUME_SIZE || volumeSize < 0) return -1;
+
+	return volumeSize / (sizeof(int) + CLUSTER_DATA_SIZE);
+}
+
+/* Saves volume to disk with name */
+int Save(Volume* v, const char* name)
+{
+	if(v == NULL || name == NULL || strlen(name) > VOLUME_NAME_SIZE) return 0;
 
 	char* fullName = malloc(strlen(name) + 1 + 3 + 1);
 	strcpy(fullName, name);
@@ -253,27 +564,20 @@ int Save(Volume* v, const char* name)
 	return 1;
 }
 
+/* Saves info about all directories and files to volumeFile */
 int SaveAllDirectoriesEntries(Volume* v, FILE* volumeFile)
 {
-	if(v == NULL || v->clustersNum <= 0 || v->clusterTable == NULL || v->root == NULL || volumeFile == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || v->clustersNum <= 0 || v->clusterTable == NULL || v->root == NULL || volumeFile == NULL) return 0;
 
-	if(!SaveDirectoryEntries(v->root, volumeFile, v->clustersNum))
-	{
-		return 0;
-	}
+	if(!SaveDirectoryEntries(v->root, volumeFile, v->clustersNum)) return 0;
 
 	return 1;
 }
 
+/* Saves info about all entries of directory d to volumeFile */
 int SaveDirectoryEntries(Directory* d, FILE* volumeFile, const int clustersNum)
 {
-	if(d == NULL || volumeFile == NULL || clustersNum <= 0)
-	{
-		return 0;
-	}
+	if(d == NULL || volumeFile == NULL || clustersNum <= 0) return 0;
 
 	int i = 0;
 	Cluster* currentCluster = d->dataClusters;
@@ -282,10 +586,7 @@ int SaveDirectoryEntries(Directory* d, FILE* volumeFile, const int clustersNum)
 
 	while(currentDir != NULL)
 	{
-		if(!SaveDirectoryInfo(currentDir, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE))
-		{
-			return 0;
-		}
+		if(!SaveDirectoryInfo(currentDir, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE)) return 0;
 
 		i++;
 		if(i == ENTRIES_PER_CLUSTER)
@@ -300,10 +601,7 @@ int SaveDirectoryEntries(Directory* d, FILE* volumeFile, const int clustersNum)
 
 	while(currentFile != NULL)
 	{
-		if(!SaveFileInfo(currentFile, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE))
-		{
-			return 0;
-		}
+		if(!SaveFileInfo(currentFile, volumeFile, GetOffset(clustersNum, currentCluster->id) + i*ENTRY_DATA_SIZE)) return 0;
 
 		i++;
 		if(i == ENTRIES_PER_CLUSTER)
@@ -318,83 +616,80 @@ int SaveDirectoryEntries(Directory* d, FILE* volumeFile, const int clustersNum)
 
 	while(currentDir != NULL)
 	{
-		if(!SaveDirectoryEntries(currentDir, volumeFile, clustersNum))
-		{
-			return 0;
-		}
+		if(!SaveDirectoryEntries(currentDir, volumeFile, clustersNum)) return 0;
 
 		currentDir = currentDir->next;
 	}
 
 	return 1;
-
 }
 
+/* Saves info about directory d to volumeFile at position */
 int SaveDirectoryInfo(Directory* d, FILE* volumeFile, const int position)
 {
-	if(d == NULL || d->name == NULL || d->dataClusters == NULL || volumeFile == NULL || position <= 0)
-	{
-		return 0;
-	}
+	if(d == NULL || d->name == NULL || d->dataClusters == NULL || volumeFile == NULL || position <= 0) return 0;
 
 	int i;
-	fseek(volumeFile, position, SEEK_SET);
+	if(fseek(volumeFile, position, SEEK_SET)) return 0;
 
-	fputs(d->name, volumeFile);
+	if(fputs(d->name, volumeFile) == EOF) return 0;
+
 	for(i = strlen(d->name); i < NAME_SIZE; i++)
 	{
-		fputc(0, volumeFile);
+		if(fputc(0, volumeFile) == EOF) return 0;
 	}
 
-	fputs("dir", volumeFile);
+	if(fputs("dir", volumeFile) == EOF) return 0;
+
 	for(i = strlen("dir"); i < EXTENSION_SIZE; i++)
 	{
-		fputc(0, volumeFile);
+		if(fputc(0, volumeFile) == EOF) return 0;
 	}
 
-	fwrite(&(d->dataClusters->id), sizeof(d->dataClusters->id), 1, volumeFile);
+	if(fwrite(&(d->dataClusters->id), sizeof(d->dataClusters->id), 1, volumeFile) != 1) return 0;
 
 	return 1;
 }
 
+/* Saves info about file f to volumeFile at position */
 int SaveFileInfo(TextFile* f, FILE* volumeFile, const int position)
 {
-	if(f == NULL || f->name == NULL || f->extension == NULL || f->dataClusters == NULL || volumeFile == NULL || position <= 0)
-	{
-		return 0;
-	}
+	if(f == NULL || f->name == NULL || f->extension == NULL || f->dataClusters == NULL || volumeFile == NULL || position <= 0) return 0;
 
 	int i;
-	fseek(volumeFile, position, SEEK_SET);
+	if(fseek(volumeFile, position, SEEK_SET)) return 0;
 
-	fputs(f->name, volumeFile);
+	if(fputs(f->name, volumeFile) == EOF) return 0;
+
 	for(i = strlen(f->name); i < NAME_SIZE; i++)
 	{
-		fputc(0, volumeFile);
+		if(fputc(0, volumeFile) == EOF) return 0;
 	}
 
-	fputs(f->extension, volumeFile);
+	if(fputs(f->extension, volumeFile) == EOF) return 0;
+
 	for(i = strlen(f->extension); i < EXTENSION_SIZE; i++)
 	{
-		fputc(0, volumeFile);
+		if(fputc(0, volumeFile) == EOF) return 0;
 	}
 
-	fwrite(&(f->dataClusters->id), sizeof(f->dataClusters->id), 1, volumeFile);
+	if(fwrite(&(f->dataClusters->id), sizeof(f->dataClusters->id), 1, volumeFile) != 1) return 0;
 
 	return 1;
 }
 
+/* Gets offset of cluster by its ID */
 int GetOffset(const int clustersNum, const int clusterID)
 {
+	if(clustersNum > MAX_CLUSTER_NUM || clusterID > MAX_CLUSTER_NUM || clustersNum <= 0 || clusterID < 0) return -1;
+
     return clustersNum * sizeof(int) + clusterID * CLUSTER_DATA_SIZE;
 }
 
+/* Saves File Allocation Table to volumeFile */
 int SaveFAT(Volume* v, FILE* volumeFile)
 {
-	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0)
-	{
-		return 0;
-	}
+	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0) return 0;
 
 	int i;
 	int z = 0;
@@ -405,28 +700,26 @@ int SaveFAT(Volume* v, FILE* volumeFile)
 	{
 		if(v->clusterTable[i] == NULL)
 		{
-			fwrite(&z, sizeof(z), 1, volumeFile);
+			if(fwrite(&z, sizeof(z), 1, volumeFile) != 1) return 0;
 		}
 		else if(v->clusterTable[i]->next == NULL)
 		{
-			fwrite(&end, sizeof(end), 1, volumeFile);
+			if(fwrite(&end, sizeof(end), 1, volumeFile) != 1) return 0;
 		}
 		else
 		{
 			id = v->clusterTable[i]->next->id;
-			fwrite(&id, sizeof(id), 1, volumeFile);
+			if(fwrite(&id, sizeof(id), 1, volumeFile) != 1) return 0;
 		}
 	}
 
 	return 1;
 }
 
+/* Saves all clusters to volumeFile */
 int SaveClustersData(Volume* v, FILE* volumeFile)
 {
-	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0)
-	{
-		return 0;
-	}
+	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0) return 0;
 
 	int i, j;
 
@@ -436,18 +729,18 @@ int SaveClustersData(Volume* v, FILE* volumeFile)
 		{
 			for(j = 0; j < CLUSTER_DATA_SIZE; j++)
 			{
-				fputc(0, volumeFile);
+				if(fputc(0, volumeFile) == EOF) return 0;
 			}
 		}
 		else
 		{
-			fputs(v->clusterTable[i]->data, volumeFile);
+			if(fputs(v->clusterTable[i]->data, volumeFile) == EOF) return 0;
 
 			j = strlen(v->clusterTable[i]->data);
 
 			for(; j < CLUSTER_DATA_SIZE; j++)
 			{
-				fputc(0, volumeFile);
+				if(fputc(0, volumeFile) == EOF) return 0;
 			}
 		}
 	}
@@ -458,17 +751,11 @@ int SaveClustersData(Volume* v, FILE* volumeFile)
 /* Sets directory with given path name to newName */
 int RenameDirectoryByPath(Directory* root, const char* path, const char* newName)
 {
-	if(path == NULL || newName == NULL || !IsValidDirectoryPath(path))
-	{
-		return 0;
-	}
+	if(path == NULL || newName == NULL || !IsValidDirectoryPath(path)) return 0;
 
 	Directory* d = FindDirectoryByPath(root, path);
 
-	if(d == NULL || d == root)
-	{
-		return 0;
-	}
+	if(d == NULL || d == root) return 0;
 
 	return RenameDirectory(d, newName);
 }
@@ -476,15 +763,9 @@ int RenameDirectoryByPath(Directory* root, const char* path, const char* newName
 /* Sets directory d name to newName */
 int RenameDirectory(Directory* d, const char* newName)
 {
-	if(d == NULL || newName == NULL || strlen(newName) > NAME_SIZE)
-	{
-		return 0;
-	}
+	if(d == NULL || newName == NULL || strlen(newName) > NAME_SIZE) return 0;
 
-	if(FindDirectoryByNameAndParent(d->parent, newName) != NULL)
-	{
-		return 0;
-	}
+	if(FindDirectoryByNameAndParent(d->parent, newName) != NULL) return 0;
 
 	strcpy(d->name, newName);
 
@@ -494,17 +775,11 @@ int RenameDirectory(Directory* d, const char* newName)
 /* Sets file with given path name to newName */
 int RenameFileByPath(Directory* root, const char* path, const char* newName)
 {
-	if(path == NULL || newName == NULL || !IsValidFilePath(path))
-	{
-		return 0;
-	}
+	if(path == NULL || newName == NULL || !IsValidFilePath(path)) return 0;
 
 	TextFile* f = FindFileByPath(root, path);
 
-	if(f == NULL)
-	{
-		return 0;
-	}
+	if(f == NULL) return 0;
 
 	return RenameFile(f, newName);
 }
@@ -512,10 +787,7 @@ int RenameFileByPath(Directory* root, const char* path, const char* newName)
 /* Sets file f name to newName */
 int RenameFile(TextFile* f, const char* newName)
 {
-    if(f == NULL || newName == NULL || strlen(newName) > NAME_SIZE)
-	{
-		return 0;
-	}
+    if(f == NULL || newName == NULL || strlen(newName) > NAME_SIZE) return 0;
 
 	char* fullName = malloc(strlen(newName) + 1 + strlen(f->extension) + 1);
 	strcpy(fullName, newName);
@@ -537,20 +809,11 @@ int RenameFile(TextFile* f, const char* newName)
 /* Checks if directory with destPath is below in hierarchy than directory with dirPath */
 int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* destPath)
 {
-	if(!IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath))
-	{
-		return 0;
-	}
+	if(!IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath)) return 0;
 
-	if(strstr(destPath, dirPath) == NULL)
-	{
-		return 0;
-	}
+	if(strstr(destPath, dirPath) == NULL) return 0;
 
-	if(strlen(destPath) >= strlen(dirPath))
-	{
-		return 0;
-	}
+	if(strlen(destPath) >= strlen(dirPath)) return 0;
 
 	return 1;
 }
@@ -558,32 +821,17 @@ int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* 
 /* Copies directory (and all within it)  with given path to directory with given path */
 int CopyDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
-	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath))
-	{
-		return 0;
-	}
+	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath)) return 0;
 
 	Directory* d = FindDirectoryByPath(v->root, dirPath);
-	if(d == NULL)
-	{
-		return 0;
-	}
+	if(d == NULL) return 0;
 
 	Directory* dest = FindDirectoryByPath(v->root, destPath);
-	if(dest == NULL)
-	{
-		return 0;
-	}
+	if(dest == NULL) return 0;
 
-	if(dest == d->parent)
-	{
-		return 0;
-	}
+	if(dest == d->parent) return 0;
 
-	if(!CopyDirectoryToDirectory(v, d, dest))
-	{
-		return 0;
-	}
+	if(!CopyDirectoryToDirectory(v, d, dest)) return 0;
 
 	return 1;
 }
@@ -591,28 +839,23 @@ int CopyDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 /* Copies recursively directory d and all its files and subdirectories to directory destination */
 int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
-	if(v == NULL || d == NULL || destination == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || d == NULL || destination == NULL) return 0;
 
-	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
-	{
-		return 0;
-	}
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL) return 0;
 
 	Directory* copy = CopySingleDirectoryToDirectory(v, d, destination);
 
-	if(copy == NULL)
-	{
-		return 0;
-	}
+	if(copy == NULL) return 0;
 
     TextFile* currentFile = d->files;
 
     while(currentFile != NULL)
 	{
-		CopyFileToDirectory(v, currentFile, copy);
+		if(!CopyFileToDirectory(v, currentFile, copy))
+		{
+			DeleteSingleEmptyDirectory(v, copy);
+			return 0;
+		}
 		currentFile = currentFile->next;
 	}
 
@@ -620,7 +863,11 @@ int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 
 	while(currentDir != NULL)
 	{
-		CopyDirectoryToDirectory(v, currentDir, copy);
+		if(!CopyDirectoryToDirectory(v, currentDir, copy))
+		{
+			DeleteDirectoryTree(v, copy);
+			return 0;
+		}
 		currentDir = currentDir->next;
 	}
 
@@ -630,25 +877,18 @@ int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 /* Copies single directory d to directory destination */
 Directory* CopySingleDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
-	if(v == NULL || d == NULL || destination == NULL)
-	{
-		return NULL;
-	}
+	if(v == NULL || d == NULL || destination == NULL) return NULL;
 
-	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
-	{
-		return NULL;
-	}
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL) return NULL;
 
-	if(!AddEntrySpace(v, destination))
-	{
-		return NULL;
-	}
+	if(!AddEntrySpace(v, destination)) return NULL;
 
 	Directory* copy = AddDirectory(v, destination, d->name);
 
 	if(copy == NULL)
 	{
+		DeleteSingleEmptyDirectory(v, copy);
+		RemoveEntrySpace(v, destination);
 		return NULL;
 	}
 
@@ -658,27 +898,15 @@ Directory* CopySingleDirectoryToDirectory(Volume* v, Directory* d, Directory* de
 /* Copies file with given path to directory with given path */
 int CopyFileToDirectoryByPaths(Volume *v, const char* fPath, const char* dirPath)
 {
-	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
-	{
-		return 0;
-	}
+	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath)) return 0;
 
 	TextFile* f = FindFileByPath(v->root, fPath);
-	if(f == NULL)
-	{
-		return 0;
-	}
+	if(f == NULL) return 0;
 
 	Directory* d = FindDirectoryByPath(v->root, dirPath);
-	if(d == NULL)
-	{
-		return 0;
-	}
+	if(d == NULL) return 0;
 
-	if(!CopyFileToDirectory(v, f, d))
-	{
-		return 0;
-	}
+	if(!CopyFileToDirectory(v, f, d)) return 0;
 
 	return 1;
 }
@@ -686,10 +914,7 @@ int CopyFileToDirectoryByPaths(Volume *v, const char* fPath, const char* dirPath
 /* Copies file f to directory d */
 int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
-	if(v == NULL || f == NULL || d == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || f == NULL || d == NULL) return 0;
 
 	char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
 	strcpy(fullName, f->name);
@@ -712,6 +937,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(copy == NULL)
 	{
+		RemoveEntrySpace(v, d);
 		free(fullName);
 		return 0;
 	}
@@ -731,6 +957,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(!AddDataToFile(v, copy, copyData))
 	{
+		RemoveEntrySpace(v, d);
 		free(fullName);
 		free(copyData);
 		return 0;
@@ -744,32 +971,17 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 /* Moves directory with given path to directory with given path */
 int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
-	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath))
-	{
-		return 0;
-	}
+	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath)) return 0;
 
 	Directory* d = FindDirectoryByPath(v->root, dirPath);
-	if(d == NULL)
-	{
-		return 0;
-	}
+	if(d == NULL) return 0;
 
 	Directory* dest = FindDirectoryByPath(v->root, destPath);
-	if(dest == NULL)
-	{
-		return 0;
-	}
+	if(dest == NULL) return 0;
 
-	if(dest == d->parent)
-	{
-		return 0;
-	}
+	if(dest == d->parent) return 0;
 
-	if(!MoveDirectoryToDirectory(v, d, dest))
-	{
-		return 0;
-	}
+	if(!MoveDirectoryToDirectory(v, d, dest)) return 0;
 
 	return 1;
 }
@@ -777,23 +989,15 @@ int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 /* Moves directory d to directory destination */
 int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
-	if(v == NULL || d == NULL || destination == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || d == NULL || destination == NULL) return 0;
 
-	if(FindDirectoryByNameAndParent(destination, d->name) != NULL)
-	{
-		return 0;
-	}
+	if(FindDirectoryByNameAndParent(destination, d->name) != NULL) return 0;
 
-	if(!AddEntrySpace(v, destination))
-	{
-		return 0;
-	}
+	if(!AddEntrySpace(v, destination)) return 0;
 
 	if(!RemoveEntrySpace(v, d->parent))
 	{
+		RemoveEntrySpace(v, destination);
 		return 0;
 	}
 	OrganizeSubdirectoryListAfterDeletion(d);
@@ -817,27 +1021,15 @@ int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 /* Moves file with given path to directory with given path */
 int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 {
-	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath))
-	{
-		return 0;
-	}
+	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath)) return 0;
 
 	TextFile* f = FindFileByPath(v->root, fPath);
-	if(f == NULL)
-	{
-		return 0;
-	}
+	if(f == NULL) return 0;
 
 	Directory* d = FindDirectoryByPath(v->root, dirPath);
-	if(d == NULL)
-	{
-		return 0;
-	}
+	if(d == NULL) return 0;
 
-	if(!MoveFileToDirectory(v, f, d))
-	{
-		return 0;
-	}
+	if(!MoveFileToDirectory(v, f, d)) return 0;
 
 	return 1;
 }
@@ -845,10 +1037,7 @@ int MoveFileToDirectoryByPaths(Volume*v, const char* fPath, const char* dirPath)
 /* Moves file f to directory d */
 int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
-	if(v == NULL || f == NULL || d == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || f == NULL || d == NULL) return 0;
 
     char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
 	strcpy(fullName, f->name);
@@ -869,6 +1058,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(!RemoveEntrySpace(v, f->parent))
 	{
+		RemoveEntrySpace(v, d);
 		free(fullName);
 		return 0;
 	}
@@ -894,10 +1084,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 /* Copies list of clusters */
 Cluster* CopyClusterList(Cluster* first)
 {
-	if(first == NULL)
-	{
-		return NULL;
-	}
+	if(first == NULL) return NULL;
 
 	Cluster* t = (Cluster*)malloc(sizeof(Cluster));
 	strcpy(t->data, first->data);
@@ -961,16 +1148,10 @@ void ViewFileDataByPath(Directory* root, const char* path)
 /* Adds given data to file with given path */
 int AddDataToFileByPath(Volume* v, const char* path, const char* data)
 {
-	if(v == NULL || !IsValidFilePath(path) || data == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || !IsValidFilePath(path) || data == NULL) return 0;
 
 	TextFile *f = FindFileByPath(v->root, path);
-	if(f == NULL)
-	{
-		return 0;
-	}
+	if(f == NULL) return 0;
 
 	return AddDataToFile(v, f, data);
 }
@@ -1001,6 +1182,7 @@ Directory* AddDirectoryByPath(Volume*v, const char* path)
 			current = AddDirectory(v, t, cName);
 			if(current == NULL)
 			{
+				free(pathClone);
 				return NULL;
 			}
 		}
@@ -1009,16 +1191,14 @@ Directory* AddDirectoryByPath(Volume*v, const char* path)
 		cName = strtok(NULL, "/");
 	}
 
+	free(pathClone);
 	return current;
 }
 
 /* Adds file with given path */
 TextFile* AddFileByPath(Volume* v, const char* path)
 {
-	if(v == NULL || !IsValidFilePath(path))
-	{
-		return NULL;
-	}
+	if(v == NULL || !IsValidFilePath(path)) return 0;
 
 	char *pathClone = malloc(strlen(path)+1);
 	strcpy(pathClone, path);
@@ -1038,6 +1218,7 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 			current = AddDirectory(v, t, cName);
 			if(current == NULL)
 			{
+				free(pathClone);
 				return NULL;
 			}
 		}
@@ -1049,23 +1230,19 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 	char* name = strtok(cName, ".");
 	char* ext = strtok(NULL, ".");
 
+	free(pathClone);
+
 	return AddFile(v, current, name, ext);
 }
 
 /* Delete directory (and all subdirectories and files within it) with given path */
 int DeleteDirectoryByPath(Volume* v, const char* path)
 {
-	if(v == NULL || path == NULL)
-	{
-        return 0;
-	}
+	if(v == NULL || path == NULL) return 0;
 
     Directory* d = FindDirectoryByPath(v->root, path);
 
-    if(!DeleteDirectoryTree(v, d))
-	{
-		return 0;
-	}
+    if(!DeleteDirectoryTree(v, d)) return 0;
 
 	return 1;
 }
@@ -1073,22 +1250,19 @@ int DeleteDirectoryByPath(Volume* v, const char* path)
 /* Deletes recursively all subdirectories and files within given directory (and that directory) */
 int DeleteDirectoryTree(Volume*v, Directory* d)
 {
-	if(v == NULL || d == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || d == NULL) return 0;
 
 	while(d->subdirs != NULL)
 	{
-		DeleteDirectoryTree(v, d->subdirs);
+		if(!DeleteDirectoryTree(v, d->subdirs)) return 0;
 	}
 
 	while(d->files != NULL)
 	{
-		DeleteFile(v, d->files);
+		if(!DeleteFile(v, d->files)) return 0;
 	}
 
-	DeleteSingleEmptyDirectory(v, d);
+	if(!DeleteSingleEmptyDirectory(v, d)) return 0;
 
 	return 1;
 }
@@ -1096,25 +1270,16 @@ int DeleteDirectoryTree(Volume*v, Directory* d)
 /* Deletes d directory (with no subdirectories) */
 int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
 {
-	if(v == NULL  || d == NULL || d->dataClusters == NULL || d->parent == NULL || d->parent->subdirs == NULL || d->subdirs != NULL)
-	{
-		return 0;
-	}
+	if(v == NULL  || d == NULL || d->dataClusters == NULL || d->parent == NULL || d->parent->subdirs == NULL || d->subdirs != NULL) return 0;
 
-    if(!ClearData(v, d->dataClusters))
-	{
-		return 0;
-	}
+    if(!ClearData(v, d->dataClusters)) return 0;
+
     v->clusterTable[d->dataClusters->id] = NULL;
     free(d->dataClusters);
 
-    if(!RemoveEntrySpace(v, d->parent))
-	{
-		return 0;
-	}
+    if(!RemoveEntrySpace(v, d->parent)) return 0;
 
     OrganizeSubdirectoryListAfterDeletion(d);
-
 
 	free(d);
 
@@ -1124,17 +1289,11 @@ int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
 /* Deletes file by given path */
 int DeleteFileByPath(Volume* v, const char* path)
 {
-	if(v == NULL || path == NULL)
-	{
-        return 0;
-	}
+	if(v == NULL || path == NULL) return 0;
 
     TextFile* f = FindFileByPath(v->root, path);
 
-    if(!DeleteFile(v, f))
-	{
-		return 0;
-	}
+    if(!DeleteFile(v, f)) return 0;
 
 	return 1;
 }
@@ -1142,10 +1301,7 @@ int DeleteFileByPath(Volume* v, const char* path)
 /* Checks if path is valid for file */
 int IsValidFilePath(const char* path)
 {
-	if(path == NULL || strstr(path, "//") != NULL)
-	{
-		return 0;
-	}
+	if(path == NULL || strstr(path, "//") != NULL) return 0;
 
     char *pathClone = malloc(strlen(path) + 1);
     strcpy(pathClone, path);
@@ -1189,10 +1345,7 @@ int IsValidFilePath(const char* path)
 /* Checks if path is valid for directory */
 int IsValidDirectoryPath(const char* path)
 {
-	if(path == NULL || strstr(path, "//") != NULL)
-	{
-		return 0;
-	}
+	if(path == NULL || strstr(path, "//") != NULL) return 0;
 
     char *pathClone = malloc(strlen(path) + 1);
     strcpy(pathClone, path);
@@ -1223,10 +1376,7 @@ int IsValidDirectoryPath(const char* path)
 /* Checks if name is valid for file */
 int IsFile(const char* name)
 {
-	if(name == NULL || name[0] == '.' || name[strlen(name) - 1] == '.')
-	{
-		return 0;
-	}
+	if(name == NULL || name[0] == '.' || name[strlen(name) - 1] == '.') return 0;
 
 	return strstr(name, ".") != NULL && strpbrk(name, FILE_INVALID_CHARACTERS) == NULL;
 }
@@ -1234,20 +1384,15 @@ int IsFile(const char* name)
 /* Checks if name is valid for directory */
 int IsDirectory(const char* name)
 {
-	if(name == NULL)
-	{
-		return 0;
-	}
+	if(name == NULL) return 0;
+
 	return strpbrk(name, DIRECTORY_INVALID_CHARACTERS) == NULL;
 }
 
 /* Finds file by path */
 TextFile* FindFileByPath(Directory* root, const char* path)
 {
-	if(root == NULL || !IsValidFilePath(path))
-	{
-		return NULL;
-	}
+	if(root == NULL || !IsValidFilePath(path)) return NULL;
 
     char *last = strrchr(path, '/');
     char *dirPath = malloc(last - path + 1);
@@ -1264,10 +1409,7 @@ TextFile* FindFileByPath(Directory* root, const char* path)
 /* Finds directory by path */
 Directory* FindDirectoryByPath(Directory* root, const char* path)
 {
-	if(root == NULL || !IsValidDirectoryPath(path))
-	{
-		return NULL;
-	}
+	if(root == NULL || !IsValidDirectoryPath(path)) return NULL;
 
 	char* pathClone = malloc(strlen(path) + 1);
     strcpy(pathClone, path);
@@ -1290,10 +1432,7 @@ Directory* FindDirectoryByPath(Directory* root, const char* path)
 /* Finds directory by parent directory and name */
 Directory* FindDirectoryByNameAndParent(Directory* parent, const char* name)
 {
-	if(parent == NULL)
-	{
-		return NULL;
-	}
+	if(parent == NULL) return NULL;
 
 	Directory* t = parent->subdirs;
 
@@ -1313,10 +1452,7 @@ Directory* FindDirectoryByNameAndParent(Directory* parent, const char* name)
 /* Finds file by parent directory and name */
 TextFile* FindFileByNameAndParent(Directory* parent, const char* name)
 {
-	if(parent == NULL)
-	{
-		return NULL;
-	}
+	if(parent == NULL) return NULL;
 
 	char* nameClone = malloc(strlen(name) + 1);
 	strcpy(nameClone, name);
@@ -1346,22 +1482,14 @@ TextFile* FindFileByNameAndParent(Directory* parent, const char* name)
 /* Deletes given file */
 int DeleteFile(Volume* v, TextFile* f)
 {
-	if(v == NULL  || f == NULL || f->dataClusters == NULL || f->parent == NULL || f->parent->files == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL  || f == NULL || f->dataClusters == NULL || f->parent == NULL || f->parent->files == NULL) return 0;
 
-    if(!ClearData(v, f->dataClusters))
-	{
-		return 0;
-	}
+    if(!ClearData(v, f->dataClusters)) return 0;
+
     v->clusterTable[f->dataClusters->id] = NULL;
     free(f->dataClusters);
 
-    if(!RemoveEntrySpace(v, f->parent))
-	{
-		return 0;
-	}
+    if(!RemoveEntrySpace(v, f->parent)) return 0;
 
     OrganizeFileListAfterDeletion(f);
 
@@ -1373,10 +1501,7 @@ int DeleteFile(Volume* v, TextFile* f)
 /* Cleans up list of subdirectories when deleting one */
 void OrganizeSubdirectoryListAfterDeletion(Directory* d)
 {
-	if(d == NULL || d->parent == NULL)
-	{
-		return;
-	}
+	if(d == NULL || d->parent == NULL) return;
 
 	if(d->previous == NULL && d->next == NULL)
 	{
@@ -1401,10 +1526,7 @@ void OrganizeSubdirectoryListAfterDeletion(Directory* d)
 /* Cleans up list of files when deleting one */
 void OrganizeFileListAfterDeletion(TextFile* f)
 {
-	if(f == NULL || f->parent == NULL)
-	{
-		return;
-	}
+	if(f == NULL || f->parent == NULL) return;
 
 	if(f->previous == NULL && f->next == NULL)
 	{
@@ -1431,19 +1553,18 @@ void OrganizeFileListAfterDeletion(TextFile* f)
 }
 
 /* Volume initialization */
-int InitializeVolume(Volume* v)
+Volume* InitializeVolume()
 {
-	if(v == NULL)
-	{
-		return 0;
-	}
+
+	Volume* v = (Volume*)calloc(1, sizeof(Volume));
 
 	strcpy(v->name, "vol");
 
     v->root = (Directory*)calloc(1, sizeof(Directory));
     if(v->root == NULL)
 	{
-		return 0;
+		free(v);
+		return NULL;
 	}
     strcpy(v->root->name, "root");
 
@@ -1453,7 +1574,8 @@ int InitializeVolume(Volume* v)
     if(v->clusterTable == NULL)
 	{
 		free(v->root);
-		return 0;
+		free(v);
+		return NULL;
 	}
 
 	v->clustersNum = DEFAULT_CLUSTER_NUM;
@@ -1463,8 +1585,8 @@ int InitializeVolume(Volume* v)
 	{
 		free(v->root);
 		free(v->clusterTable);
-		v->clustersNum = 0;
-		return 0;
+		free(v);
+		return NULL;
 	}
     v->clusterTable[0]->data[0] = '\0';
     v->root->dataClusters = v->clusterTable[0];
@@ -1473,50 +1595,41 @@ int InitializeVolume(Volume* v)
 	{
 		free(v->root);
 		free(v->clusterTable);
-		v->clustersNum = 0;
-		return 0;
+		free(v);
+		return NULL;
 	}
 
-    return 1;
+    return v;
 }
 
 /* Adding some entries to volume */
 int AddExampleEntries(Volume* v)
 {
-	if(v == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL) return 0;
 
 	return
-	AddDirectoryByPath(v, "root/Folder1") != NULL &&
-	AddDirectoryByPath(v, "root/Folder2") != NULL &&
-	AddDirectoryByPath(v, "root/Folder1/Folder1") != NULL &&
-	AddDirectoryByPath(v, "root/Folder1/Folder2") != NULL &&
-	AddDirectoryByPath(v, "root/Folder2/Folder1") != NULL &&
-	AddDirectoryByPath(v, "root/Folder2/Folder2") != NULL &&
-	AddDirectoryByPath(v, "root/Folder2/Folder3") != NULL &&
-	AddDirectoryByPath(v, "root/Folder1/Folder2/Folder1") != NULL &&
-	AddFileByPath(v, "root/File1.txt") != NULL &&
-	AddFileByPath(v, "root/Folder1/File1.txt") != NULL &&
-	AddDataToFileByPath(v, "root/Folder1/File1.txt", "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") != 0 &&
-	AddFileByPath(v, "root/Folder1/File2.txt") != NULL &&
-	AddFileByPath(v, "root/Folder2/Folder1/File1.txt") != NULL;
+	AddDirectoryByPath(v, "root/a") != NULL &&
+	AddDirectoryByPath(v, "root/b") != NULL &&
+	AddDirectoryByPath(v, "root/a/c") != NULL &&
+	AddDirectoryByPath(v, "root/a/d") != NULL &&
+	AddDirectoryByPath(v, "root/b/e") != NULL &&
+	AddDirectoryByPath(v, "root/b/f") != NULL &&
+	AddDirectoryByPath(v, "root/b/g") != NULL &&
+	AddDirectoryByPath(v, "root/a/d/i") != NULL &&
+	AddFileByPath(v, "root/f1.txt") != NULL &&
+	AddFileByPath(v, "root/a/f2.txt") != NULL &&
+	AddDataToFileByPath(v, "root/a/f2.txt", "abababaabababbababaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") != 0 &&
+	AddFileByPath(v, "root/a/f3.txt") != NULL &&
+	AddFileByPath(v, "root/b/h/f4.txt") != NULL;
 
 }
 
 /* Adds directory with given name to parent directory */
 Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 {
-	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE)
-	{
-		return NULL;
-	}
+	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE) return NULL;
 
-	if(FindDirectoryByNameAndParent(parent, name) != NULL)
-	{
-		return NULL;
-	}
+	if(FindDirectoryByNameAndParent(parent, name) != NULL) return NULL;
 
 	Directory* last = FindLastInDirectoryList(parent->subdirs);
     Directory* create = CreateEmptyDirectory(v, name);
@@ -1547,6 +1660,7 @@ Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 		{
 			last->next = NULL;
 		}
+		DeleteSingleEmptyDirectory(v, create);
 		free(create);
 		return NULL;
 	}
@@ -1557,11 +1671,7 @@ Directory* AddDirectory(Volume *v, Directory* parent, const char* name)
 /* Adds file with given name and extension to parent directory */
 TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* extension)
 {
-	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE)
-	{
-		return NULL;
-	}
-
+	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE) return NULL;
 	char* fullName = malloc(strlen(name) + 1 + strlen(extension) + 1);
 	strcpy(fullName, name);
 	strcat(fullName, ".");
@@ -1603,6 +1713,7 @@ TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* ex
 		{
 			last->next = NULL;
 		}
+		DeleteFile(v, create);
 		free(fullName);
 		free(create);
 		return NULL;
@@ -1615,34 +1726,20 @@ TextFile* AddFile(Volume *v, Directory* parent, const char* name, const char* ex
 /* Adds data to file */
 int AddDataToFile(Volume* v, TextFile* f, const char* data)
 {
-	if(v == NULL || f == NULL || data == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || f == NULL || data == NULL) return 0;
 
 	int neededClusters = NumberOfNeededClusters(data);
 
-	if(!IsEnoughFreeClusters(v->clusterTable, v->clustersNum, neededClusters))
-	{
-		return 0;
-	}
+	if(!IsEnoughFreeClusters(v->clusterTable, v->clustersNum, neededClusters)) return 0;
 
-	if(!ClearData(v, f->dataClusters))
-	{
-		return 0;
-	}
+	if(!ClearData(v, f->dataClusters)) return 0;
 
     if(neededClusters == 1)
 	{
 		strcpy(f->dataClusters->data, data);
 	}
-	else
-	{
-        if(!AddDataToClusterChain(v, f, data, neededClusters))
-		{
-			return 0;
-		}
-	}
+
+	if(!AddDataToClusterChain(v, f, data, neededClusters)) return 0;
 
 	return 1;
 }
@@ -1650,20 +1747,14 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 /* Clears data of file (given file's data cluster) */
 int ClearData(Volume *v, Cluster*  dataCluster)
 {
-	if(v == NULL || dataCluster == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || dataCluster == NULL) return 0;
 
 	dataCluster->data[0] = '\0';
 
 	Cluster* t;
     Cluster* current = dataCluster->next;
 
-    if(current == NULL)
-	{
-		return 1;
-	}
+    if(current == NULL) return 1;
 
     do
 	{
@@ -1681,10 +1772,7 @@ int ClearData(Volume *v, Cluster*  dataCluster)
 /* Adds data to file's cluster chain */
 int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, int neededClusters)
 {
-	if(v == NULL || f == NULL || data == NULL || neededClusters == 0)
-	{
-		return 0;
-	}
+	if(v == NULL || f == NULL || data == NULL || neededClusters == 0) return 0;
 
 	int i;
 
@@ -1729,10 +1817,7 @@ int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, int neededCl
 /* Checks if there are enough free cluster for given needed amount */
 int IsEnoughFreeClusters(Cluster** clusterTable, int clusterNum, int needed)
 {
-	if(clusterTable == NULL)
-	{
-		return 0;
-	}
+	if(clusterTable == NULL) return 0;
 
 	int i, j = 0;
 
@@ -1743,10 +1828,7 @@ int IsEnoughFreeClusters(Cluster** clusterTable, int clusterNum, int needed)
 			j++;
 		}
 
-		if(j >= needed)
-		{
-			return 1;
-		}
+		if(j >= needed) return 1;
 	}
 
 	return 0;
@@ -1755,10 +1837,7 @@ int IsEnoughFreeClusters(Cluster** clusterTable, int clusterNum, int needed)
 /* Returns number of needed clusters for given data */
 int NumberOfNeededClusters(const char* data)
 {
-	if(data == NULL)
-	{
-		return 0;
-	}
+	if(data == NULL) return 0;
 
 	int dataSize = strlen(data);
 
@@ -1773,16 +1852,10 @@ int NumberOfNeededClusters(const char* data)
 /* Creates empty directory and returns pointer to it */
 Directory* CreateEmptyDirectory(Volume *v, const char* name)
 {
-	if(v == NULL || strlen(name) > NAME_SIZE)
-	{
-		return NULL;
-	}
+	if(v == NULL || strlen(name) > NAME_SIZE) return NULL;
 
 	Directory* create = (Directory*)calloc(1,sizeof(Directory));
-	if(create == NULL)
-	{
-		return NULL;
-	}
+	if(create == NULL)  return NULL;
 
     strcpy(create->name, name);
 
@@ -1800,16 +1873,10 @@ Directory* CreateEmptyDirectory(Volume *v, const char* name)
 /* Creates empty file and returns pointer to it */
 TextFile* CreateEmptyFile(Volume *v, const char* name, const char* extension)
 {
-	if(v == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE)
-	{
-		return NULL;
-	}
+	if(v == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE) return NULL;
 
 	TextFile* create = (TextFile*)calloc(1,sizeof(TextFile));
-	if(create == NULL)
-	{
-		return NULL;
-	}
+	if(create == NULL) return NULL;
 
     strcpy(create->name, name);
     strcpy(create->extension, extension);
@@ -1827,22 +1894,13 @@ TextFile* CreateEmptyFile(Volume *v, const char* name, const char* extension)
 /* Returns pointer to empty cluster */
 Cluster* FindEmptyCluster(Volume *v)
 {
-	if(v == NULL)
-	{
-		return NULL;
-	}
+	if(v == NULL) return NULL;
 
 	int i = FindEmptyClusterIndex(v->clusterTable, v->clustersNum);
-    if(i == -1)
-	{
-		return NULL;
-	}
+    if(i == -1) return NULL;
 
 	v->clusterTable[i] = (Cluster*)calloc(1,sizeof(Cluster));
-	if(v->clusterTable[i] == NULL)
-	{
-		return NULL;
-	}
+	if(v->clusterTable[i] == NULL) return NULL;
 
 	v->clusterTable[i]->id = i;
 	v->clusterTable[i]->data[0] = '\0';
@@ -1853,30 +1911,15 @@ Cluster* FindEmptyCluster(Volume *v)
 /* Makes space for one more entry to parent directory entries */
 int AddEntrySpace(Volume *v, Directory* parent)
 {
-	if(v == NULL || parent == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || parent == NULL) return 0;
 
 	if(IsAnotherClusterNeededForEntry(parent->entriesNum))
 	{
-        int i = FindEmptyClusterIndex(v->clusterTable, v->clustersNum);
-        if(i == -1)
-		{
-			return 0;
-		}
-
-		v->clusterTable[i] = (Cluster*)calloc(1,sizeof(Cluster));
-		if(v->clusterTable[i] == NULL)
-		{
-			return 0;
-		}
-		v->clusterTable[i]->data[0] = '\0';
-		v->clusterTable[i]->id = i;
+		Cluster* newCluster = FindEmptyCluster(v);
 
 		Cluster* last = FindLastInClusterList(parent->dataClusters);
-		last->next = v->clusterTable[i];
-		last->next->previous = last;
+		last->next = newCluster;
+		newCluster->previous = last;
 	}
 
 	parent->entriesNum++;
@@ -1887,10 +1930,7 @@ int AddEntrySpace(Volume *v, Directory* parent)
 /* Removes space for one entry from parent directory entries */
 int RemoveEntrySpace(Volume* v, Directory* parent)
 {
-	if(v == NULL || parent == NULL || parent->entriesNum <= 0)
-	{
-		return 0;
-	}
+	if(v == NULL || parent == NULL || parent->entriesNum <= 0) return 0;
 
 	if(IsLastClusterNeededAfterDeletingEntry(parent->entriesNum))
 	{
@@ -1909,10 +1949,7 @@ int RemoveEntrySpace(Volume* v, Directory* parent)
 /* Returns last directory in list */
 Directory* FindLastInDirectoryList(Directory* first)
 {
-	if(first == NULL)
-	{
-		return NULL;
-	}
+	if(first == NULL)  return NULL;
 
     Directory* t = first;
 
@@ -1927,10 +1964,7 @@ Directory* FindLastInDirectoryList(Directory* first)
 /* Returns last file in list */
 TextFile* FindLastInFileList(TextFile* first)
 {
-	if(first == NULL)
-	{
-		return NULL;
-	}
+	if(first == NULL) return NULL;
 
     TextFile* t = first;
 
@@ -1945,10 +1979,7 @@ TextFile* FindLastInFileList(TextFile* first)
 /* Returns last cluster in list */
 Cluster* FindLastInClusterList(Cluster* first)
 {
-	if(first == NULL)
-	{
-		return NULL;
-	}
+	if(first == NULL) return NULL;
 
     Cluster* t = first;
 
@@ -1963,10 +1994,9 @@ Cluster* FindLastInClusterList(Cluster* first)
 /* Checks if there is another cluster needed for one more entry with given number of previousEntries */
 int IsAnotherClusterNeededForEntry(int entriesNum)
 {
-	if(entriesNum < 0)
-	{
-		entriesNum = 0;
-	}
+	if(entriesNum < 0) return 0;
+
+	if(entriesNum == 0) return 0;
 
 	return entriesNum % ENTRIES_PER_CLUSTER == 0;
 }
@@ -1974,10 +2004,7 @@ int IsAnotherClusterNeededForEntry(int entriesNum)
 /* Checks if there will be empty cluster after removing entry */
 int IsLastClusterNeededAfterDeletingEntry(int entriesNum)
 {
-	if(entriesNum <= 1)
-	{
-		return 0;
-	}
+	if(entriesNum <= 1) return 0;
 
 	return entriesNum % ENTRIES_PER_CLUSTER == 1;
 }
@@ -1985,19 +2012,13 @@ int IsLastClusterNeededAfterDeletingEntry(int entriesNum)
 /* Returns index of first empty cluster in clusterTable */
 int FindEmptyClusterIndex(Cluster** clusterTable, int clusterNum)
 {
-	if(clusterTable == NULL)
-	{
-		return -1;
-	}
+	if(clusterTable == NULL) return -1;
 
 	int i;
 
 	for(i = 0; i < clusterNum; i++)
 	{
-		if(clusterTable[i] == NULL)
-		{
-			return i;
-		}
+		if(clusterTable[i] == NULL) return i;
 	}
 
 	return -1;
@@ -2027,10 +2048,8 @@ void ViewStructureTree(Directory *d)
 /* Recursively prints all files and subdirectories of given parent directory */
 void ViewLevel(Directory *d, int level)
 {
-	if(d == NULL)
-	{
-		return;
-	}
+	if(d == NULL) return;
+
     if(level < 0)
 	{
 		level = 0;
