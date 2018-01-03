@@ -130,14 +130,383 @@ int ReadDirectoryEntries(FILE*, Directory*, Cluster**, const int);
 Volume* Load(const char*);
 int ReadFile(FILE*, Directory*, Cluster**, const int);
 int ReadDirectory(FILE*, Directory*, Cluster**, const int);
+Volume* CreateVolume(const char*, int);
+void ClearBuffer();
+char* GetDirectoryPath(const char*);
+int GetMenuChoice(int, int);
+char* GetFilePath(const char*);
+char* GetData();
+char* GetFileName();
+char* GetDirectoryName();
+char* GetVolumeName();
+int ShowMenu(Volume*);
 
 int main()
 {
-    Volume* v = Load("XD");
+    Volume* v = InitializeVolume();
 
-    ViewStructureTree(v->root);
+    ShowMenu(v);
 
 	return 0;
+}
+
+int ShowMenu(Volume* v)
+{
+	while(1)
+	{
+		printf("\nChoose what to do:\n");
+		printf("1. View all directories and files\n");
+		printf("2. View specific directory and all its subdirectories and files\n");
+		printf("3. View data of file\n");
+		printf("4. Create empty file\n");
+		printf("5. Add data to file\n");
+		printf("6. Create empty directory\n");
+		printf("7. Delete file\n");
+		printf("8. Delete directory\n");
+		printf("9. Move file\n");
+		printf("10. Move directory\n");
+		printf("11. Copy file\n");
+		printf("12. Copy directory\n");
+		printf("13. Rename file\n");
+		printf("14. Rename directory\n");
+		printf("15. Save volume to disk with custom name\n");
+		printf("16. Exit (automatically saves volume to disk with current name)\n");
+
+		int choice = GetMenuChoice(1, 16);
+
+		switch(choice)
+		{
+		case 1:
+			{
+				ViewStructureTree(v->root);
+				break;
+			}
+		case 2:
+			{
+				char* path = GetDirectoryPath("Write directory path to show");
+				ViewStructureTreeByPath(v->root, path);
+				free(path);
+				break;
+			}
+		case 3:
+			{
+				char* path = GetFilePath("Write file path to show");
+				ViewFileDataByPath(v->root, path);
+				free(path);
+				break;
+			}
+		case 4:
+			{
+				char* path = GetFilePath("Write file path to add");
+				if(AddFileByPath(v, path) == NULL) printf("\nCan't add file\n");
+				else printf("\nFile added successfully\n");
+				free(path);
+				break;
+			}
+		case 5:
+			{
+				char* path = GetFilePath("Write file path to add data to");
+				char* data = GetData();
+				if(!AddDataToFileByPath(v, path, data)) printf("\nCan't add data to that file\n");
+				else printf("\nData added successfully\n");
+				free(path);
+				free(data);
+				break;
+			}
+		case 6:
+			{
+				char* path = GetDirectoryPath("Write directory path to add");
+				if(!AddDirectoryByPath(v, path)) printf("\nCan't add that directory\n");
+				else printf("\nDirectory added successfully\n");
+				free(path);
+				break;
+			}
+		case 7:
+			{
+				char* path = GetFilePath("Write file path to delete");
+				if(!DeleteFileByPath(v, path)) printf("\nCan't delete that file\n");
+				else printf("\nFile deleted successfully\n");
+				free(path);
+				break;
+			}
+		case 8:
+			{
+				char* path = GetDirectoryPath("Write directory path to delete");
+				if(!DeleteDirectoryByPath(v, path)) printf("\nCan't delete that directory\n");
+				else printf("\nDirectory deleted successfully\n");
+				free(path);
+				break;
+			}
+		case 9:
+			{
+				char* fPath = GetFilePath("Write file path to move");
+				char* dPath = GetDirectoryPath("Write directory path to move to");
+				if(!MoveFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't move that file to that directory\n");
+				else printf("\nFile moved successfully");
+				free(fPath);
+				free(dPath);
+				break;
+			}
+		case 10:
+			{
+				char* dirPath = GetDirectoryPath("Write directory path to move");
+				char* destPath = GetDirectoryPath("Write directory path to move to");
+				if(!MoveDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't move that directory to that directory\n");
+				else printf("\nDirectory moved successfully");
+				free(dirPath);
+				free(destPath);
+				break;
+			}
+		case 11:
+			{
+				char* fPath = GetFilePath("Write file path to copy");
+				char* dPath = GetDirectoryPath("Write directory path to copy to");
+				if(!CopyFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't copy that file to that directory\n");
+				else printf("\nFile copied successfully");
+				free(fPath);
+				free(dPath);
+				break;
+			}
+		case 12:
+			{
+				char* dirPath = GetDirectoryPath("Write directory path to copy");
+				char* destPath = GetDirectoryPath("Write directory path to copy to");
+				if(!CopyDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't copy that directory to that directory\n");
+				else printf("\nDirectory copied successfully");
+				free(dirPath);
+				free(destPath);
+				break;
+			}
+		case 13:
+			{
+				char* path = GetFilePath("Write file path to rename");
+				char* name = GetFileName();
+				if(!RenameFileByPath(v->root, path, name)) printf("\n Can't rename that file\n");
+				else printf("\nFile renamed successfully\n");
+				free(path);
+				free(name);
+				break;
+			}
+		case 14:
+			{
+				char* path = GetDirectoryPath("Write directory path to rename");
+				char* name = GetDirectoryName();
+				if(!RenameDirectoryByPath(v->root, path, name)) printf("\nCan't rename that directory\n");
+				else printf("\nDirectory renamed successfully");
+				free(path);
+				free(name);
+				break;
+			}
+		case 15:
+			{
+				char* name = GetVolumeName();
+				if(!Save(v, name)) printf("\nCan't save volume to disk\n");
+				else printf("\nSuccessfully saved volume to disk\n");
+				free(name);
+				break;
+			}
+		case 16:
+			{
+				if(!Save(v, v->name)) printf("\nCan't save volume to disk\n");
+				else return 1;
+				break;
+			}
+		default:
+			break;
+		}
+	}
+}
+
+char* GetVolumeName()
+{
+	int n;
+	char* name = malloc(256);
+
+	while(1)
+	{
+		printf("\nWrite volume name (max %d characters):\n", VOLUME_NAME_SIZE);
+
+		n = scanf("%s", name);
+
+		if(n == 1 && strlen(name) <= VOLUME_NAME_SIZE)
+		{
+			return name;
+		}
+
+		printf("Invalid volume name. Write again");
+
+		ClearBuffer();
+	}
+}
+
+char* GetDirectoryName()
+{
+	int n;
+	char* name = malloc(256);
+
+	while(1)
+	{
+		printf("\nWrite directory name (max %d characters):\n", NAME_SIZE);
+
+		n = scanf("%s", name);
+
+		if(n == 1 && IsDirectory(name))
+		{
+			return name;
+		}
+
+		printf("Invalid directory name. Write again");
+
+		ClearBuffer();
+	}
+}
+
+char* GetFileName()
+{
+	int n;
+	char* name = malloc(256);
+
+	while(1)
+	{
+		printf("\nWrite file name (max %d characters):\n", NAME_SIZE);
+
+		n = scanf("%s", name);
+
+		if(n == 1 && IsFile(name))
+		{
+			return name;
+		}
+
+		printf("Invalid file name. Write again");
+
+		ClearBuffer();
+	}
+}
+
+char* GetData()
+{
+	int n = 0;
+	char* data = malloc(1);
+	char c;
+
+	printf("\nWrite data:\n");
+
+	while((c = getchar()) != '\n');
+	{
+		n++;
+		data = realloc(data, n);
+		data[n-1] = c;
+	}
+
+	return data;
+}
+
+char* GetFilePath(const char* message)
+{
+	int n;
+	char* path = malloc(256);
+
+	while(1)
+	{
+		printf("\n%s (for example: root/Folder1/File1.txt):\n", message);
+
+		n = scanf("%s", path);
+
+		if(n == 1 && IsValidFilePath(path))
+		{
+			return path;
+		}
+
+		printf("Invalid file path. Write again");
+
+		ClearBuffer();
+	}
+}
+
+int GetMenuChoice(int min, int max)
+{
+	int choice, n;
+
+	while(1)
+	{
+		printf("\nYour choice: ");
+		n = scanf("%d", &choice);
+
+		if(n == 1 && (choice >= min && choice <= max))
+		{
+			return choice;
+		}
+
+		printf("\nInvalid choice. Your choice must be from rang %d - %d. Choose again\n", min, max);
+		ClearBuffer();
+	}
+}
+
+char* GetDirectoryPath(const char* message)
+{
+	int n;
+	char* path = malloc(256);
+
+	while(1)
+	{
+		printf("\n%s (for example: root/Folder1/Folder2):\n", message);
+
+		n = scanf("%s", path);
+
+		if(n == 1 && IsValidDirectoryPath(path))
+		{
+			return path;
+		}
+
+		printf("Invalid directory path. Write again");
+
+		ClearBuffer();
+	}
+}
+
+void ClearBuffer()
+{
+	while(getchar() != '\n');
+}
+
+Volume* CreateVolume(const char* name, int size)
+{
+	if(name == NULL || strlen(name) > VOLUME_NAME_SIZE || size > MAX_VOLUME_SIZE) return NULL;
+
+	Volume* v = (Volume*)calloc(1, sizeof(Volume));
+
+	strcpy(v->name, name);
+
+    v->root = (Directory*)calloc(1, sizeof(Directory));
+    if(v->root == NULL)
+	{
+		free(v);
+		return NULL;
+	}
+    strcpy(v->root->name, "root");
+
+    v->clustersNum = size / CLUSTER_DATA_SIZE;
+
+    v->clusterTable = (Cluster**)calloc(v->clustersNum, sizeof(Cluster*));
+    if(v->clusterTable == NULL)
+	{
+		free(v->root);
+		free(v);
+		return NULL;
+	}
+
+    v->clusterTable[0] = (Cluster*)calloc(1, sizeof(Cluster));
+    if(v->clusterTable[0] == NULL)
+	{
+		free(v->root);
+		free(v->clusterTable);
+		free(v);
+		return NULL;
+	}
+    v->clusterTable[0]->data[0] = '\0';
+    v->root->dataClusters = v->clusterTable[0];
+
+    return v;
 }
 
 /* Loads volume from disk by name */
@@ -1230,9 +1599,11 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 	char* name = strtok(cName, ".");
 	char* ext = strtok(NULL, ".");
 
+	TextFile* f = AddFile(v, current, name, ext);
+
 	free(pathClone);
 
-	return AddFile(v, current, name, ext);
+	return f;
 }
 
 /* Delete directory (and all subdirectories and files within it) with given path */
