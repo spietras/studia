@@ -320,16 +320,17 @@ int ShowMenu(Volume* v)
 char* GetVolumeName()
 {
 	int n;
-	char* name = malloc(256);
+	char* name = malloc(257);
 
 	while(1)
 	{
 		printf("\nWrite volume name (max %d characters):\n", VOLUME_NAME_SIZE);
 
-		n = scanf("%s", name);
+		n = scanf("%256s", name);
 
 		if(n == 1 && strlen(name) <= VOLUME_NAME_SIZE)
 		{
+			ClearBuffer();
 			return name;
 		}
 
@@ -342,16 +343,17 @@ char* GetVolumeName()
 char* GetDirectoryName()
 {
 	int n;
-	char* name = malloc(256);
+	char* name = malloc(257);
 
 	while(1)
 	{
 		printf("\nWrite directory name (max %d characters):\n", NAME_SIZE);
 
-		n = scanf("%s", name);
+		n = scanf("%256s", name);
 
 		if(n == 1 && IsDirectory(name))
 		{
+			ClearBuffer();
 			return name;
 		}
 
@@ -363,17 +365,19 @@ char* GetDirectoryName()
 
 char* GetFileName()
 {
+
 	int n;
-	char* name = malloc(256);
+	char* name = malloc(257);
 
 	while(1)
 	{
 		printf("\nWrite file name (max %d characters):\n", NAME_SIZE);
 
-		n = scanf("%s", name);
+		n = scanf("%256s", name);
 
 		if(n == 1 && IsFile(name))
 		{
+			ClearBuffer();
 			return name;
 		}
 
@@ -385,13 +389,14 @@ char* GetFileName()
 
 char* GetData()
 {
+
 	int n = 0;
 	char* data = malloc(1);
 	char c;
 
 	printf("\nWrite data:\n");
 
-	while((c = getchar()) != '\n');
+	while((c = getchar()) != '\n')
 	{
 		n++;
 		data = realloc(data, n);
@@ -403,17 +408,19 @@ char* GetData()
 
 char* GetFilePath(const char* message)
 {
+
 	int n;
-	char* path = malloc(256);
+	char* path = malloc(257);
 
 	while(1)
 	{
 		printf("\n%s (for example: root/Folder1/File1.txt):\n", message);
 
-		n = scanf("%s", path);
+		n = scanf("%256s", path);
 
 		if(n == 1 && IsValidFilePath(path))
 		{
+			ClearBuffer();
 			return path;
 		}
 
@@ -425,6 +432,7 @@ char* GetFilePath(const char* message)
 
 int GetMenuChoice(int min, int max)
 {
+
 	int choice, n;
 
 	while(1)
@@ -434,6 +442,7 @@ int GetMenuChoice(int min, int max)
 
 		if(n == 1 && (choice >= min && choice <= max))
 		{
+			ClearBuffer();
 			return choice;
 		}
 
@@ -444,17 +453,19 @@ int GetMenuChoice(int min, int max)
 
 char* GetDirectoryPath(const char* message)
 {
+
 	int n;
-	char* path = malloc(256);
+	char* path = malloc(257);
 
 	while(1)
 	{
 		printf("\n%s (for example: root/Folder1/Folder2):\n", message);
 
-		n = scanf("%s", path);
+		n = scanf("%256s", path);
 
 		if(n == 1 && IsValidDirectoryPath(path))
 		{
+			ClearBuffer();
 			return path;
 		}
 
@@ -2475,7 +2486,7 @@ void ViewFileData(TextFile* f)
 
 	Cluster* current = f->dataClusters;
 
-	printf("%s.%s file data:\n", f->name, f->extension);
+	printf("\n%s.%s file data:\n", f->name, f->extension);
 
 	do
 	{
