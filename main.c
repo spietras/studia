@@ -150,7 +150,9 @@ int main()
 	return 0;
 }
 
-/* Shows menu and calls chosen functions */
+/**
+	Pokazuje menu i wywołuje odpowiednie funkcje
+*/
 int ShowMenu(Volume* v)
 {
 	while(1)
@@ -318,7 +320,9 @@ int ShowMenu(Volume* v)
 	}
 }
 
-/* Gets volume name from user */
+/**
+	Pobiera do użytkownika nazwę woluminu
+*/
 char* GetVolumeName()
 {
 	int n;
@@ -342,7 +346,9 @@ char* GetVolumeName()
 	}
 }
 
-/* Gets directory name from user */
+/**
+	Pobiera do użytkownika nazwę katalogu
+*/
 char* GetDirectoryName()
 {
 	int n;
@@ -366,7 +372,9 @@ char* GetDirectoryName()
 	}
 }
 
-/* Gets file name from user */
+/**
+	Pobiera do użytkownika nazwę pliku
+*/
 char* GetFileName()
 {
 
@@ -391,7 +399,9 @@ char* GetFileName()
 	}
 }
 
-/* Gets data from user */
+/**
+	Pobiera do użytkownika dane
+*/
 char* GetData()
 {
 
@@ -411,7 +421,10 @@ char* GetData()
 	return data;
 }
 
-/* Gets file path from user */
+/**
+	Pobiera do użytkownika ścieżkę do pliku
+	@param[in] message Wiadomość do wyświetlenia
+*/
 char* GetFilePath(const char* message)
 {
 
@@ -436,7 +449,11 @@ char* GetFilePath(const char* message)
 	}
 }
 
-/* Gets menu choice from user */
+/**
+	Pobiera do użytkownika wybór z menu
+	@param[in] min Minimalna liczba do wyboru
+	@param[in] max Maksymalna liczba do wyboru
+*/
 int GetMenuChoice(const int min, const int max)
 {
 
@@ -458,7 +475,10 @@ int GetMenuChoice(const int min, const int max)
 	}
 }
 
-/* Gets directory path from user */
+/**
+	Pobiera do użytkownika ścieżkę do katalogu
+	@param[in] message Wiadomość do wyświetlenia
+*/
 char* GetDirectoryPath(const char* message)
 {
 
@@ -483,13 +503,19 @@ char* GetDirectoryPath(const char* message)
 	}
 }
 
-/* Clears buffer */
+/**
+	Czysci bufor konsoli
+*/
 void ClearBuffer()
 {
 	while(getchar() != '\n');
 }
 
-/* Creates empty volume */
+/**
+	Tworzy pusty wolumin
+	@param[in] name Nazwa woluminu
+	@param[in] size Rozmiar woluminu (maksymalny rozmiar danych do przechowania na woluminie)
+*/
 Volume* CreateVolume(const char* name, const int size)
 {
 	if(name == NULL || strlen(name) > VOLUME_NAME_SIZE || size > MAX_VOLUME_SIZE) return NULL;
@@ -530,7 +556,10 @@ Volume* CreateVolume(const char* name, const int size)
     return v;
 }
 
-/* Loads volume from disk by name */
+/**
+	Odczytuje wolumin z pliku na dysku o podanej nazwie
+	@param[in] name Nazwa pliku (bez rozszerzenia)
+*/
 Volume* Load(const char* name)
 {
     if(name == NULL || strlen(name) > VOLUME_NAME_SIZE)
@@ -609,7 +638,13 @@ Volume* Load(const char* name)
 
 }
 
-/* Reads info about all files and directories from volumeFile and creates every file and directory */
+/**
+	Rekursywnie odczytuje informacje o wszystkich plikach i podkatalogach z pliku na dysku i tworzy je w programie
+	@param[in] volumeFile Plik do odczytu
+	@param[in, out] d Aktualny katalog, do którego zostaną dodane odczytane pliki i podkatalogi
+	@param[in, out] clusterTable Tablica klastrów
+	@param[in] clusterNum Maksymalna liczba klastrów
+*/
 int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** clusterTable, const int clusterNum)
 {
 	if(volumeFile == NULL || d == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
@@ -696,7 +731,13 @@ int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** clusterTable,
 	return 1;
 }
 
-/* Reads info about file from volumeFile and creates that file */
+/**
+	Odczytuje informacje o pliku z pliku na dysku i tworzy ten plik w programie
+	@param[in] volumeFile Plik do odczytu
+	@param[in, out] parent Katalog, do którego zostanie dodany odczytany plik
+	@param[in, out] clusterTable Tablica klastrów
+	@param[in] clusterNum Maksymalna liczba klastrów
+*/
 int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable, const int clusterNum)
 {
 	if(volumeFile == NULL || parent == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
@@ -794,7 +835,13 @@ int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable, const 
 	return 1;
 }
 
-/* Reads info about directory from volumeFile and creates that directory */
+/**
+	Odczytuje informacje o podkatalogu z pliku na dysku i tworzy ten podkatalog w programie
+	@param[in] volumeFile Plik do odczytu
+	@param[in, out] parent Katalog, do którego zostanie dodany odczytany podkatalog
+	@param[in, out] clusterTable Tablica klastrów
+	@param[in] clusterNum Maksymalna liczba klastrów
+*/
 int ReadDirectory(FILE* volumeFile, Directory* parent, Cluster** clusterTable, const int clusterNum)
 {
 	if(volumeFile == NULL || parent == NULL || clusterTable == NULL || clusterNum <= 0) return 0;
@@ -870,7 +917,11 @@ int ReadDirectory(FILE* volumeFile, Directory* parent, Cluster** clusterTable, c
 	return 1;
 }
 
-/* Gets ID of next cluster from FAT */
+/**
+	Zwraca ID następnego klastra z Tablicy Alokacji Plików
+	@param[in] volumeFile Plik z zapisem woluminu
+	@param[in] clusterID ID aktualnego klastra
+*/
 int GetNextID(FILE* volumeFile, const int clusterID)
 {
 	if(volumeFile == NULL || clusterID > MAX_CLUSTER_NUM || clusterID < 0) return -1;
@@ -885,7 +936,10 @@ int GetNextID(FILE* volumeFile, const int clusterID)
 	return value;
 }
 
-/* Gets number of clusters by volumeSize */
+/**
+	Zwraca liczbe klastrow dla podanego rozmiaru woluminu
+	@param[in] volumeSize Rozmiar woluminu
+*/
 int GetClustersNumber(const int volumeSize)
 {
 	if(volumeSize > MAX_VOLUME_SIZE || volumeSize < 0) return -1;
@@ -893,7 +947,11 @@ int GetClustersNumber(const int volumeSize)
 	return volumeSize / (sizeof(int) + CLUSTER_DATA_SIZE);
 }
 
-/* Saves volume to disk with name */
+/**
+	Zapisuje wolumin do pliku na dysku z podaną nazwą
+	@param[in] v Wolumin
+	@param[in] name Nazwa pliku (bez rozszerzenia)
+ */
 int Save(const Volume* v, const char* name)
 {
 	if(v == NULL || name == NULL || strlen(name) > VOLUME_NAME_SIZE) return 0;
@@ -954,7 +1012,11 @@ int Save(const Volume* v, const char* name)
 	return 1;
 }
 
-/* Saves info about all directories and files to volumeFile */
+/**
+	Zapisuje informacje o wszystkich plikach i katalogach danego woluminu do pliku na dysku
+	@param[in] v Wolumin
+	@param[in, out] volumeFile Plik do zapisu
+*/
 int SaveAllDirectoriesEntries(const Volume* v, FILE* volumeFile)
 {
 	if(v == NULL || v->clustersNum <= 0 || v->clusterTable == NULL || v->root == NULL || volumeFile == NULL) return 0;
@@ -964,7 +1026,12 @@ int SaveAllDirectoriesEntries(const Volume* v, FILE* volumeFile)
 	return 1;
 }
 
-/* Saves info about all entries of directory d to volumeFile */
+/**
+	Zapisuje informacje o plikach i podkatalogach podanego katalogu do pliku na dysku
+	@param[in] d Katalog, którego informacje o pozycjach zostaną zapisane
+	@param[in, out] volumeFile Plik do zapisu
+	@param[in] clustersNum Ilość wszystkich klastrów
+*/
 int SaveDirectoryEntries(const Directory* d, FILE* volumeFile, const int clustersNum)
 {
 	if(d == NULL || volumeFile == NULL || clustersNum <= 0) return 0;
@@ -1014,7 +1081,12 @@ int SaveDirectoryEntries(const Directory* d, FILE* volumeFile, const int cluster
 	return 1;
 }
 
-/* Saves info about directory d to volumeFile at position */
+/**
+	Zapisuje informację o katalogu do pliku na dysku
+	@param[in] d Katalog, o którym informacje zostaną zapisane
+	@param[in, out] volumeFile Plik do zapisu
+	@param[in] position Pozycja do zapisu
+*/
 int SaveDirectoryInfo(const Directory* d, FILE* volumeFile, const int position)
 {
 	if(d == NULL || d->name == NULL || d->dataClusters == NULL || volumeFile == NULL || position <= 0) return 0;
@@ -1041,7 +1113,12 @@ int SaveDirectoryInfo(const Directory* d, FILE* volumeFile, const int position)
 	return 1;
 }
 
-/* Saves info about file f to volumeFile at position */
+/**
+	Zapisuje informację o pliku do pliku na dysku
+	@param[in] f Plik, o którym informacje zostaną zapisane
+	@param[in, out] volumeFile Plik do zapisu
+	@param[in] position Pozycja do zapisu
+*/
 int SaveFileInfo(const TextFile* f, FILE* volumeFile, const int position)
 {
 	if(f == NULL || f->name == NULL || f->extension == NULL || f->dataClusters == NULL || volumeFile == NULL || position <= 0) return 0;
@@ -1068,7 +1145,11 @@ int SaveFileInfo(const TextFile* f, FILE* volumeFile, const int position)
 	return 1;
 }
 
-/* Gets offset of cluster by its ID */
+/**
+	Zwraca pozycję poczatkową klastra z podanym ID klastra
+	@param[in] clustersNum Maksymalna liczba klastrów
+	@param[in] clusterID ID klastra
+*/
 int GetOffset(const int clustersNum, const int clusterID)
 {
 	if(clustersNum > MAX_CLUSTER_NUM || clusterID > MAX_CLUSTER_NUM || clustersNum <= 0 || clusterID < 0) return -1;
@@ -1076,7 +1157,11 @@ int GetOffset(const int clustersNum, const int clusterID)
     return clustersNum * sizeof(int) + clusterID * CLUSTER_DATA_SIZE;
 }
 
-/* Saves File Allocation Table to volumeFile */
+/**
+	Zapisuje Tablice Alokacji Plików do pliku na dysku
+	@param[in] v Wolumin
+	@param[in, out] volumeFile Plik do zapisu
+*/
 int SaveFAT(const Volume* v, FILE* volumeFile)
 {
 	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0) return 0;
@@ -1106,7 +1191,11 @@ int SaveFAT(const Volume* v, FILE* volumeFile)
 	return 1;
 }
 
-/* Saves all clusters to volumeFile */
+/**
+	Zapisuje dane z wszystkich klastrów do pliku na dysku
+	@param[in] v Wolumin
+	@param[in, out] volumeFile Plik do zapisu
+*/
 int SaveClustersData(const Volume* v, FILE* volumeFile)
 {
 	if(v == NULL || volumeFile == NULL || v->clusterTable == NULL || v->clustersNum <= 0) return 0;
@@ -1138,7 +1227,12 @@ int SaveClustersData(const Volume* v, FILE* volumeFile)
 	return 1;
 }
 
-/* Sets directory with given path name to newName */
+/**
+	Zmienia nazwę katalogu z podaną ścieżką na podaną nazwę
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do katalogu
+	@param[in] newName Nowa nazwa katalogu
+*/
 int RenameDirectoryByPath(Directory* root, const char* path, const char* newName)
 {
 	if(path == NULL || newName == NULL || !IsValidDirectoryPath(path)) return 0;
@@ -1150,7 +1244,11 @@ int RenameDirectoryByPath(Directory* root, const char* path, const char* newName
 	return RenameDirectory(d, newName);
 }
 
-/* Sets directory d name to newName */
+/**
+	Zmienia nazwę podanego katalogu na podaną nazwę
+	@param[in, out] d Katalog, którego nazwa zostanie zmieniona
+	@param[in] newName Nowa nazwa katalogu
+*/
 int RenameDirectory(Directory* d, const char* newName)
 {
 	if(d == NULL || newName == NULL || strlen(newName) > NAME_SIZE) return 0;
@@ -1162,7 +1260,12 @@ int RenameDirectory(Directory* d, const char* newName)
 	return 1;
 }
 
-/* Sets file with given path name to newName */
+/**
+	Zmienia nazwę pliku z podaną ścieżką na podaną nazwę
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do pliku
+	@param[in] newName Nowa nazwa pliku
+*/
 int RenameFileByPath(Directory* root, const char* path, const char* newName)
 {
 	if(path == NULL || newName == NULL || !IsValidFilePath(path)) return 0;
@@ -1174,7 +1277,11 @@ int RenameFileByPath(Directory* root, const char* path, const char* newName)
 	return RenameFile(f, newName);
 }
 
-/* Sets file f name to newName */
+/**
+	Zmienia nazwę podanego pliku na podaną nazwę
+	@param[in, out] f Plik, którego nazwa zostanie zmieniona
+	@param[in] newName Nowa nazwa pliku
+*/
 int RenameFile(TextFile* f, const char* newName)
 {
     if(f == NULL || newName == NULL || strlen(newName) > NAME_SIZE) return 0;
@@ -1196,7 +1303,11 @@ int RenameFile(TextFile* f, const char* newName)
 	return 1;
 }
 
-/* Checks if directory with destPath is below in hierarchy than directory with dirPath */
+/**
+	Sprawdza, czy katalog z podaną ścieżką zawiera się w katalogu z podaną ścieżką
+	@param[in] dirPath Ścieżka do katalogu, który jest sprawdzany, czy zawiera się w drugim katalogu
+	@param[in] destPath Ścieżka do katalogu, który jest sprawdzany, czy zawiera pierwszy katalog
+*/
 int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* destPath)
 {
 	if(!IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath)) return 0;
@@ -1208,7 +1319,12 @@ int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* 
 	return 1;
 }
 
-/* Copies directory (and all within it)  with given path to directory with given path */
+/**
+	Kopiuje katalog (i jego zawartość) z podaną ścieżką do katalogu z podaną ścieżką
+	@param[in, out] v Wolumin
+	@param[in] dirPath Ścieżka do katalogu do skopiowania
+	@param[in] destPath Ścieżka do katalogu, do którego katalog zostanie skopiowany
+*/
 int CopyDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
 	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath)) return 0;
@@ -1226,7 +1342,12 @@ int CopyDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 	return 1;
 }
 
-/* Copies recursively directory d and all its files and subdirectories to directory destination */
+/**
+	Rekursywnie kopiuje podany katalog i wszystkie jego pliki i podkatalogi do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in] d Katalog do skopiowania
+	@param[in, out] destination Katalog, do którego katalog zostanie skopiowany
+*/
 int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
 	if(v == NULL || d == NULL || destination == NULL) return 0;
@@ -1264,10 +1385,15 @@ int CopyDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 	return 1;
 }
 
-/* Copies single directory d to directory destination */
+/**
+	Kopiuje podany pusty katalog do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in] d Katalog do skopiowania
+	@param[in, out] destination Katalog, do którego katalog zostanie skopiowany
+*/
 Directory* CopySingleDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
-	if(v == NULL || d == NULL || destination == NULL) return NULL;
+	if(v == NULL || d == NULL || destination == NULL || d->files != NULL || d->subdirs != NULL) return NULL;
 
 	if(FindDirectoryByNameAndParent(destination, d->name) != NULL) return NULL;
 
@@ -1285,7 +1411,12 @@ Directory* CopySingleDirectoryToDirectory(Volume* v, Directory* d, Directory* de
 	return copy;
 }
 
-/* Copies file with given path to directory with given path */
+/**
+	Kopiuje plik z podaną ścieżka do katalogu z podaną ścieżka
+	@param[in, out] v Wolumin
+	@param[in] fPath Ścieżka do pliku do skopiowania
+	@param[in] dirPath Ścieżka do katalogu, do którego plik zostanie skopiowany
+*/
 int CopyFileToDirectoryByPaths(Volume* v, const char* fPath, const char* dirPath)
 {
 	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath)) return 0;
@@ -1301,7 +1432,12 @@ int CopyFileToDirectoryByPaths(Volume* v, const char* fPath, const char* dirPath
 	return 1;
 }
 
-/* Copies file f to directory d */
+/**
+	Kopiuje podany plik do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in] f Plik do skopiowania
+	@param[in, out] d Katalog, do którego plik zostanie skopiowany
+*/
 int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
 	if(v == NULL || f == NULL || d == NULL) return 0;
@@ -1358,7 +1494,12 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	return 1;
 }
 
-/* Moves directory with given path to directory with given path */
+/**
+	Przenosi katalog z podaną ściezka do katalogu z podaną ścieżka
+	@param[in, out] v Wolumin
+	@param[in] dirPath Ścieżka do katalogu do przeniesienia
+	@param[in] destPath Ścieżka do katalogu, do którego katalog zostanie przeniesiony
+*/
 int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* destPath)
 {
 	if(v == NULL || !IsValidDirectoryPath(dirPath) || !IsValidDirectoryPath(destPath) || IsDestinationDirectoryPathBelowInHierarchy(dirPath, destPath)) return 0;
@@ -1376,7 +1517,12 @@ int MoveDirectoryToDirectoryByPaths(Volume* v, const char* dirPath, const char* 
 	return 1;
 }
 
-/* Moves directory d to directory destination */
+/**
+	Przenosi podany katalog do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] d Katalog do przeniesienia
+	@param[in, out] destination Katalog, do którego katalog zostanie przeniesiony
+*/
 int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 {
 	if(v == NULL || d == NULL || destination == NULL) return 0;
@@ -1408,7 +1554,12 @@ int MoveDirectoryToDirectory(Volume* v, Directory* d, Directory* destination)
 	return 1;
 }
 
-/* Moves file with given path to directory with given path */
+/**
+	Przenosi plik z podaną ścieżką do katalogu z podaną ścieżką
+	@param[in, out] v Wolumin
+	@param[in] fPath Ścieżka do pliku do przeniesienia
+	@param[in] dirPath Ścieżka do katalogu, do którego plik zostanie przeniesiony
+*/
 int MoveFileToDirectoryByPaths(Volume* v, const char* fPath, const char* dirPath)
 {
 	if(v == NULL || !IsValidFilePath(fPath) || !IsValidDirectoryPath(dirPath)) return 0;
@@ -1424,7 +1575,12 @@ int MoveFileToDirectoryByPaths(Volume* v, const char* fPath, const char* dirPath
 	return 1;
 }
 
-/* Moves file f to directory d */
+/**
+	Przenosi podany plik do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] f Plik do przeniesienia
+	@param[in, out] d Katalog, do którego plik zostanie przeniesiony
+*/
 int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 {
 	if(v == NULL || f == NULL || d == NULL) return 0;
@@ -1471,7 +1627,10 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	return 1;
 }
 
-/* Copies list of clusters */
+/**
+	Kopiuje listę klastrów
+	@param[in] first Pierwszy klaster listy
+*/
 Cluster* CopyClusterList(const Cluster* first)
 {
 	if(first == NULL) return NULL;
@@ -1483,7 +1642,11 @@ Cluster* CopyClusterList(const Cluster* first)
 	return t;
 }
 
-/* Views tree structure of directory with given path */
+/**
+	Wyświetla drzewo plików i podkatalogów katalogu przez podanie ścieżki
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do katalogu
+*/
 void ViewStructureTreeByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
@@ -1509,7 +1672,11 @@ void ViewStructureTreeByPath(Directory* root, const char* path)
 	ViewStructureTree(d);
 }
 
-/* Views data of file with given path */
+/**
+	Wyświetla dane pliku przez podanie ścieżki
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do pliku
+*/
 void ViewFileDataByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
@@ -1535,7 +1702,12 @@ void ViewFileDataByPath(Directory* root, const char* path)
 	ViewFileData(f);
 }
 
-/* Adds given data to file with given path */
+/**
+	Dodaje dane do pliku przez podanie ścieżki
+	@param[in, out] v Wolumin
+	@param[in] path Ścieżka do pliku
+	@param[in] data Dane
+*/
 int AddDataToFileByPath(Volume* v, const char* path, const char* data)
 {
 	if(v == NULL || !IsValidFilePath(path) || data == NULL) return 0;
@@ -1546,7 +1718,11 @@ int AddDataToFileByPath(Volume* v, const char* path, const char* data)
 	return AddDataToFile(v, f, data);
 }
 
-/* Adds directory with given path */
+/**
+	Dodaje katalog przez podanie ścieżki
+	@param[in, out] v Wolumin
+	@param[in] path Ścieżka do katalogu
+*/
 Directory* AddDirectoryByPath(Volume* v, const char* path)
 {
 	if(v == NULL || !IsValidDirectoryPath(path))
@@ -1585,7 +1761,11 @@ Directory* AddDirectoryByPath(Volume* v, const char* path)
 	return current;
 }
 
-/* Adds file with given path */
+/**
+	Dodaje plik przez podanie ścieżki
+	@param[in, out] v Wolumin
+	@param[in] path Ścieżka do pliku
+*/
 TextFile* AddFileByPath(Volume* v, const char* path)
 {
 	if(v == NULL || !IsValidFilePath(path)) return 0;
@@ -1627,7 +1807,11 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 	return f;
 }
 
-/* Delete directory (and all subdirectories and files within it) with given path */
+/**
+	Usuwa katalog (i wszystkie jego podkatalogi i pliki) przez podanie ścieżki
+	@param[in, out] v Wolumin
+	@param[in] path Ścieżka do katalogu
+*/
 int DeleteDirectoryByPath(Volume* v, const char* path)
 {
 	if(v == NULL || path == NULL) return 0;
@@ -1639,7 +1823,11 @@ int DeleteDirectoryByPath(Volume* v, const char* path)
 	return 1;
 }
 
-/* Deletes recursively all subdirectories and files within given directory (and that directory) */
+/**
+	Rekursywnie usuwa wszystkie pliki i podkatalogi z podanego katalogu (wraz z tym katalogiem)
+	@param[in, out] v Wolumin
+	@param[in, out] d Katalog
+*/
 int DeleteDirectoryTree(Volume*v, Directory* d)
 {
 	if(v == NULL || d == NULL) return 0;
@@ -1659,7 +1847,11 @@ int DeleteDirectoryTree(Volume*v, Directory* d)
 	return 1;
 }
 
-/* Deletes d directory (with no subdirectories) */
+/**
+	Usuwa podany pusty katalog
+	@param[in, out] v Wolumin
+	@param[in, out] d Pusty katalog
+*/
 int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
 {
 	if(v == NULL  || d == NULL || d->dataClusters == NULL || d->parent == NULL || d->parent->subdirs == NULL || d->subdirs != NULL) return 0;
@@ -1678,7 +1870,11 @@ int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
 	return 1;
 }
 
-/* Deletes file by given path */
+/**
+	Usuwa plik przez podanie ścieżki
+	@param[in, out] v Wolumin
+	@param[in] path Scieżka do pliku
+*/
 int DeleteFileByPath(Volume* v, const char* path)
 {
 	if(v == NULL || path == NULL) return 0;
@@ -1690,7 +1886,10 @@ int DeleteFileByPath(Volume* v, const char* path)
 	return 1;
 }
 
-/* Checks if path is valid for file */
+/**
+	Sprawdza, czy podana ścieżka jest prawidłowa dla piku
+	@param[in] path Ścieżka
+*/
 int IsValidFilePath(const char* path)
 {
 	if(path == NULL || strstr(path, "//") != NULL) return 0;
@@ -1734,7 +1933,10 @@ int IsValidFilePath(const char* path)
 	return 1;
 }
 
-/* Checks if path is valid for directory */
+/**
+	Sprawdza, czy ścieżka jest poprawna dla katalogu
+	@param[in] path Ścieżka
+ */
 int IsValidDirectoryPath(const char* path)
 {
 	if(path == NULL || strstr(path, "//") != NULL) return 0;
@@ -1765,7 +1967,10 @@ int IsValidDirectoryPath(const char* path)
 	return 1;
 }
 
-/* Checks if name is valid for file */
+/**
+	Sprawdza, czy podana nazwa jest prawidłowa dla pliku
+	@param[in] name Nazwa
+ */
 int IsFile(const char* name)
 {
 	if(name == NULL || name[0] == '.' || name[strlen(name) - 1] == '.') return 0;
@@ -1773,7 +1978,10 @@ int IsFile(const char* name)
 	return strstr(name, ".") != NULL && strpbrk(name, FILE_INVALID_CHARACTERS) == NULL;
 }
 
-/* Checks if name is valid for directory */
+/**
+	Sprawdza, czy podana nazwa jest prawidłowa dla katalogu
+	@param[in] name Nazwa
+*/
 int IsDirectory(const char* name)
 {
 	if(name == NULL) return 0;
@@ -1781,7 +1989,11 @@ int IsDirectory(const char* name)
 	return strpbrk(name, DIRECTORY_INVALID_CHARACTERS) == NULL;
 }
 
-/* Finds file by path */
+/**
+	Znajduje plik przez podanie ścieżki
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do pliku
+*/
 TextFile* FindFileByPath(Directory* root, const char* path)
 {
 	if(root == NULL || !IsValidFilePath(path)) return NULL;
@@ -1798,7 +2010,11 @@ TextFile* FindFileByPath(Directory* root, const char* path)
     return FindFileByNameAndParent(parent, last);
 }
 
-/* Finds directory by path */
+/**
+	Znajduje katalog przez podanie ścieżki
+	@param[in] root Katalog główny
+	@param[in] path Ścieżka do katalogu
+*/
 Directory* FindDirectoryByPath(Directory* root, const char* path)
 {
 	if(root == NULL || !IsValidDirectoryPath(path)) return NULL;
@@ -1821,7 +2037,11 @@ Directory* FindDirectoryByPath(Directory* root, const char* path)
 	return current;
 }
 
-/* Finds directory by parent directory and name */
+/**
+	Znajduje podkatalog przez podanie katalogu, w którym katalog jest szukany i nazwę podkatalogu
+	@param[in] parent Katalog, w którym plik jest szukany
+	@param[in] name Nazwa podkatalogu
+*/
 Directory* FindDirectoryByNameAndParent(const Directory* parent, const char* name)
 {
 	if(parent == NULL) return NULL;
@@ -1841,7 +2061,11 @@ Directory* FindDirectoryByNameAndParent(const Directory* parent, const char* nam
 	return NULL;
 }
 
-/* Finds file by parent directory and name */
+/**
+	Znajduje plik przez podanie katalogu, w którym plik jest szukany i nazwę pliku
+	@param[in] parent Katalog, w którym plik jest szukany
+	@param[in] name Nazwa pliku
+*/
 TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 {
 	if(parent == NULL) return NULL;
@@ -1871,7 +2095,11 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 	return NULL;
 }
 
-/* Deletes given file */
+/**
+	Usuwa podany plik
+	@param[in, out] v Wolumin
+	@param[in, out] f Plik
+*/
 int DeleteFile(Volume* v, TextFile* f)
 {
 	if(v == NULL  || f == NULL || f->dataClusters == NULL || f->parent == NULL || f->parent->files == NULL) return 0;
@@ -1890,7 +2118,10 @@ int DeleteFile(Volume* v, TextFile* f)
 	return 1;
 }
 
-/* Cleans up list of subdirectories when deleting one */
+/**
+	Organizuje listę katalogów po usunięciu danego katalogu
+	@param[in, out] d katalog
+ */
 void OrganizeSubdirectoryListAfterDeletion(Directory* d)
 {
 	if(d == NULL || d->parent == NULL) return;
@@ -1915,7 +2146,10 @@ void OrganizeSubdirectoryListAfterDeletion(Directory* d)
 	}
 }
 
-/* Cleans up list of files when deleting one */
+/**
+	Organizuje listę plików po usunięciu danego pliku
+	@param[in, out] f Plik
+*/
 void OrganizeFileListAfterDeletion(TextFile* f)
 {
 	if(f == NULL || f->parent == NULL) return;
@@ -1944,7 +2178,9 @@ void OrganizeFileListAfterDeletion(TextFile* f)
 	f->parent = NULL;
 }
 
-/* Volume initialization */
+/**
+	Inicjalizacja woluminu
+*/
 Volume* InitializeVolume()
 {
 
@@ -1959,8 +2195,6 @@ Volume* InitializeVolume()
 		return NULL;
 	}
     strcpy(v->root->name, "root");
-
-    /* DEFAULT_CLUSTER_NUM clusters */
 
     v->clusterTable = (Cluster**)calloc(DEFAULT_CLUSTER_NUM, sizeof(Cluster*));
     if(v->clusterTable == NULL)
@@ -1994,7 +2228,10 @@ Volume* InitializeVolume()
     return v;
 }
 
-/* Adding some entries to volume */
+/**
+	Dodaje przykładowe pozycje do woluminu
+	@param[in, out] v Wolumin
+*/
 int AddExampleEntries(Volume* v)
 {
 	if(v == NULL) return 0;
@@ -2016,7 +2253,12 @@ int AddExampleEntries(Volume* v)
 
 }
 
-/* Adds directory with given name to parent directory */
+/**
+	Dodaje katalog z podaną nazwą do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] parent Katalog, do którego zostanie dodany katalog
+	@param[in] name Nazwa katalogu
+*/
 Directory* AddDirectory(Volume* v, Directory* parent, const char* name)
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE) return NULL;
@@ -2060,7 +2302,13 @@ Directory* AddDirectory(Volume* v, Directory* parent, const char* name)
     return create;
 }
 
-/* Adds file with given name and extension to parent directory */
+/**
+	Dodaje plik z podaną nazwą i rozszerzeniem do podanego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] parent Katalog, do którego plik zostanie dodany
+	@param[in] name Nazwa pliku
+	@param[in] extension Rozszerzenie pliku
+*/
 TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* extension)
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE) return NULL;
@@ -2115,7 +2363,12 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
     return create;
 }
 
-/* Adds data to file */
+/**
+	Dodaje dane do pliku
+	@param[in, out] v Wolumin
+	@param[in] f Plik
+	@param[in] data Dane
+*/
 int AddDataToFile(Volume* v, TextFile* f, const char* data)
 {
 	if(v == NULL || f == NULL || data == NULL) return 0;
@@ -2136,7 +2389,11 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 	return 1;
 }
 
-/* Clears data of file (given file's data cluster) */
+/**
+	Usuwa dane z danego łańcucha klastrów
+	@param[in, out] v Wolumin
+	@param[in, out] dataCluster Pierwszy klaster pliku
+*/
 int ClearData(Volume* v, Cluster*  dataCluster)
 {
 	if(v == NULL || dataCluster == NULL) return 0;
@@ -2161,7 +2418,13 @@ int ClearData(Volume* v, Cluster*  dataCluster)
 	return 1;
 }
 
-/* Adds data to file's cluster chain */
+/**
+	Dodaje dane do łańcucha klastrów danego pliku
+	@param[in, out] v Wolumin
+	@param[in] f Plik
+	@param[in] data Dane
+	@param[in] neededClusters Ilość potrzebnych klastrów
+*/
 int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, const int neededClusters)
 {
 	if(v == NULL || f == NULL || data == NULL || neededClusters == 0) return 0;
@@ -2206,7 +2469,12 @@ int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, const int ne
 	return 1;
 }
 
-/* Checks if there are enough free cluster for given needed amount */
+/**
+	Sprawdza, czy jest wystarczająca liczba wolnych klastrów
+	@param[in] clusterTable Tablica klastrów
+	@param[in] clusterNum Maksymalna ilość klastrów
+	@param[in] needed Potrzebna ilość klastrów
+*/
 int IsEnoughFreeClusters(Cluster** clusterTable, const int clusterNum, const int needed)
 {
 	if(clusterTable == NULL) return 0;
@@ -2226,7 +2494,10 @@ int IsEnoughFreeClusters(Cluster** clusterTable, const int clusterNum, const int
 	return 0;
 }
 
-/* Returns number of needed clusters for given data */
+/**
+	Zwraca ilość potrzebnych klastrów na zapisanie podanych danych
+	@param[in] data Dane
+*/
 int NumberOfNeededClusters(const char* data)
 {
 	if(data == NULL) return 0;
@@ -2241,7 +2512,11 @@ int NumberOfNeededClusters(const char* data)
 	return dataSize / CLUSTER_DATA_SIZE + 1;
 }
 
-/* Creates empty directory and returns pointer to it */
+/**
+	Tworzy nowy pusty katalog
+	@param[in, out] v Wolumin
+	@param[in] name Nazwa katalogu
+*/
 Directory* CreateEmptyDirectory(Volume* v, const char* name)
 {
 	if(v == NULL || strlen(name) > NAME_SIZE) return NULL;
@@ -2262,7 +2537,12 @@ Directory* CreateEmptyDirectory(Volume* v, const char* name)
 	return create;
 }
 
-/* Creates empty file and returns pointer to it */
+/**
+	Tworzy nowy pusty plik
+	@param[in, out] v Wolumin
+	@param[in] name Nazwa pliku
+	@param[in] extension Rozszerzenie pliku
+*/
 TextFile* CreateEmptyFile(Volume* v, const char* name, const char* extension)
 {
 	if(v == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE) return NULL;
@@ -2283,7 +2563,10 @@ TextFile* CreateEmptyFile(Volume* v, const char* name, const char* extension)
 	return create;
 }
 
-/* Returns pointer to empty cluster */
+/**
+	Znajduje i zwraca pusty klaster
+	@param[in, out] v Wolumin
+*/
 Cluster* FindEmptyCluster(Volume* v)
 {
 	if(v == NULL) return NULL;
@@ -2300,7 +2583,11 @@ Cluster* FindEmptyCluster(Volume* v)
 	return v->clusterTable[i];
 }
 
-/* Makes space for one more entry to parent directory entries */
+/**
+	Dodaje miejsce na jednę pozycję w danego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] parent Katalog
+*/
 int AddEntrySpace(Volume* v, Directory* parent)
 {
 	if(v == NULL || parent == NULL) return 0;
@@ -2319,7 +2606,11 @@ int AddEntrySpace(Volume* v, Directory* parent)
 	return 1;
 }
 
-/* Removes space for one entry from parent directory entries */
+/**
+	Usuwa miejsce na jedną pozycję z danego katalogu
+	@param[in, out] v Wolumin
+	@param[in, out] parent Katalog
+*/
 int RemoveEntrySpace(Volume* v, Directory* parent)
 {
 	if(v == NULL || parent == NULL || parent->entriesNum <= 0) return 0;
@@ -2338,7 +2629,10 @@ int RemoveEntrySpace(Volume* v, Directory* parent)
 	return 1;
 }
 
-/* Returns last directory in list */
+/**
+	Zwraca ostatni katalog z listy katalogów
+	@param[in] first Pierwszy katalog
+*/
 Directory* FindLastInDirectoryList(Directory* first)
 {
 	if(first == NULL)  return NULL;
@@ -2353,7 +2647,10 @@ Directory* FindLastInDirectoryList(Directory* first)
 	return t;
 }
 
-/* Returns last file in list */
+/**
+	Zwraca ostatni plik z listy plików
+	@param[in] first Pierwszy plik
+*/
 TextFile* FindLastInFileList(TextFile* first)
 {
 	if(first == NULL) return NULL;
@@ -2368,7 +2665,10 @@ TextFile* FindLastInFileList(TextFile* first)
 	return t;
 }
 
-/* Returns last cluster in list */
+/**
+	Zwraca ostatni klaster z listy klastrów
+	@param[in] first Pierwszy klaster
+*/
 Cluster* FindLastInClusterList(Cluster* first)
 {
 	if(first == NULL) return NULL;
@@ -2383,7 +2683,10 @@ Cluster* FindLastInClusterList(Cluster* first)
 	return t;
 }
 
-/* Checks if there is another cluster needed for one more entry with given number of previousEntries */
+/**
+	Sprawdza, czy po dodaniu nowej pozycji bedzie potrzebny nowy klaster na zapisywanie danych o pozycjach
+	@param[in] entriesNum Aktualna liczba pozycji
+*/
 int IsAnotherClusterNeededForEntry(const int entriesNum)
 {
 	if(entriesNum < 0) return 0;
@@ -2393,7 +2696,10 @@ int IsAnotherClusterNeededForEntry(const int entriesNum)
 	return entriesNum % ENTRIES_PER_CLUSTER == 0;
 }
 
-/* Checks if there will be empty cluster after removing entry */
+/**
+	Sprawdza, czy po usunięciu pozycji w katalogu zostanie niepotrzebny klaster do zapisywania danych o pozycjach
+	@param[in] entriesNum Aktualna liczba pozycji
+ */
 int IsLastClusterNeededAfterDeletingEntry(const int entriesNum)
 {
 	if(entriesNum <= 1) return 0;
@@ -2401,7 +2707,11 @@ int IsLastClusterNeededAfterDeletingEntry(const int entriesNum)
 	return entriesNum % ENTRIES_PER_CLUSTER == 1;
 }
 
-/* Returns index of first empty cluster in clusterTable */
+/**
+	Zwraca indeks pierwszego pustego klastra w tablicy klastrów
+	@param[in] clusterTable Tablica klastrów
+	@param[in] clusterNum Maksymalna ilość klastrów
+*/
 int FindEmptyClusterIndex(Cluster** clusterTable, const int clusterNum)
 {
 	if(clusterTable == NULL) return -1;
@@ -2416,7 +2726,10 @@ int FindEmptyClusterIndex(Cluster** clusterTable, const int clusterNum)
 	return -1;
 }
 
-/* View structure tree of given directory */
+/**
+	Wyswietla drzewo wszystkich plików i podkatalogów danego katalogu
+	@param[in] d Katalog, dla którego odbywa sie wyświetlanie
+*/
 void ViewStructureTree(const Directory* d)
 {
 	if(d == NULL)
@@ -2437,7 +2750,11 @@ void ViewStructureTree(const Directory* d)
     printf("\n");
 }
 
-/* Recursively prints all files and subdirectories of given parent directory */
+/**
+	Rekursywnie wyświetla wszystkie pliki i podkatalogi danego katalogu
+	@param[in] d Katalog, dla którego aktualnie jest wyświetlanie
+	@param[in] level Głębokość
+*/
 void ViewLevel(const Directory* d, int level)
 {
 	if(d == NULL) return;
@@ -2466,7 +2783,10 @@ void ViewLevel(const Directory* d, int level)
 
 }
 
-/* Prints cool characters B| */
+/**
+	Wyświetla kreski imitujćce strukturę katalogu
+	@param[in] level Głębokość
+*/
 void Indent(const int level)
 {
 	int i;
@@ -2480,7 +2800,10 @@ void Indent(const int level)
 	printf("____");
 }
 
-/* Prints contents of given file to console */
+/**
+	Wyświetla dane z pliku
+	@param[in] f Plik, którego dane zostaną wyświetlone
+*/
 void ViewFileData(const TextFile* f)
 {
 	if(f == NULL)
