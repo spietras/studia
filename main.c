@@ -130,7 +130,7 @@ int ReadDirectoryEntries(FILE*, Directory*, Cluster**, const int);
 Volume* Load(const char*);
 int ReadFile(FILE*, Directory*, Cluster**, const int);
 int ReadDirectory(FILE*, Directory*, Cluster**, const int);
-Volume* CreateVolume(const char*, int);
+Volume* CreateVolume(const char*, const int);
 void ClearBuffer();
 char* GetDirectoryPath(const char*);
 int GetMenuChoice(const int, const int);
@@ -141,9 +141,50 @@ char* GetDirectoryName();
 char* GetVolumeName();
 int ShowMenu(Volume*);
 
-int main()
+/**
+	Lista możliwych parametrów:
+	"-load <path>" - Wczytuje wolumin z podanej ścieżki <path>
+	"-format <name> <size>" - Tworzy nowy wolumin o podanej nazwie <name> i rozmiarze <size> (maksymalna ilość możliwych danych do zapisania w bajtach)
+*/
+int main(int argc, char** argv)
 {
-    Volume* v = InitializeVolume();
+	Volume* v;
+
+	if(argc < 1 || argc > 4)
+	{
+		printf("\nInvalid argument amount\n");
+		return 0;
+	}
+	else if(argc > 1)
+	{
+		if(argc == 3 && strcmp(argv[1], "-load") == 0)
+		{
+			v = Load(argv[2]);
+			if(v == NULL)
+			{
+				printf("\nCan't load that volume\n");
+				return 0;
+			}
+		}
+		else if(argc == 4 && strcmp(argv[1], "-format") == 0)
+		{
+			v = CreateVolume(argv[2], atoi(argv[3]));
+			if(v == NULL)
+			{
+				printf("\nCan't format that volume\n");
+				return 0;
+			}
+		}
+		else
+		{
+			printf("\nInvalid parameter\n");
+			return 0;
+		}
+	}
+	else
+	{
+		v = InitializeVolume();
+	}
 
     ShowMenu(v);
 
@@ -152,6 +193,7 @@ int main()
 
 /**
 	Pokazuje menu i wywołuje odpowiednie funkcje
+	@param[in, out] v Wolumin
 */
 int ShowMenu(Volume* v)
 {
@@ -317,6 +359,9 @@ int ShowMenu(Volume* v)
 		default:
 			break;
 		}
+
+		printf("\nPress ENTER key to continue...\n");
+		while(getchar() != '\n');
 	}
 }
 
@@ -417,6 +462,9 @@ char* GetData()
 		data = realloc(data, n);
 		data[n-1] = c;
 	}
+
+	data = realloc(data, n+1);
+	data[n-1] = '\0';
 
 	return data;
 }
@@ -967,21 +1015,6 @@ int Save(const Volume* v, const char* name)
 		free(fullName);
 		return 0;
 	}
-
-	/*
-		First save FAT:
-			for each item in clusterTable
-				if it's NULL, save 0
-				else if it's next cluster is NULL, save  -1
-				else save next cluster's id
-		Then save clusters data:
-			for each item in clusterTable
-				if it's NULL save CLUSTER_DATA_SIZE byte zeros
-				else if it has data (strlen(data) > 0) save all its data (without null terminator) and fill with zeros to CLUSTER_DATA_SIZE
-			then starting with root recursively save all subdirectories entries
-				for each entry save its name, extension ("dir" for directory) and first cluster id (fill name and extension with zeros to NAME_SIZE and EXTENSION_SIZE)
-				save ENTRIES_PER_CLUSTER entries in one cluster and move to next one if there is next one
-	*/
 
 	if(!SaveFAT(v, volumeFile))
 	{
@@ -2096,7 +2129,7 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 }
 
 /**
-	Usuwa podany plik
+	Usuwa podany plik i wszystkie klastry z nim związane
 	@param[in, out] v Wolumin
 	@param[in, out] f Plik
 */
@@ -2179,7 +2212,7 @@ void OrganizeFileListAfterDeletion(TextFile* f)
 }
 
 /**
-	Inicjalizacja woluminu
+	Inicjalizacja przykładowego woluminu
 */
 Volume* InitializeVolume()
 {
@@ -2254,7 +2287,7 @@ int AddExampleEntries(Volume* v)
 }
 
 /**
-	Dodaje katalog z podaną nazwą do podanego katalogu
+	Tworzy nowy pusty katalog z podaną nazwą i dodaje go do podanego katalogu
 	@param[in, out] v Wolumin
 	@param[in, out] parent Katalog, do którego zostanie dodany katalog
 	@param[in] name Nazwa katalogu
@@ -2303,7 +2336,7 @@ Directory* AddDirectory(Volume* v, Directory* parent, const char* name)
 }
 
 /**
-	Dodaje plik z podaną nazwą i rozszerzeniem do podanego katalogu
+	Tworzy nowy pusty plik z podaną nazwą i rozszerzeniem i dodaje go do podanego katalogu
 	@param[in, out] v Wolumin
 	@param[in, out] parent Katalog, do którego plik zostanie dodany
 	@param[in] name Nazwa pliku
@@ -2365,6 +2398,7 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
 
 /**
 	Dodaje dane do pliku
+	Uwaga: funkcja nadpisuje aktualne dane w pliku
 	@param[in, out] v Wolumin
 	@param[in] f Plik
 	@param[in] data Dane
@@ -2391,6 +2425,7 @@ int AddDataToFile(Volume* v, TextFile* f, const char* data)
 
 /**
 	Usuwa dane z danego łańcucha klastrów
+	Przy okazji usuwa wszystkie niepotrzebne już puste klastry z łańcucha
 	@param[in, out] v Wolumin
 	@param[in, out] dataCluster Pierwszy klaster pliku
 */
@@ -2564,7 +2599,7 @@ TextFile* CreateEmptyFile(Volume* v, const char* name, const char* extension)
 }
 
 /**
-	Znajduje i zwraca pusty klaster
+	Tworzy i zwraca pusty klaster
 	@param[in, out] v Wolumin
 */
 Cluster* FindEmptyCluster(Volume* v)
@@ -2735,11 +2770,13 @@ void ViewStructureTree(const Directory* d)
 	if(d == NULL)
 	{
 		printf("\nDirectory does not exist\n");
+		return;
 	}
 
 	if(d->files == NULL && d->subdirs == NULL)
 	{
 		printf("\nEmpty directory\n");
+		return;
 	}
 
 	int startLevel = 0;
@@ -2753,7 +2790,7 @@ void ViewStructureTree(const Directory* d)
 /**
 	Rekursywnie wyświetla wszystkie pliki i podkatalogi danego katalogu
 	@param[in] d Katalog, dla którego aktualnie jest wyświetlanie
-	@param[in] level Głębokość
+	@param[in] level Głębokość aktualnego katalogu
 */
 void ViewLevel(const Directory* d, int level)
 {
@@ -2784,7 +2821,7 @@ void ViewLevel(const Directory* d, int level)
 }
 
 /**
-	Wyświetla kreski imitujćce strukturę katalogu
+	Wyświetla kreski imitujące strukturę katalogu
 	@param[in] level Głębokość
 */
 void Indent(const int level)
