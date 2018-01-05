@@ -140,11 +140,14 @@ char* GetFileName();
 char* GetDirectoryName();
 char* GetVolumeName();
 int ShowMenu(Volume*);
+int BusyClusterAmount(const Volume*);
+int ResizeVolume(Volume*, const int);
 
 /**
 	Lista możliwych parametrów:
-	"-load <path>" - Wczytuje wolumin z podanej ścieżki <path>
+	"-load <name>" - Wczytuje wolumin o podanej nazwie <name>
 	"-format <name> <size>" - Tworzy nowy wolumin o podanej nazwie <name> i rozmiarze <size> (maksymalna ilość możliwych danych do zapisania w bajtach)
+	"-resize <name> <size>" - Zmienia rozmiar woluminu o podanej nazwie <name> i wczytuje ten wolumin do programu
 */
 int main(int argc, char** argv)
 {
@@ -175,6 +178,20 @@ int main(int argc, char** argv)
 				return 0;
 			}
 		}
+		else if(argc == 4 && strcmp(argv[1], "-resize") == 0)
+		{
+			v = Load(argv[2]);
+			if(v == NULL)
+			{
+				printf("\nCan't load that volume\n");
+				return 0;
+			}
+			if(!ResizeVolume(v, atoi(argv[3])))
+			{
+				printf("\nCan't resize that volume\n");
+				return 0;
+			}
+		}
 		else
 		{
 			printf("\nInvalid parameter\n");
@@ -189,6 +206,54 @@ int main(int argc, char** argv)
     ShowMenu(v);
 
 	return 0;
+}
+
+/**
+	Zmienia rozmiar woluminu
+	@param[in, out] v Wolumin
+	@param[in] newSize Nowy rozmiar
+*/
+int ResizeVolume(Volume* v, const int newSize)
+{
+	if(newSize > MAX_VOLUME_SIZE || newSize < CLUSTER_DATA_SIZE)
+	{
+		return 0;
+	}
+
+	if(newSize < BusyClusterAmount(v)*CLUSTER_DATA_SIZE);
+	{
+		return 0;
+	}
+
+	v->clustersNum = newSize / CLUSTER_DATA_SIZE;
+	v->clusterTable = realloc(v->clusterTable, v->clustersNum*sizeof(Cluster*));
+
+	return 1;
+}
+
+/**
+	Zwraca ilość zajętych klastrów woluminu v
+	@param[in] v Wolumin
+*/
+int BusyClusterAmount(const Volume* v)
+{
+	if(v == NULL || v->clustersNum < 0 || v->clusterTable == NULL)
+	{
+		return 0;
+	}
+
+	int i = 0;
+	int amount = 0;
+
+	for(i = 0; i < v->clustersNum; i++)
+	{
+		if(v->clusterTable[i] != NULL)
+		{
+			amount++;
+		}
+	}
+
+	return amount;
 }
 
 /**
