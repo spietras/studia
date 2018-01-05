@@ -215,15 +215,9 @@ int main(int argc, char** argv)
 */
 int ResizeVolume(Volume* v, const int newSize)
 {
-	if(newSize > MAX_VOLUME_SIZE || newSize < CLUSTER_DATA_SIZE)
-	{
-		return 0;
-	}
+	if(newSize > MAX_VOLUME_SIZE || newSize < CLUSTER_DATA_SIZE) return 0;
 
-	if(newSize < BusyClusterAmount(v)*CLUSTER_DATA_SIZE);
-	{
-		return 0;
-	}
+	if(newSize < BusyClusterAmount(v)*CLUSTER_DATA_SIZE) return 0;
 
 	v->clustersNum = newSize / CLUSTER_DATA_SIZE;
 	v->clusterTable = realloc(v->clusterTable, v->clustersNum*sizeof(Cluster*));
@@ -237,10 +231,7 @@ int ResizeVolume(Volume* v, const int newSize)
 */
 int BusyClusterAmount(const Volume* v)
 {
-	if(v == NULL || v->clustersNum < 0 || v->clusterTable == NULL)
-	{
-		return 0;
-	}
+	if(v == NULL || v->clustersNum < 0 || v->clusterTable == NULL) return 0;
 
 	int i = 0;
 	int amount = 0;
