@@ -108,9 +108,15 @@ int IsValidFilePath(const char* path)
 	if(path == NULL || strstr(path, "//") != NULL) return 0;
 
     char *pathClone = malloc(strlen(path) + 1);
+    if(pathClone == NULL) return 0;
     strcpy(pathClone, path);
 
     char* t = malloc(strlen(pathClone) + 1);
+    if(t == NULL)
+	{
+		free(pathClone);
+		return 0;
+	}
 
     pathClone = strtok(pathClone, "/");
 
@@ -155,6 +161,7 @@ int IsValidDirectoryPath(const char* path)
 	if(path == NULL || strstr(path, "//") != NULL) return 0;
 
     char *pathClone = malloc(strlen(path) + 1);
+    if(pathClone == NULL) return 0;
     strcpy(pathClone, path);
 
     pathClone = strtok(pathClone, "/");
@@ -214,6 +221,7 @@ int IsFile(const char* fullName)
 	if(d != 1) return 0;
 
 	char* nameClone = malloc(strlen(fullName) + 1);
+	if(nameClone == NULL) return 0;
 	strcpy(nameClone, fullName);
     char* name = strtok(nameClone, ".");
     char* extension = strtok(NULL, ".");
@@ -250,6 +258,7 @@ TextFile* FindFileByPath(Directory* root, const char* path)
 
     char *last = strrchr(path, '/');
     char *dirPath = malloc(last - path + 1);
+    if(dirPath == NULL) return NULL;
     strncpy(dirPath, path, last-path);
     dirPath[last-path] = '\0';
     last = last+1;
@@ -270,6 +279,7 @@ Directory* FindDirectoryByPath(Directory* root, const char* path)
 	if(root == NULL || !IsValidDirectoryPath(path)) return NULL;
 
 	char* pathClone = malloc(strlen(path) + 1);
+	if(pathClone == NULL) return NULL;
     strcpy(pathClone, path);
 
     pathClone = strtok(pathClone, "/");
@@ -321,6 +331,7 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 	if(parent == NULL) return NULL;
 
 	char* nameClone = malloc(strlen(name) + 1);
+	if(nameClone == NULL) return NULL;
 	strcpy(nameClone, name);
 	const char* nameTok = strtok(nameClone, ".");
 	if(nameTok == NULL)
@@ -354,6 +365,7 @@ Cluster* CopyClusterList(const Cluster* first)
 	if(first == NULL) return NULL;
 
 	Cluster* t = (Cluster*)malloc(sizeof(Cluster));
+	if(t == NULL) return NULL;
 	strcpy(t->data, first->data);
 	t->id = first->id;
 	t->next = CopyClusterList(first->next);

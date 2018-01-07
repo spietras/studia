@@ -385,6 +385,7 @@ char* GetVolumeName()
 {
 	int n;
 	char* name = malloc(257);
+	if(name == NULL) return NULL;
 
 	while(1)
 	{
@@ -411,6 +412,7 @@ char* GetDirectoryName()
 {
 	int n;
 	char* name = malloc(257);
+	if(name == NULL) return NULL;
 
 	while(1)
 	{
@@ -438,6 +440,7 @@ char* GetFileName()
 
 	int n;
 	char* name = malloc(257);
+	if(name == NULL) return NULL;
 
 	while(1)
 	{
@@ -465,6 +468,7 @@ char* GetData()
 
 	int n = 0;
 	char* data = malloc(1);
+	if(data == NULL) return NULL;
 	char c;
 
 	printf("\nWrite data:\n");
@@ -473,10 +477,12 @@ char* GetData()
 	{
 		n++;
 		data = realloc(data, n);
+		if(data == NULL) return NULL;
 		data[n-1] = c;
 	}
 
 	data = realloc(data, n+1);
+	if(data == NULL) return NULL;
 	data[n-1] = '\0';
 
 	return data;
@@ -491,6 +497,7 @@ char* GetFilePath(const char* message)
 
 	int n;
 	char* path = malloc(257);
+	if(path == NULL) return NULL;
 
 	while(1)
 	{
@@ -519,6 +526,7 @@ char* GetDirectoryPath(const char* message)
 
 	int n;
 	char* path = malloc(257);
+	if(path == NULL) return NULL;
 
 	while(1)
 	{
