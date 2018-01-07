@@ -98,6 +98,7 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
 {
 	if(v == NULL || parent == NULL || strlen(name) > NAME_SIZE || strlen(extension) > EXTENSION_SIZE) return NULL;
 	char* fullName = malloc(strlen(name) + 1 + strlen(extension) + 1);
+	if(fullName == NULL) return NULL;
 	strcpy(fullName, name);
 	strcat(fullName, ".");
 	strcat(fullName, extension);
@@ -158,6 +159,7 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 	if(v == NULL || !IsValidFilePath(path)) return 0;
 
 	char *pathClone = malloc(strlen(path)+1);
+	if(pathClone == NULL) return NULL;
 	strcpy(pathClone, path);
 
 	char* cName = strtok(pathClone, "/");
@@ -418,6 +420,7 @@ Directory* AddDirectoryByPath(Volume* v, const char* path)
 	}
 
 	char *pathClone = malloc(strlen(path)+1);
+	if(pathClone == NULL) return NULL;
 	strcpy(pathClone, path);
 
 	char* cName = strtok(pathClone, "/");
@@ -702,6 +705,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	if(v == NULL || f == NULL || d == NULL) return 0;
 
     char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
+    if(fullName == NULL) return 0;
 	strcpy(fullName, f->name);
 	strcat(fullName, ".");
 	strcat(fullName, f->extension);
@@ -844,6 +848,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	if(v == NULL || f == NULL || d == NULL) return 0;
 
 	char* fullName = malloc(strlen(f->name) + 1 + strlen(f->extension) + 1);
+	if(fullName == NULL) return 0;
 	strcpy(fullName, f->name);
 	strcat(fullName, ".");
 	strcat(fullName, f->extension);
@@ -872,11 +877,23 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	int i = 1;
 	Cluster* current = f->dataClusters;
 	char* copyData = malloc(1);
+	if(copyData == NULL)
+	{
+		RemoveEntrySpace(v, d);
+		free(fullName);
+		return 0;
+	}
 	copyData[0] = '\0';
 
 	do
 	{
 		copyData = realloc(copyData, i*CLUSTER_DATA_SIZE + 1);
+		if(copyData == NULL)
+		{
+			RemoveEntrySpace(v, d);
+			free(fullName);
+			return 0;
+		}
 		strcat(copyData, current->data);
 		current = current->next;
 		i++;
@@ -1026,6 +1043,7 @@ int RenameFile(TextFile* f, const char* newName)
     if(f == NULL || newName == NULL || strlen(newName) > NAME_SIZE) return 0;
 
 	char* fullName = malloc(strlen(newName) + 1 + strlen(f->extension) + 1);
+	if(fullName == NULL) return 0;
 	strcpy(fullName, newName);
 	strcat(fullName, ".");
 	strcat(fullName, f->extension);

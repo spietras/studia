@@ -34,6 +34,7 @@ int ResizeVolume(Volume* v, const int newSize)
 
 	v->clustersNum = newSize / CLUSTER_DATA_SIZE;
 	v->clusterTable = realloc(v->clusterTable, v->clustersNum*sizeof(Cluster*));
+	if(v->clusterTable == NULL) return 0;
 
 	return 1;
 }
@@ -70,6 +71,7 @@ Volume* CreateVolume(const char* name, const int size)
 	if(name == NULL || strlen(name) > VOLUME_NAME_SIZE || size > MAX_VOLUME_SIZE) return NULL;
 
 	Volume* v = (Volume*)calloc(1, sizeof(Volume));
+	if(v == NULL) return NULL;
 
 	strcpy(v->name, name);
 
@@ -117,6 +119,7 @@ Volume* Load(const char* name)
 	}
 
 	char* fullName = malloc(strlen(name) + 1 + 3 + 1);
+	if(fullName == NULL) return NULL;
 	strcpy(fullName, name);
 	strcat(fullName, ".bin");
 
@@ -171,6 +174,15 @@ Volume* Load(const char* name)
 	strcpy(v->root->name, "root");
 
 	v->root->dataClusters = v->clusterTable[0] = (Cluster*)calloc(1, sizeof(Cluster));
+	if(v->root->dataClusters == NULL)
+	{
+		fclose(volumeFile);
+		free(fullName);
+		free(v->clusterTable);
+		free(v->root);
+		free(v);
+		return NULL;
+	}
 
 	if(!ReadDirectoryEntries(volumeFile, v->root, v->clusterTable, v->clustersNum))
 	{
@@ -202,6 +214,7 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 	int currentId = d->dataClusters->id;
 	int beginOffset;
 	char* extension = malloc(EXTENSION_SIZE+1);
+	if(extension == NULL) return 0;
 
 	while(1)
 	{
@@ -506,6 +519,7 @@ int Save(const Volume* v, const char* name)
 	if(v == NULL || name == NULL || strlen(name) > VOLUME_NAME_SIZE) return 0;
 
 	char* fullName = malloc(strlen(name) + 1 + 3 + 1);
+	if(fullName == NULL) return 0;
 	strcpy(fullName, name);
 	strcat(fullName, ".bin");
 
@@ -768,6 +782,7 @@ Volume* InitializeVolume()
 {
 
 	Volume* v = (Volume*)calloc(1, sizeof(Volume));
+	if(v == NULL) return NULL;
 
 	strcpy(v->name, "vol");
 
