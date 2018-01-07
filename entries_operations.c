@@ -80,7 +80,7 @@ TextFile* CreateEmptyFile(Volume* v, const char* name, const char* extension)
 
     if(create->dataClusters == NULL)
 	{
-		free(create);
+		if(create != NULL) free(create);
 		return NULL;
 	}
 
@@ -104,7 +104,7 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
 
 	if(FindFileByNameAndParent(parent, fullName) != NULL)
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return NULL;
 	}
 
@@ -112,7 +112,7 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
     TextFile* create = CreateEmptyFile(v, name, extension);
     if(create == NULL)
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return NULL;
 	}
 
@@ -139,12 +139,12 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
 			last->next = NULL;
 		}
 		DeleteFile(v, create);
-		free(fullName);
-		free(create);
+		if(fullName != NULL) free(fullName);
+		if(fullName != NULL) free(create);
 		return NULL;
 	}
 
-	free(fullName);
+	if(fullName != NULL) free(fullName);
     return create;
 }
 
@@ -175,7 +175,7 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 			current = AddDirectory(v, t, cName);
 			if(current == NULL)
 			{
-				free(pathClone);
+				if(pathClone != NULL) free(pathClone);
 				return NULL;
 			}
 		}
@@ -189,7 +189,7 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 
 	TextFile* f = AddFile(v, current, name, ext);
 
-	free(pathClone);
+	if(pathClone != NULL) free(pathClone);
 
 	return f;
 }
@@ -349,7 +349,7 @@ Directory* CreateEmptyDirectory(Volume* v, const char* name)
 
     if(create->dataClusters == NULL)
 	{
-		free(create);
+		if(create != NULL) free(create);
 		return NULL;
 	}
 
@@ -398,7 +398,6 @@ Directory* AddDirectory(Volume* v, Directory* parent, const char* name)
 			last->next = NULL;
 		}
 		DeleteSingleEmptyDirectory(v, create);
-		free(create);
 		return NULL;
 	}
 
@@ -435,7 +434,7 @@ Directory* AddDirectoryByPath(Volume* v, const char* path)
 			current = AddDirectory(v, t, cName);
 			if(current == NULL)
 			{
-				free(pathClone);
+				if(pathClone != NULL) free(pathClone);
 				return NULL;
 			}
 		}
@@ -444,7 +443,7 @@ Directory* AddDirectoryByPath(Volume* v, const char* path)
 		cName = strtok(NULL, "/");
 	}
 
-	free(pathClone);
+	if(pathClone != NULL) free(pathClone);
 	return current;
 }
 
@@ -482,7 +481,7 @@ static int RemoveEntrySpace(Volume* v, Directory* parent)
 
 		last->previous->next = NULL;
 		v->clusterTable[last->id] = NULL;
-		free(last);
+		if(last != NULL) free(last);
 	}
 
 	parent->entriesNum--;
@@ -512,7 +511,7 @@ int ClearData(Volume* v, Cluster*  dataCluster)
 		v->clusterTable[current->id] = NULL;
 		t = current;
 		current = current->next;
-		free(t);
+		if(t != NULL) free(t);
 	}while(current != NULL);
 
 	dataCluster->next = NULL;
@@ -532,13 +531,13 @@ int DeleteFile(Volume* v, TextFile* f)
     if(!ClearData(v, f->dataClusters)) return 0;
 
     v->clusterTable[f->dataClusters->id] = NULL;
-    free(f->dataClusters);
+    if(f->dataClusters != NULL) free(f->dataClusters);
 
     if(!RemoveEntrySpace(v, f->parent)) return 0;
 
     OrganizeFileListAfterDeletion(f);
 
-	free(f);
+	if(f != NULL) free(f);
 
 	return 1;
 }
@@ -603,13 +602,13 @@ static int DeleteSingleEmptyDirectory(Volume* v, Directory* d)
     if(!ClearData(v, d->dataClusters)) return 0;
 
     v->clusterTable[d->dataClusters->id] = NULL;
-    free(d->dataClusters);
+    if(d->dataClusters != NULL) free(d->dataClusters);
 
     if(!RemoveEntrySpace(v, d->parent)) return 0;
 
     OrganizeSubdirectoryListAfterDeletion(d);
 
-	free(d);
+	if(d != NULL) free(d);
 
 	return 1;
 }
@@ -708,20 +707,20 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(FindFileByNameAndParent(d, fullName) != NULL)
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
     if(!AddEntrySpace(v, d))
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
 	if(!RemoveEntrySpace(v, f->parent))
 	{
 		RemoveEntrySpace(v, d);
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 	OrganizeFileListAfterDeletion(f);
@@ -739,7 +738,7 @@ int MoveFileToDirectory(Volume* v, TextFile* f, Directory* d)
 		f->previous = last;
 	}
 
-	free(fullName);
+	if(fullName != NULL) free(fullName);
 	return 1;
 }
 
@@ -850,13 +849,13 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 
 	if(FindFileByNameAndParent(d, fullName) != NULL)
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
 	if(!AddEntrySpace(v, d))
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
@@ -865,7 +864,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	if(copy == NULL)
 	{
 		RemoveEntrySpace(v, d);
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
@@ -885,13 +884,13 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 	if(!AddDataToFile(v, copy, copyData))
 	{
 		RemoveEntrySpace(v, d);
-		free(fullName);
-		free(copyData);
+		if(fullName != NULL) free(fullName);
+		if(copyData != NULL) free(copyData);
 		return 0;
 	}
 
-	free(fullName);
-	free(copyData);
+	if(fullName != NULL) free(fullName);
+	if(copyData != NULL) free(copyData);
 	return 1;
 }
 
@@ -1032,13 +1031,13 @@ int RenameFile(TextFile* f, const char* newName)
 
 	if(FindFileByNameAndParent(f->parent, fullName) != NULL)
 	{
-		free(fullName);
+		if(fullName != NULL) free(fullName);
 		return 0;
 	}
 
 	strcpy(f->name, newName);
 
-	free(fullName);
+	if(fullName != NULL) free(fullName);
 	return 1;
 }
 
