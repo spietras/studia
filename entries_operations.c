@@ -141,7 +141,6 @@ TextFile* AddFile(Volume* v, Directory* parent, const char* name, const char* ex
 		}
 		DeleteFile(v, create);
 		free(fullName);
-		free(create);
 		return NULL;
 	}
 
@@ -223,24 +222,23 @@ static int AddDataToClusterChain(Volume* v, TextFile* f, const char* data, const
 		previous = previous->next;
 	}
 
-	char c = data[0];
-	int n, m = 0;
 	Cluster* current = f->dataClusters;
+	int j, k = 0;
+	char c;
 
-	while(c != '\0')
+	for(i = 0; i < neededClusters; i++)
 	{
-		for(n = 0; n < CLUSTER_DATA_SIZE; n++, m++)
+		for(j = 0; j < CLUSTER_DATA_SIZE; j++, k++)
 		{
-			c = data[m];
+			c = data[k];
+			current->data[j] = c;
 			if(c == '\0')
 			{
-				break;
+                return 1;
 			}
-			current->data[n] = c;
 		}
 
-		current->data[n] = '\0';
-
+		current->data[j] = '\0';
 		current = current->next;
 	}
 

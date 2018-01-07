@@ -111,44 +111,35 @@ int IsValidFilePath(const char* path)
     if(pathClone == NULL) return 0;
     strcpy(pathClone, path);
 
-    char* t = malloc(strlen(pathClone) + 1);
-    if(t == NULL)
+    char* t;
+
+    char *pathTok = strtok(pathClone, "/");
+
+    if(strcmp(pathTok, "root") != 0)
 	{
 		free(pathClone);
-		return 0;
-	}
-
-    pathClone = strtok(pathClone, "/");
-
-    if(strcmp(pathClone, "root") != 0)
-	{
-		free(pathClone);
-		free(t);
 		return 0;
 	}
 
 	do
 	{
-		t = pathClone;
-		pathClone = strtok(NULL, "/");
+		t = pathTok;
+		pathTok = strtok(NULL, "/");
 
-		if(!IsDirectory(t) && pathClone != NULL)
+		if(!IsDirectory(t) && pathTok != NULL)
 		{
 			free(pathClone);
-			free(t);
 			return 0;
 		}
-	}while(pathClone != NULL);
+	}while(pathTok != NULL);
 
 	if(!IsFile(t))
 	{
 		free(pathClone);
-		free(t);
 		return 0;
 	}
 
 	free(pathClone);
-	free(t);
 	return 1;
 }
 
@@ -164,9 +155,9 @@ int IsValidDirectoryPath(const char* path)
     if(pathClone == NULL) return 0;
     strcpy(pathClone, path);
 
-    pathClone = strtok(pathClone, "/");
+    char* pathTok = strtok(pathClone, "/");
 
-    if(strcmp(pathClone, "root") != 0)
+    if(strcmp(pathTok, "root") != 0)
 	{
 		free(pathClone);
 		return 0;
@@ -174,14 +165,14 @@ int IsValidDirectoryPath(const char* path)
 
 	do
 	{
-		if(!IsDirectory(pathClone))
+		if(!IsDirectory(pathTok))
 		{
 			free(pathClone);
 			return 0;
 		}
 
-		pathClone = strtok(NULL, "/");
-	}while(pathClone != NULL);
+		pathTok = strtok(NULL, "/");
+	}while(pathTok != NULL);
 
 	free(pathClone);
 	return 1;
@@ -282,18 +273,19 @@ Directory* FindDirectoryByPath(Directory* root, const char* path)
 	if(pathClone == NULL) return NULL;
     strcpy(pathClone, path);
 
-    pathClone = strtok(pathClone, "/");
-    pathClone = strtok(NULL, "/");
+    char* pathTok = strtok(pathClone, "/");
+    pathTok = strtok(NULL, "/");
 
 	Directory* current = root;
 
-	while(pathClone != NULL)
+	while(pathTok != NULL)
 	{
-		current = FindDirectoryByNameAndParent(current, pathClone);
-		pathClone = strtok(NULL, "/");
+		current = FindDirectoryByNameAndParent(current, pathTok);
+		pathTok = strtok(NULL, "/");
 	}
 
 	free(pathClone);
+
 	return current;
 }
 
