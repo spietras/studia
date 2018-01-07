@@ -116,8 +116,8 @@ int IsValidFilePath(const char* path)
 
     if(strcmp(pathClone, "root") != 0)
 	{
-		free(pathClone);
-		free(t);
+		if(pathClone != NULL) free(pathClone);
+		if(t != NULL) free(t);
 		return 0;
 	}
 
@@ -128,21 +128,19 @@ int IsValidFilePath(const char* path)
 
 		if(!IsDirectory(t) && pathClone != NULL)
 		{
-			free(pathClone);
-			free(t);
+			if(pathClone != NULL) free(pathClone);
+			if(t != NULL) free(t);
 			return 0;
 		}
 	}while(pathClone != NULL);
 
 	if(!IsFile(t))
 	{
-		free(pathClone);
-		free(t);
+		if(t != NULL) free(t);
 		return 0;
 	}
 
-	free(pathClone);
-	free(t);
+	if(t != NULL) free(t);
 	return 1;
 }
 
@@ -161,7 +159,7 @@ int IsValidDirectoryPath(const char* path)
 
     if(strcmp(pathClone, "root") != 0)
 	{
-		free(pathClone);
+		if(pathClone != NULL) free(pathClone);
 		return 0;
 	}
 
@@ -169,14 +167,13 @@ int IsValidDirectoryPath(const char* path)
 	{
 		if(!IsDirectory(pathClone))
 		{
-			free(pathClone);
+			if(pathClone != NULL) free(pathClone);
 			return 0;
 		}
 
 		pathClone = strtok(NULL, "/");
 	}while(pathClone != NULL);
 
-	free(pathClone);
 	return 1;
 }
 
@@ -220,11 +217,11 @@ int IsFile(const char* fullName)
 
     if(name == NULL || strpbrk(name, FILENAME_INVALID_CHARACTERS) != NULL || extension == NULL || strpbrk(extension, EXTENSION_INVALID_CHARACTERS) != NULL)
 	{
-		free(nameClone);
+		if(nameClone != NULL) free(nameClone);
 		return 0;
 	}
 
-	free(nameClone);
+	if(nameClone != NULL) free(nameClone);
 	return 1;
 }
 
@@ -256,7 +253,7 @@ TextFile* FindFileByPath(Directory* root, const char* path)
 
     Directory* parent = FindDirectoryByPath(root, dirPath);
 
-    free(dirPath);
+    if(dirPath != NULL) free(dirPath);
     return FindFileByNameAndParent(parent, last);
 }
 
@@ -283,7 +280,6 @@ Directory* FindDirectoryByPath(Directory* root, const char* path)
 		pathClone = strtok(NULL, "/");
 	}
 
-	free(pathClone);
 	return current;
 }
 
@@ -318,14 +314,14 @@ Directory* FindDirectoryByNameAndParent(const Directory* parent, const char* nam
 */
 TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 {
-	if(parent == NULL) return NULL;
+	if(parent == NULL || name == NULL) return NULL;
 
 	char* nameClone = malloc(strlen(name) + 1);
 	strcpy(nameClone, name);
 	const char* nameTok = strtok(nameClone, ".");
 	if(nameTok == NULL)
 	{
-		free(nameClone);
+		if(nameClone != NULL) free(nameClone);
 		return NULL;
 	}
 	TextFile* t = parent->files;
@@ -334,14 +330,14 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 	{
 		if(strcmp(t->name, nameTok) == 0)
 		{
-			free(nameClone);
+			if(nameClone != NULL) free(nameClone);
 			return t;
 		}
 
 		t = t->next;
 	}
 
-	free(nameClone);
+	if(nameClone != NULL) free(nameClone);
 	return NULL;
 }
 
