@@ -217,14 +217,14 @@ int ShowMenu(Volume* v)
 			{
 				char* path = GetDirectoryPath("Write directory path to show");
 				ViewStructureTreeByPath(v->root, path);
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 3:
 			{
 				char* path = GetFilePath("Write file path to show");
 				ViewFileDataByPath(v->root, path);
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 4:
@@ -232,7 +232,7 @@ int ShowMenu(Volume* v)
 				char* path = GetFilePath("Write file path to add");
 				if(AddFileByPath(v, path) == NULL) printf("\nCan't add file\n");
 				else printf("\nFile added successfully\n");
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 5:
@@ -241,8 +241,8 @@ int ShowMenu(Volume* v)
 				char* data = GetData();
 				if(!AddDataToFileByPath(v, path, data)) printf("\nCan't add data to that file\n");
 				else printf("\nData added successfully\n");
-				if(path != NULL) free(path);
-				if(data != NULL) free(data);
+				free(path);
+				free(data);
 				break;
 			}
 		case 6:
@@ -250,7 +250,7 @@ int ShowMenu(Volume* v)
 				char* path = GetDirectoryPath("Write directory path to add");
 				if(!AddDirectoryByPath(v, path)) printf("\nCan't add that directory\n");
 				else printf("\nDirectory added successfully\n");
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 7:
@@ -258,7 +258,7 @@ int ShowMenu(Volume* v)
 				char* path = GetFilePath("Write file path to delete");
 				if(!DeleteFileByPath(v, path)) printf("\nCan't delete that file\n");
 				else printf("\nFile deleted successfully\n");
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 8:
@@ -266,7 +266,7 @@ int ShowMenu(Volume* v)
 				char* path = GetDirectoryPath("Write directory path to delete");
 				if(!DeleteDirectoryByPath(v, path)) printf("\nCan't delete that directory\n");
 				else printf("\nDirectory deleted successfully\n");
-				if(path != NULL) free(path);
+				free(path);
 				break;
 			}
 		case 9:
@@ -275,8 +275,8 @@ int ShowMenu(Volume* v)
 				char* dPath = GetDirectoryPath("Write directory path to move to");
 				if(!MoveFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't move that file to that directory\n");
 				else printf("\nFile moved successfully");
-				if(fPath != NULL) free(fPath);
-				if(dPath != NULL) free(dPath);
+				free(fPath);
+				free(dPath);
 				break;
 			}
 		case 10:
@@ -285,8 +285,8 @@ int ShowMenu(Volume* v)
 				char* destPath = GetDirectoryPath("Write directory path to move to");
 				if(!MoveDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't move that directory to that directory\n");
 				else printf("\nDirectory moved successfully");
-				if(dirPath != NULL) free(dirPath);
-				if(destPath != NULL) free(destPath);
+				free(dirPath);
+				free(destPath);
 				break;
 			}
 		case 11:
@@ -295,8 +295,8 @@ int ShowMenu(Volume* v)
 				char* dPath = GetDirectoryPath("Write directory path to copy to");
 				if(!CopyFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't copy that file to that directory\n");
 				else printf("\nFile copied successfully");
-				if(fPath != NULL) free(fPath);
-				if(dPath != NULL) free(dPath);
+				free(fPath);
+				free(dPath);
 				break;
 			}
 		case 12:
@@ -305,8 +305,8 @@ int ShowMenu(Volume* v)
 				char* destPath = GetDirectoryPath("Write directory path to copy to");
 				if(!CopyDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't copy that directory to that directory\n");
 				else printf("\nDirectory copied successfully");
-				if(dirPath != NULL) free(dirPath);
-				if(destPath != NULL) free(destPath);
+				free(dirPath);
+				free(destPath);
 				break;
 			}
 		case 13:
@@ -315,8 +315,8 @@ int ShowMenu(Volume* v)
 				char* name = GetFileName();
 				if(!RenameFileByPath(v->root, path, name)) printf("\n Can't rename that file\n");
 				else printf("\nFile renamed successfully\n");
-				if(path != NULL) free(path);
-				if(name != NULL) free(name);
+				free(path);
+				free(name);
 				break;
 			}
 		case 14:
@@ -325,8 +325,8 @@ int ShowMenu(Volume* v)
 				char* name = GetDirectoryName();
 				if(!RenameDirectoryByPath(v->root, path, name)) printf("\nCan't rename that directory\n");
 				else printf("\nDirectory renamed successfully");
-				if(path != NULL) free(path);
-				if(name != NULL) free(name);
+				free(path);
+				free(name);
 				break;
 			}
 		case 15:
@@ -334,7 +334,7 @@ int ShowMenu(Volume* v)
 				char* name = GetVolumeName();
 				if(!Save(v, name)) printf("\nCan't save volume to disk\n");
 				else printf("\nSuccessfully saved volume to disk\n");
-				if(name!= NULL) free(name);
+				free(name);
 				break;
 			}
 		case 16:

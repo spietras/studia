@@ -76,7 +76,7 @@ Volume* CreateVolume(const char* name, const int size)
     v->root = (Directory*)calloc(1, sizeof(Directory));
     if(v->root == NULL)
 	{
-		if(v != NULL) free(v);
+		free(v);
 		return NULL;
 	}
     strcpy(v->root->name, "root");
@@ -86,17 +86,17 @@ Volume* CreateVolume(const char* name, const int size)
     v->clusterTable = (Cluster**)calloc(v->clustersNum, sizeof(Cluster*));
     if(v->clusterTable == NULL)
 	{
-		if(v->root != NULL) free(v->root);
-		if(v != NULL) free(v);
+		free(v->root);
+		free(v);
 		return NULL;
 	}
 
     v->clusterTable[0] = (Cluster*)calloc(1, sizeof(Cluster));
     if(v->clusterTable[0] == NULL)
 	{
-		if(v->root != NULL) free(v->root);
-		if(v->clusterTable != NULL) free(v->clusterTable);
-		if(v != NULL) free(v);
+		free(v->root);
+		free(v->clusterTable);
+		free(v);
 		return NULL;
 	}
     v->clusterTable[0]->data[0] = '\0';
@@ -124,7 +124,7 @@ Volume* Load(const char* name)
 
     if(volumeFile == NULL)
 	{
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return NULL;
 	}
 
@@ -135,7 +135,7 @@ Volume* Load(const char* name)
 	if(size > MAX_VOLUME_SIZE)
 	{
 		fclose(volumeFile);
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return NULL;
 	}
 
@@ -143,7 +143,7 @@ Volume* Load(const char* name)
 	if(v == NULL)
 	{
 		fclose(volumeFile);
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return NULL;
 	}
 	strcpy(v->name, name);
@@ -154,8 +154,8 @@ Volume* Load(const char* name)
 	if(v->clusterTable == NULL)
 	{
 		fclose(volumeFile);
-		if(fullName != NULL) free(fullName);
-		if(v != NULL) free(v);
+		free(fullName);
+		free(v);
 		return NULL;
 	}
 
@@ -163,9 +163,9 @@ Volume* Load(const char* name)
 	if(v->root == NULL)
 	{
 		fclose(volumeFile);
-		if(fullName != NULL) free(fullName);
-		if(v->clusterTable != NULL) free(v->clusterTable);
-		if(v != NULL) free(v);
+		free(fullName);
+		free(v->clusterTable);
+		free(v);
 		return NULL;
 	}
 	strcpy(v->root->name, "root");
@@ -175,10 +175,10 @@ Volume* Load(const char* name)
 	if(!ReadDirectoryEntries(volumeFile, v->root, v->clusterTable, v->clustersNum))
 	{
 		fclose(volumeFile);
-		if(fullName != NULL) free(fullName);
-		if(v->clusterTable != NULL) free(v->clusterTable);
-		if(v->root != NULL) free(v->root);
-		if(v != NULL) free(v);
+		free(fullName);
+		free(v->clusterTable);
+		free(v->root);
+		free(v);
 		return NULL;
 	}
 
@@ -219,13 +219,13 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 		beginOffset = GetOffset(clusterNum, currentId);
 		if(fseek(volumeFile, beginOffset + i*ENTRY_DATA_SIZE, SEEK_SET))
 		{
-			if(extension != NULL) free(extension);
+			free(extension);
 			return 0;
 		}
 		int a = fgetc(volumeFile);
 		if(fseek(volumeFile, -1, SEEK_CUR))
 		{
-			if(extension != NULL) free(extension);
+			free(extension);
 			return 0;
 		}
 		if(a == 0)
@@ -235,12 +235,12 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 
 		if(fseek(volumeFile, NAME_SIZE, SEEK_CUR))
 		{
-			if(extension != NULL) free(extension);
+			free(extension);
 			return 0;
 		}
 		if(fgets(extension, EXTENSION_SIZE+1, volumeFile) == NULL)
 		{
-			if(extension != NULL) free(extension);
+			free(extension);
 			return 0;
 		}
 
@@ -248,7 +248,7 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 		{
 			if(!ReadDirectory(volumeFile, d, clusterTable, clusterNum))
 			{
-				if(extension != NULL) free(extension);
+				free(extension);
 				return 0;
 			}
 			i++;
@@ -257,7 +257,7 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 		{
 			if(!ReadFile(volumeFile, d, clusterTable, clusterNum))
 			{
-				if(extension != NULL) free(extension);
+				free(extension);
 				return 0;
 			}
 			i++;
@@ -270,13 +270,13 @@ static int ReadDirectoryEntries(FILE* volumeFile, Directory* d, Cluster** cluste
 	{
 		if(!ReadDirectoryEntries(volumeFile, currentDir, clusterTable, clusterNum))
 		{
-			if(extension != NULL) free(extension);
+			free(extension);
 			return 0;
 		}
 		currentDir = currentDir->next;
 	}
 
-	if(extension != NULL) free(extension);
+	free(extension);
 	return 1;
 }
 
@@ -296,32 +296,32 @@ static int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable,
 
 	if(fseek(volumeFile, -(NAME_SIZE+EXTENSION_SIZE), SEEK_CUR))
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 	if(fgets(rf->name, NAME_SIZE+1, volumeFile) == NULL)
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 
 	if(fgets(rf->extension, EXTENSION_SIZE+1, volumeFile) == NULL)
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 
 	int ID;
 	if(fread(&ID, sizeof(ID), 1, volumeFile) != 1)
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 
 	clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
 	if(clusterTable[ID] == NULL)
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 	clusterTable[ID]->id = ID;
@@ -332,12 +332,12 @@ static int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable,
 
 	if(fseek(volumeFile, GetOffset(clusterNum, currentCluster->id), SEEK_SET))
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 	if(fgets(currentCluster->data, CLUSTER_DATA_SIZE+1, volumeFile) == NULL)
 	{
-		if(rf != NULL) free(rf);
+		free(rf);
 		return 0;
 	}
 
@@ -346,19 +346,19 @@ static int ReadFile(FILE* volumeFile, Directory* parent, Cluster** clusterTable,
 		currentCluster = clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
 		if(currentCluster == NULL)
 		{
-			if(rf != NULL) free(rf);
+			free(rf);
 			return 0;
 		}
 		currentCluster->id = ID;
 
 		if(fseek(volumeFile, GetOffset(clusterNum, currentCluster->id), SEEK_SET))
 		{
-			if(rf != NULL) free(rf);
+			free(rf);
 			return 0;
 		}
 		if(fgets(currentCluster->data, CLUSTER_DATA_SIZE+1, volumeFile) == NULL)
 		{
-			if(rf != NULL) free(rf);
+			free(rf);
 			return 0;
 		}
 
@@ -400,32 +400,32 @@ static int ReadDirectory(FILE* volumeFile, Directory* parent, Cluster** clusterT
 
 	if(fseek(volumeFile, -(NAME_SIZE+EXTENSION_SIZE), SEEK_CUR))
 	{
-		if(rd != NULL) free(rd);
+		free(rd);
 		return 0;
 	}
 	if(fgets(rd->name, NAME_SIZE+1, volumeFile) == NULL)
 	{
-		if(rd != NULL) free(rd);
+		free(rd);
 		return 0;
 	}
 
 	if(fseek(volumeFile, EXTENSION_SIZE, SEEK_CUR))
 	{
-		if(rd != NULL) free(rd);
+		free(rd);
 		return 0;
 	}
 
 	int ID;
 	if(fread(&ID, sizeof(ID), 1, volumeFile) != 1)
 	{
-		if(rd != NULL) free(rd);
+		free(rd);
 		return 0;
 	}
 
 	clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
 	if(clusterTable[ID] == NULL)
 	{
-		if(rd != NULL) free(rd);
+		free(rd);
 		return 0;
 	}
 	clusterTable[ID]->id = ID;
@@ -439,7 +439,7 @@ static int ReadDirectory(FILE* volumeFile, Directory* parent, Cluster** clusterT
 		currentCluster = clusterTable[ID] = (Cluster*)calloc(1, sizeof(Cluster));
 		if(currentCluster == NULL)
 		{
-			if(rd != NULL) free(rd);
+			free(rd);
 			return 0;
 		}
 		currentCluster->id = ID;
@@ -513,7 +513,7 @@ int Save(const Volume* v, const char* name)
 
     if(volumeFile == NULL)
 	{
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return 0;
 	}
 
@@ -521,7 +521,7 @@ int Save(const Volume* v, const char* name)
 	{
 		fclose(volumeFile);
 		remove(fullName);
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return 0;
 	}
 
@@ -529,7 +529,7 @@ int Save(const Volume* v, const char* name)
 	{
 		fclose(volumeFile);
 		remove(fullName);
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return 0;
 	}
 
@@ -537,12 +537,12 @@ int Save(const Volume* v, const char* name)
 	{
 		fclose(volumeFile);
 		remove(fullName);
-		if(fullName != NULL) free(fullName);
+		free(fullName);
 		return 0;
 	}
 
 	fclose(volumeFile);
-	if(fullName != NULL) free(fullName);
+	free(fullName);
 	return 1;
 }
 
@@ -774,7 +774,7 @@ Volume* InitializeVolume()
     v->root = (Directory*)calloc(1, sizeof(Directory));
     if(v->root == NULL)
 	{
-		if(v != NULL) free(v);
+		free(v);
 		return NULL;
 	}
     strcpy(v->root->name, "root");
@@ -782,8 +782,8 @@ Volume* InitializeVolume()
     v->clusterTable = (Cluster**)calloc(DEFAULT_CLUSTER_NUM, sizeof(Cluster*));
     if(v->clusterTable == NULL)
 	{
-		if(v->root != NULL) free(v->root);
-		if(v != NULL) free(v);
+		free(v->root);
+		free(v);
 		return NULL;
 	}
 
@@ -792,9 +792,9 @@ Volume* InitializeVolume()
     v->clusterTable[0] = (Cluster*)calloc(1, sizeof(Cluster));
     if(v->clusterTable[0] == NULL)
 	{
-		if(v->root != NULL) free(v->root);
-		if(v->clusterTable != NULL) free(v->clusterTable);
-		if(v != NULL) free(v);
+		free(v->root);
+		free(v->clusterTable);
+		free(v);
 		return NULL;
 	}
     v->clusterTable[0]->data[0] = '\0';
@@ -802,9 +802,9 @@ Volume* InitializeVolume()
 
     if(!AddExampleEntries(v))
 	{
-		if(v->root != NULL) free(v->root);
-		if(v->clusterTable != NULL) free(v->clusterTable);
-		if(v != NULL) free(v);
+		free(v->root);
+		free(v->clusterTable);
+		free(v);
 		return NULL;
 	}
 
