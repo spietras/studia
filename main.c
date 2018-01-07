@@ -66,6 +66,11 @@ int main(int argc, char** argv)
 	else
 	{
 		v = InitializeVolume();
+		if(v == NULL)
+		{
+			printf("\nCan't initialize volume\n");
+			return 0;
+		}
 	}
 
     ShowMenu(v);

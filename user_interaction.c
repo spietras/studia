@@ -483,7 +483,7 @@ char* GetData()
 
 	data = realloc(data, n+1);
 	if(data == NULL) return NULL;
-	data[n-1] = '\0';
+	data[n] = '\0';
 
 	return data;
 }
