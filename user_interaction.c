@@ -20,13 +20,13 @@ void ViewStructureTree(const Directory* d)
 {
 	if(d == NULL)
 	{
-		printf("\nDirectory does not exist\n");
+		printf("\nKatalog nie istnieje\n");
 		return;
 	}
 
 	if(d->files == NULL && d->subdirs == NULL)
 	{
-		printf("\nEmpty directory\n");
+		printf("\nKatalog jest pusty\n");
 		return;
 	}
 
@@ -96,18 +96,18 @@ void ViewFileData(const TextFile* f)
 {
 	if(f == NULL)
 	{
-		printf("\nFile does not exist\n");
+		printf("\nPlik nie istnieje\n");
 		return;
 	}
 	if(f->dataClusters == NULL || strlen(f->dataClusters->data) == 0)
 	{
-		printf("\nFile is empty\n");
+		printf("\nPlik jest pusty\n");
 		return;
 	}
 
 	Cluster* current = f->dataClusters;
 
-	printf("\n%s.%s file data:\n", f->name, f->extension);
+	printf("\nDane pliku %s.%s:\n", f->name, f->extension);
 
 	do
 	{
@@ -127,13 +127,13 @@ void ViewFileDataByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
 	{
-		printf("\nNo root folder\n");
+		printf("\nBrak katalogu glownego\n");
 		return;
 	}
 
 	if(!IsValidFilePath(path))
 	{
-		printf("\nInvalid path\n");
+		printf("\nNiewlasciwa sciezka\n");
 		return;
 	}
 
@@ -141,7 +141,7 @@ void ViewFileDataByPath(Directory* root, const char* path)
 
 	if(f == NULL)
 	{
-		printf("\nFile does not exist\n");
+		printf("\nPlik nie istnieje\n");
 		return;
 	}
 
@@ -157,13 +157,13 @@ void ViewStructureTreeByPath(Directory* root, const char* path)
 {
 	if(root == NULL)
 	{
-		printf("\nNo root folder\n");
+		printf("\nBrak katalogu glownego\n");
 		return;
 	}
 
 	if(!IsValidDirectoryPath(path))
 	{
-		printf("\nInvalid path\n");
+		printf("\nNiewlasciwa sciezka\n");
 		return;
 	}
 
@@ -171,7 +171,7 @@ void ViewStructureTreeByPath(Directory* root, const char* path)
 
 	if(d == NULL)
 	{
-		printf("\nDirectory does not exist\n");
+		printf("\nKatalog nie istnieje\n");
 		return;
 	}
 
@@ -186,23 +186,23 @@ int ShowMenu(Volume* v)
 {
 	while(1)
 	{
-		printf("\nChoose what to do:\n");
-		printf("1. View all directories and files\n");
-		printf("2. View specific directory and all its subdirectories and files\n");
-		printf("3. View data of file\n");
-		printf("4. Create empty file\n");
-		printf("5. Add data to file\n");
-		printf("6. Create empty directory\n");
-		printf("7. Delete file\n");
-		printf("8. Delete directory\n");
-		printf("9. Move file\n");
-		printf("10. Move directory\n");
-		printf("11. Copy file\n");
-		printf("12. Copy directory\n");
-		printf("13. Rename file\n");
-		printf("14. Rename directory\n");
-		printf("15. Save volume to disk with custom name\n");
-		printf("16. Exit (automatically saves volume to disk with current name)\n");
+		printf("\nWybierz co zrobic:\n");
+		printf("1. Wyswietlic wszystkie katalogi i pliki\n");
+		printf("2. Wyswietlic konkretny katalog i wszystkie jego podkatalogi i pliki\n");
+		printf("3. Wyswietlic dane pliku\n");
+		printf("4. Stworzyc nowy pusty plik\n");
+		printf("5. Dodac dane do pliku\n");
+		printf("6. Stworzyc nowy pusty katalog\n");
+		printf("7. Usunac plik\n");
+		printf("8. Usunac katalog\n");
+		printf("9. Przeniesc plik\n");
+		printf("10. Przeniesc katalog\n");
+		printf("11. Skopiowac plik\n");
+		printf("12. Skopiowac katalog\n");
+		printf("13. Zmienic nazwe pliku\n");
+		printf("14. Zmienic nazwe katalogu\n");
+		printf("15. Zapisac wolumin na dysku z nowa nazwa\n");
+		printf("16. Wyjsc (automatycznie zapisuje wolumin na dysk z aktualna nazwa)\n");
 
 		int choice = GetMenuChoice(1, 16);
 
@@ -215,116 +215,116 @@ int ShowMenu(Volume* v)
 			}
 		case 2:
 			{
-				char* path = GetDirectoryPath("Write directory path to show");
+				char* path = GetDirectoryPath("Podaj sciezke do katalogu do wyswietlenia");
 				ViewStructureTreeByPath(v->root, path);
 				free(path);
 				break;
 			}
 		case 3:
 			{
-				char* path = GetFilePath("Write file path to show");
+				char* path = GetFilePath("Podaj sciezke do pliku do wyswietlenia");
 				ViewFileDataByPath(v->root, path);
 				free(path);
 				break;
 			}
 		case 4:
 			{
-				char* path = GetFilePath("Write file path to add");
-				if(AddFileByPath(v, path) == NULL) printf("\nCan't add file\n");
-				else printf("\nFile added successfully\n");
+				char* path = GetFilePath("Podaj sciezke do pliku, ktory chcesz dodac");
+				if(AddFileByPath(v, path) == NULL) printf("\nNie mozna dodac tego pliku\n");
+				else printf("\nPlik dodany pomyslnie\n");
 				free(path);
 				break;
 			}
 		case 5:
 			{
-				char* path = GetFilePath("Write file path to add data to");
+				char* path = GetFilePath("Podaj sciezke do pliku, do ktorego chcesz dodac dane");
 				char* data = GetData();
-				if(!AddDataToFileByPath(v, path, data)) printf("\nCan't add data to that file\n");
-				else printf("\nData added successfully\n");
+				if(!AddDataToFileByPath(v, path, data)) printf("\nNie mozna dodac danych do tego pliku\n");
+				else printf("\nDane dodane pomyslnie\n");
 				free(path);
 				free(data);
 				break;
 			}
 		case 6:
 			{
-				char* path = GetDirectoryPath("Write directory path to add");
-				if(!AddDirectoryByPath(v, path)) printf("\nCan't add that directory\n");
-				else printf("\nDirectory added successfully\n");
+				char* path = GetDirectoryPath("Podaj sciezke do katalogu, ktory chcesz dodac");
+				if(!AddDirectoryByPath(v, path)) printf("\nNie mozna dodac tego katalogu\n");
+				else printf("\nKatalog dodany pomyslnie\n");
 				free(path);
 				break;
 			}
 		case 7:
 			{
-				char* path = GetFilePath("Write file path to delete");
-				if(!DeleteFileByPath(v, path)) printf("\nCan't delete that file\n");
-				else printf("\nFile deleted successfully\n");
+				char* path = GetFilePath("Podaj sciezke do pliku do usuniecia");
+				if(!DeleteFileByPath(v, path)) printf("\nNie mozna usunac tego pliku\n");
+				else printf("\nPlik usuniety pomyslnie\n");
 				free(path);
 				break;
 			}
 		case 8:
 			{
-				char* path = GetDirectoryPath("Write directory path to delete");
-				if(!DeleteDirectoryByPath(v, path)) printf("\nCan't delete that directory\n");
-				else printf("\nDirectory deleted successfully\n");
+				char* path = GetDirectoryPath("Podaj sciezke do katalogu do usuniecia");
+				if(!DeleteDirectoryByPath(v, path)) printf("\nNie mozna usunac tego katalogu\n");
+				else printf("\nKatalog usuniety pomyslnie\n");
 				free(path);
 				break;
 			}
 		case 9:
 			{
-				char* fPath = GetFilePath("Write file path to move");
-				char* dPath = GetDirectoryPath("Write directory path to move to");
-				if(!MoveFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't move that file to that directory\n");
-				else printf("\nFile moved successfully");
+				char* fPath = GetFilePath("Podaj sciezke do pliku, ktory chcesz przeniesc");
+				char* dPath = GetDirectoryPath("Podaj sciezke do katalogu, do ktorego chcesz przeniesc");
+				if(!MoveFileToDirectoryByPaths(v, fPath, dPath)) printf("\nNie mozna przeniesc tego pliku do tego katalogu\n");
+				else printf("\nPlik przeniesiony pomyslnie");
 				free(fPath);
 				free(dPath);
 				break;
 			}
 		case 10:
 			{
-				char* dirPath = GetDirectoryPath("Write directory path to move");
-				char* destPath = GetDirectoryPath("Write directory path to move to");
-				if(!MoveDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't move that directory to that directory\n");
-				else printf("\nDirectory moved successfully");
+				char* dirPath = GetDirectoryPath("Podaj sciezke do katalogu, ktory chcesz przeniesc");
+				char* destPath = GetDirectoryPath("Podaj sciezke do katalogu, do ktorego chcesz przeniesc");
+				if(!MoveDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nNie mozna przeniesc tego katalogu do tego katalogu\n");
+				else printf("\nKatalog przeniesiony pomyslnie");
 				free(dirPath);
 				free(destPath);
 				break;
 			}
 		case 11:
 			{
-				char* fPath = GetFilePath("Write file path to copy");
-				char* dPath = GetDirectoryPath("Write directory path to copy to");
-				if(!CopyFileToDirectoryByPaths(v, fPath, dPath)) printf("\nCan't copy that file to that directory\n");
-				else printf("\nFile copied successfully");
+				char* fPath = GetFilePath("Podaj sciezke do pliku do skopiowania");
+				char* dPath = GetDirectoryPath("Podaj sciezke do katalogu, do ktorego chcesz skopiowac plik");
+				if(!CopyFileToDirectoryByPaths(v, fPath, dPath)) printf("\nNie mozna skopiowac tego pliku do tego katalogu\n");
+				else printf("\nKatalog skopiowany pomyslnie");
 				free(fPath);
 				free(dPath);
 				break;
 			}
 		case 12:
 			{
-				char* dirPath = GetDirectoryPath("Write directory path to copy");
-				char* destPath = GetDirectoryPath("Write directory path to copy to");
-				if(!CopyDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nCan't copy that directory to that directory\n");
-				else printf("\nDirectory copied successfully");
+				char* dirPath = GetDirectoryPath("Podaj sciezke do katalogu do skopiowania");
+				char* destPath = GetDirectoryPath("Podaj sciezke do katalogu, do ktorego chcesz skopiowac katalog");
+				if(!CopyDirectoryToDirectoryByPaths(v, dirPath, destPath)) printf("\nNie mozna skopiowac tego katalogu do tego katalogu\n");
+				else printf("\nKatalog dodany pomyslnie");
 				free(dirPath);
 				free(destPath);
 				break;
 			}
 		case 13:
 			{
-				char* path = GetFilePath("Write file path to rename");
+				char* path = GetFilePath("Podaj sciezke do pliku, ktorego nazwe chcesz zmienic");
 				char* name = GetFileName();
-				if(!RenameFileByPath(v->root, path, name)) printf("\n Can't rename that file\n");
-				else printf("\nFile renamed successfully\n");
+				if(!RenameFileByPath(v->root, path, name)) printf("\nNie mozna zmienic nazwy tego pliku\n");
+				else printf("\nPomyslnie zmieniono nazwe pliku\n");
 				free(path);
 				free(name);
 				break;
 			}
 		case 14:
 			{
-				char* path = GetDirectoryPath("Write directory path to rename");
+				char* path = GetDirectoryPath("Podaj sciezke do katalogu, ktorego nazwe chcesz zmienic");
 				char* name = GetDirectoryName();
-				if(!RenameDirectoryByPath(v->root, path, name)) printf("\nCan't rename that directory\n");
-				else printf("\nDirectory renamed successfully");
+				if(!RenameDirectoryByPath(v->root, path, name)) printf("\nNie mozna zmienic nazwy tego katalogu\n");
+				else printf("\nPomyslnie zmieniono nazwe katalogu\n");
 				free(path);
 				free(name);
 				break;
@@ -332,14 +332,14 @@ int ShowMenu(Volume* v)
 		case 15:
 			{
 				char* name = GetVolumeName();
-				if(!Save(v, name)) printf("\nCan't save volume to disk\n");
-				else printf("\nSuccessfully saved volume to disk\n");
+				if(!Save(v, name)) printf("\nNie mozna zapisac tego woluminu na dysk\n");
+				else printf("\nPomyslnie zapisano wolumin na dysk\n");
 				free(name);
 				break;
 			}
 		case 16:
 			{
-				if(!Save(v, v->name)) printf("\nCan't save volume to disk\n");
+				if(!Save(v, v->name)) printf("\nNie mozna zapisac woluminu na dysk\n");
 				else return 1;
 				break;
 			}
@@ -347,7 +347,7 @@ int ShowMenu(Volume* v)
 			break;
 		}
 
-		printf("\nPress ENTER key to continue...\n");
+		printf("\nNacisnij ENTER, zeby kontynuowac...\n");
 		while(getchar() != '\n');
 	}
 }
@@ -364,7 +364,7 @@ static int GetMenuChoice(const int min, const int max)
 
 	while(1)
 	{
-		printf("\nYour choice: ");
+		printf("\nTwoj wybor: ");
 		n = scanf("%d", &choice);
 
 		if(n == 1 && (choice >= min && choice <= max))
@@ -373,7 +373,7 @@ static int GetMenuChoice(const int min, const int max)
 			return choice;
 		}
 
-		printf("\nInvalid choice. Your choice must be from rang %d - %d. Choose again\n", min, max);
+		printf("\nNieprawidlowy wybor. Musisz wybrac miedzy %d - %d. Wybierz jeszcze raz\n", min, max);
 		ClearBuffer();
 	}
 }
@@ -389,7 +389,7 @@ char* GetVolumeName()
 
 	while(1)
 	{
-		printf("\nWrite volume name (max %d characters):\n", VOLUME_NAME_SIZE);
+		printf("\nPodaj nazwe woluminu (maksymalnie %d znakow):\n", VOLUME_NAME_SIZE);
 
 		n = scanf("%256s", name);
 
@@ -399,7 +399,7 @@ char* GetVolumeName()
 			return name;
 		}
 
-		printf("\nInvalid volume name. Write again\n");
+		printf("\nNieprawidlowa nazwa woluminu. Podaj jeszcze raz\n");
 
 		ClearBuffer();
 	}
@@ -416,17 +416,17 @@ char* GetDirectoryName()
 
 	while(1)
 	{
-		printf("\nWrite directory name (max %d characters):\n", NAME_SIZE);
+		printf("\nPodaj nazwe katalogu (maksymalnie %d znakow):\n", NAME_SIZE);
 
 		n = scanf("%256s", name);
 
-		if(n == 1 && IsDirectory(name))
+		if(n == 1 && IsValidDirectoryName(name))
 		{
 			ClearBuffer();
 			return name;
 		}
 
-		printf("\nInvalid directory name. Write again\n");
+		printf("\nNieprawidlowa nazwa katalogu. Podaj jeszcze raz\n");
 
 		ClearBuffer();
 	}
@@ -444,17 +444,17 @@ char* GetFileName()
 
 	while(1)
 	{
-		printf("\nWrite file name (max %d characters):\n", NAME_SIZE);
+		printf("\nPodaj nazwe pliku (maksymalnie %d znakow):\n", NAME_SIZE);
 
 		n = scanf("%256s", name);
 
-		if(n == 1 && IsFile(name))
+		if(n == 1 && IsValidFileName(name))
 		{
 			ClearBuffer();
 			return name;
 		}
 
-		printf("\nInvalid file name. Write again\n");
+		printf("\nNieprawidlowa nazwa pliku. Podaj jeszcze raz\n");
 
 		ClearBuffer();
 	}
@@ -471,7 +471,7 @@ char* GetData()
 	if(data == NULL) return NULL;
 	char c;
 
-	printf("\nWrite data:\n");
+	printf("\nPodaj dane:\n");
 
 	while((c = getchar()) != '\n')
 	{
@@ -501,7 +501,7 @@ char* GetFilePath(const char* message)
 
 	while(1)
 	{
-		printf("\n%s (for example: root/Folder1/File1.txt):\n", message);
+		printf("\n%s (na przyklad: root/Katalog1/Folder1.txt):\n", message);
 
 		n = scanf("%256s", path);
 
@@ -511,7 +511,7 @@ char* GetFilePath(const char* message)
 			return path;
 		}
 
-		printf("\nInvalid file path. Write again\n");
+		printf("\nNieprawidlowa sciezka do pliku. Podaj jeszcze raz\n");
 
 		ClearBuffer();
 	}
@@ -530,7 +530,7 @@ char* GetDirectoryPath(const char* message)
 
 	while(1)
 	{
-		printf("\n%s (for example: root/Folder1/Folder2):\n", message);
+		printf("\n%s (na przyklad: root/Katalog1/Katalog2):\n", message);
 
 		n = scanf("%256s", path);
 
@@ -540,7 +540,7 @@ char* GetDirectoryPath(const char* message)
 			return path;
 		}
 
-		printf("\nInvalid directory path. Write again\n");
+		printf("\nNieprawidlowa sciezka do katalogu. Podaj jeszcze raz\n");
 
 		ClearBuffer();
 	}

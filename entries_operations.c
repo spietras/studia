@@ -167,7 +167,7 @@ TextFile* AddFileByPath(Volume* v, const char* path)
 	Directory* current = v->root;
 	Directory* t = current;
 
-	while(!IsFile(cName))
+	while(!IsValidFileFullName(cName))
 	{
 		current = FindDirectoryByNameAndParent(current, cName);
 
