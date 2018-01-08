@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
 	if(argc < 1 || argc > 4)
 	{
-		printf("\nInvalid argument amount\n");
+		printf("\nNiewlasciwa ilosc argumentow\n");
 		return 0;
 	}
 	else if(argc > 1)
@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 			v = Load(argv[2]);
 			if(v == NULL)
 			{
-				printf("\nCan't load that volume\n");
+				printf("\nNie mozna wczytac tego woluminu\n");
 				return 0;
 			}
 		}
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 			v = CreateVolume(argv[2], atoi(argv[3]));
 			if(v == NULL)
 			{
-				printf("\nCan't format that volume\n");
+				printf("\nNie mozna sformatowac tego woluminu\n");
 				return 0;
 			}
 		}
@@ -48,18 +48,18 @@ int main(int argc, char** argv)
 			v = Load(argv[2]);
 			if(v == NULL)
 			{
-				printf("\nCan't load that volume\n");
+				printf("\nNie mozna wczytac tego woluminu\n");
 				return 0;
 			}
 			if(!ResizeVolume(v, atoi(argv[3])))
 			{
-				printf("\nCan't resize that volume\n");
+				printf("\nNie mozna zmienic rozmiaru\n");
 				return 0;
 			}
 		}
 		else
 		{
-			printf("\nInvalid parameter\n");
+			printf("\nNiewlasciwy parametr\n");
 			return 0;
 		}
 	}
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 		v = InitializeVolume();
 		if(v == NULL)
 		{
-			printf("\nCan't initialize volume\n");
+			printf("\nNie można zainicjalizowac woluminu\n");
 			return 0;
 		}
 	}

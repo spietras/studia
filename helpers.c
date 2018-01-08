@@ -126,14 +126,14 @@ int IsValidFilePath(const char* path)
 		t = pathTok;
 		pathTok = strtok(NULL, "/");
 
-		if(!IsDirectory(t) && pathTok != NULL)
+		if(!IsValidDirectoryName(t) && pathTok != NULL)
 		{
 			free(pathClone);
 			return 0;
 		}
 	}while(pathTok != NULL);
 
-	if(!IsFile(t))
+	if(!IsValidFileFullName(t))
 	{
 		free(pathClone);
 		return 0;
@@ -165,7 +165,7 @@ int IsValidDirectoryPath(const char* path)
 
 	do
 	{
-		if(!IsDirectory(pathTok))
+		if(!IsValidDirectoryName(pathTok))
 		{
 			free(pathClone);
 			return 0;
@@ -198,7 +198,7 @@ int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* 
 	Sprawdza, czy podana nazwa jest prawidłowa dla pliku
 	@param[in] name Pełna nazwa
  */
-int IsFile(const char* fullName)
+int IsValidFileFullName(const char* fullName)
 {
 	if(fullName == NULL || fullName[0] == '.' || fullName[strlen(fullName) - 1] == '.') return 0;
 
@@ -217,7 +217,7 @@ int IsFile(const char* fullName)
     char* name = strtok(nameClone, ".");
     char* extension = strtok(NULL, ".");
 
-    if(name == NULL || strpbrk(name, FILENAME_INVALID_CHARACTERS) != NULL || extension == NULL || strpbrk(extension, EXTENSION_INVALID_CHARACTERS) != NULL)
+    if(name == NULL || strlen(name) > NAME_SIZE || strpbrk(name, FILENAME_INVALID_CHARACTERS) != NULL || extension == NULL || strlen(extension) > EXTENSION_SIZE || strpbrk(extension, EXTENSION_INVALID_CHARACTERS) != NULL)
 	{
 		free(nameClone);
 		return 0;
@@ -231,11 +231,22 @@ int IsFile(const char* fullName)
 	Sprawdza, czy podana nazwa jest prawidłowa dla katalogu
 	@param[in] name Nazwa
 */
-int IsDirectory(const char* name)
+int IsValidDirectoryName(const char* name)
 {
-	if(name == NULL) return 0;
+	if(name == NULL || strlen(name) > NAME_SIZE) return 0;
 
 	return strpbrk(name, DIRECTORY_INVALID_CHARACTERS) == NULL;
+}
+
+/**
+	Sprawdza, czy podana nazwa jest prawidłowa dla katalogu
+	@param[in] name Nazwa
+*/
+int IsValidFileName(const char* name)
+{
+	if(name == NULL || strlen(name) > NAME_SIZE) return 0;
+
+	return strpbrk(name, FILENAME_INVALID_CHARACTERS) == NULL;
 }
 
 /**
