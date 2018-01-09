@@ -196,7 +196,7 @@ int IsDestinationDirectoryPathBelowInHierarchy(const char* dirPath, const char* 
 
 /**
 	Sprawdza, czy podana nazwa jest prawidłowa dla pliku
-	@param[in] name Pełna nazwa
+	@param[in] fullName Pełna nazwa
  */
 int IsValidFileFullName(const char* fullName)
 {
@@ -239,8 +239,8 @@ int IsValidDirectoryName(const char* name)
 }
 
 /**
-	Sprawdza, czy podana nazwa jest prawidłowa dla katalogu
-	@param[in] name Nazwa
+	Sprawdza, czy podana nazwa jest prawidłowa dla pliku
+	@param[in] name Nazwa (bez rozszerzenia)
 */
 int IsValidFileName(const char* name)
 {

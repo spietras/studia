@@ -911,7 +911,7 @@ int CopyFileToDirectory(Volume* v, TextFile* f, Directory* d)
 }
 
 /**
-	Kopiuje plik z podaną ścieżka do katalogu z podaną ścieżka
+	Kopiuje plik z podaną ścieżka do katalogu z podaną ścieżką
 	@param[in, out] v Wolumin
 	@param[in] fPath Ścieżka do pliku do skopiowania
 	@param[in] dirPath Ścieżka do katalogu, do którego plik zostanie skopiowany

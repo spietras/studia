@@ -444,7 +444,7 @@ char* GetFileName()
 
 	while(1)
 	{
-		printf("\nPodaj nazwe pliku (maksymalnie %d znakow):\n", NAME_SIZE);
+		printf("\nPodaj nazwe pliku (bez rozszerzenia, maksymalnie %d znakow):\n", NAME_SIZE);
 
 		n = scanf("%256s", name);
 
