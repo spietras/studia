@@ -337,7 +337,8 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 	if(nameClone == NULL) return NULL;
 	strcpy(nameClone, name);
 	const char* nameTok = strtok(nameClone, ".");
-	if(nameTok == NULL)
+	const char* extensionTok = strtok(NULL, ".");
+	if(nameTok == NULL || extensionTok == NULL)
 	{
 		free(nameClone);
 		return NULL;
@@ -346,7 +347,7 @@ TextFile* FindFileByNameAndParent(const Directory* parent, const char* name)
 
     while(t != NULL)
 	{
-		if(strcmp(t->name, nameTok) == 0)
+		if(strcmp(t->name, nameTok) == 0 && strcmp(t->extension, extensionTok) == 0)
 		{
 			free(nameClone);
 			return t;
