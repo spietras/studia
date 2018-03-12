@@ -1,4 +1,4 @@
-#include "Node.h"
+#include "node.h"
 
 Node::Node(const int num)
 {
@@ -18,6 +18,15 @@ Node::Node(const Node & node)
 	setRightChild(node.getRightChild());
 }
 
+Node::Node(Node && node) noexcept
+{
+	num_ = node.getNumber();
+	leftChild_ = node.getLeftChild();
+	rightChild_ = node.getRightChild();
+	node.leftChild_ = nullptr;
+	node.rightChild_ = nullptr;
+}
+
 Node & Node::operator=(const Node & node)
 {
 	//Copies given node and all its subnodes
@@ -25,6 +34,18 @@ Node & Node::operator=(const Node & node)
 	setLeftChild(node.getLeftChild());
 	setRightChild(node.getRightChild());
 
+	return *this;
+}
+
+Node& Node::operator=(Node&& node) noexcept
+{
+	num_ = node.getNumber();
+	delete leftChild_;
+	delete rightChild_;
+	leftChild_ = node.getLeftChild();
+	rightChild_ = node.getRightChild();
+	node.leftChild_ = nullptr;
+	node.rightChild_ = nullptr;
 	return *this;
 }
 
