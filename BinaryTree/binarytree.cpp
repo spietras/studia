@@ -133,16 +133,16 @@ Node* BinaryTree::getNode(Node* currentNode, const int num)
 
 int BinaryTree::getHeight(Node* n) const
 {
-	if (!n->rightChild_ && !n->leftChild_)
+	if(!n->rightChild_ && !n->leftChild_)
 		return 1;
 
-	if (n->leftChild_ && n->rightChild_)
-		return 1+max(getHeight(n->leftChild_), getHeight(n->rightChild_));
+	if(n->leftChild_ && n->rightChild_)
+		return 1 + max(getHeight(n->leftChild_), getHeight(n->rightChild_));
 
-	if (n->leftChild_)
-		return 1+getHeight(n->leftChild_);
+	if(n->leftChild_)
+		return 1 + getHeight(n->leftChild_);
 
-	return 1+getHeight(n->rightChild_);
+	return 1 + getHeight(n->rightChild_);
 }
 
 void BinaryTree::printPretty() const
