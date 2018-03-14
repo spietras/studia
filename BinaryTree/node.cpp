@@ -4,7 +4,6 @@ using namespace std;
 
 Node::Node(const int num)
 {
-	//Single node with given number and no children
 	num_ = num;
 	leftChild_ = nullptr;
 	rightChild_ = nullptr;
@@ -12,10 +11,10 @@ Node::Node(const int num)
 
 Node::Node(const Node& node)
 {
-	//Create new node and copy given node and all its subnodes
 	num_ = node.num_;
 	leftChild_ = nullptr;
 	rightChild_ = nullptr;
+	//Copies children
 	setLeftChild(node.leftChild_);
 	setRightChild(node.rightChild_);
 }
@@ -23,6 +22,7 @@ Node::Node(const Node& node)
 Node::Node(Node&& node) noexcept
 {
 	num_ = node.num_;
+	//Move children
 	leftChild_ = node.leftChild_;
 	rightChild_ = node.rightChild_;
 	node.leftChild_ = nullptr;
@@ -31,8 +31,8 @@ Node::Node(Node&& node) noexcept
 
 Node& Node::operator=(const Node& node)
 {
-	//Copies given node and all its subnodes
 	num_ = node.num_;
+	//If it is necessary, existing children are deleted inside these functions
 	setLeftChild(node.leftChild_);
 	setRightChild(node.rightChild_);
 
@@ -53,7 +53,7 @@ Node& Node::operator=(Node&& node) noexcept
 
 Node::~Node()
 {
-	//Recursively delete all nodes
+	//Recursively deletes all subnodes
 	delete leftChild_;
 	leftChild_ = nullptr;
 	delete rightChild_;
@@ -123,6 +123,8 @@ void Node::setRightChild(const int num, const bool over)
 vector<Node> Node::getNodesCopies() const
 {
 	vector<Node> nodes;
+
+	//Get all subnodes in ascending order
 
 	if(leftChild_)
 	{

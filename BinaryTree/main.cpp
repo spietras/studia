@@ -6,21 +6,13 @@ using namespace std;
 
 int main()
 {
-	BinaryTree b(5, {2, 8, 4, 7, 3, 1, 6, 9});
-	BinaryTree a = b;
-	BinaryTree c(3);
-	c = b;
+	BinaryTree b(5);
+	b.addNode({-67, 3, 75, 0, 20, -420, 7, 1 , 2, 3, 4, 5 ,6 , 7, 8});
 
-	b.addNode({100, 101, 102, -100, -101, -102});
-
-	a.addNode({69, 68, 70, -69, -68, -70});
-	c.addNode({420, 421, 422, -420, -421, -422});
-
-	auto t = b.getRootCopy().getNodesCopies();
-
+	cout << "Nodes: " << b.getNodeCount() << ", Height: " << b.getHeight() << endl;
+	b.printAscending();
+	b.printDescending();
 	b.printPretty();
-	a.printPretty();
-	c.printPretty();
 
 	cin.ignore();
 }
