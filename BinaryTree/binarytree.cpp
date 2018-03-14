@@ -11,7 +11,7 @@ BinaryTree::BinaryTree(const int num)
 BinaryTree::BinaryTree(const int root, const vector<int>& values)
 {
 	root_ = new Node(root);
-	for (int value : values)
+	for(int value : values)
 		addNode(value);
 }
 
@@ -38,7 +38,7 @@ BinaryTree::~BinaryTree()
 
 BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
 {
-	if (this == &bt)
+	if(this == &bt)
 		return *this;
 
 	delete root_;
@@ -56,44 +56,62 @@ BinaryTree& BinaryTree::operator=(BinaryTree&& bt) noexcept
 
 void BinaryTree::addNode(const int num) const
 {
-	if (root_->getNumber() == num)
-		return;
-	
-	Node* p = findNode(root_, num);
-
-	if (p->getNumber() == num)
+	if(root_->num_ == num)
 		return;
 
-	if (p->getNumber() > num)
+	Node* p = getNode(root_, num);
+
+	if(p->num_ == num)
+		return;
+
+	if(p->num_ > num)
 	{
 		p->setLeftChild(num);
 		return;
 	}
 
 	p->setRightChild(num);
-	return;
 }
 
-Node* BinaryTree::findNode(Node* currentNode, const int num)
+void BinaryTree::addNode(const std::vector<int>& values) const
 {
-	if (currentNode->getNumber() == num)
+	for(int value : values)
+		addNode(value);
+}
+
+void BinaryTree::addNode(Node& node) const
+{
+	auto nodes = node.getNodesCopies();
+
+	for(Node n : nodes)
+		addNode(n.num_);
+}
+
+Node BinaryTree::findNodeCopy(const int num) const
+{
+	return Node(*getNode(root_, num));
+}
+
+Node* BinaryTree::getNode(Node* currentNode, const int num)
+{
+	if(currentNode->num_ == num)
 		return currentNode;
 
-	if (currentNode->getNumber() > num)
+	if(currentNode->num_ > num)
 	{
-		if (currentNode->getLeftChild())
-			return findNode(currentNode->getLeftChild(), num);
+		if(currentNode->leftChild_)
+			return getNode(currentNode->leftChild_, num);
 
 		return currentNode;
 	}
 
-	if (currentNode->getRightChild())
-		return findNode(currentNode->getRightChild(), num);
+	if(currentNode->rightChild_)
+		return getNode(currentNode->rightChild_, num);
 
 	return currentNode;
 }
 
-void BinaryTree::print() const
+void BinaryTree::printPretty() const
 {
 	cout << endl << "Binary Tree Structure: " << endl;
 
@@ -104,31 +122,28 @@ void BinaryTree::print() const
 
 void BinaryTree::printNode(const Node* n, const int level)
 {
-	if (n == nullptr) return;
+	if(n == nullptr) return;
 
 	indent(level);
-	cout << n->getNumber() << endl;
-	printNode(n->getLeftChild(), level + 1);
-	printNode(n->getRightChild(), level + 1);
-
+	cout << "(" << n->num_ << ")" << endl;
+	printNode(n->leftChild_, level + 1);
+	printNode(n->rightChild_, level + 1);
 }
 
 void BinaryTree::indent(const int level)
 {
-	if (level == 0)
+	if(level == 0)
 		return;
 
-	for (int i = 0; i < level - 1; i++)
+	for(int i = 0; i < level - 1; i++)
 	{
-		cout << "|";
-		for (int j = 0; j < 4; j++)
+		cout << " |";
+		for(int j = 0; j < 4; j++)
 			cout << " ";
 	}
 
 
-	cout << "|";
-	for (int i = 0; i < 4; i++)
+	cout << " |";
+	for(int i = 0; i < 4; i++)
 		cout << "-";
 }
-
-
