@@ -83,6 +83,7 @@ void Node::setLeftChild(const int num, const bool over)
 	{
 		Node* n = new Node(num);
 		setLeftChild(n);
+		delete n;
 		return;
 	}
 
@@ -112,6 +113,7 @@ void Node::setRightChild(const int num, const bool over)
 	{
 		Node* n = new Node(num);
 		setRightChild(n);
+		delete n;
 		return;
 	}
 
