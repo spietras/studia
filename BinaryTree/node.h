@@ -18,6 +18,8 @@ private:
 	void setLeftChild(int, bool = false);
 	void setRightChild(const Node*);
 	void setRightChild(int, bool = false);
+
+	std::vector<Node> getNodesCopies() const;
 public:
 	//Constructors
 
@@ -64,6 +66,4 @@ public:
 		if(!rightChild_) return nullptr;
 		return new Node(*rightChild_);
 	}
-
-	std::vector<Node> getNodesCopies() const;
 };

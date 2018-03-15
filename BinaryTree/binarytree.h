@@ -30,9 +30,15 @@ public:
 	BinaryTree& operator=(const BinaryTree&); //Copy assignment
 	BinaryTree& operator=(BinaryTree&&) noexcept; //Move assignment
 
+	//Getters
+
 	Node getRootCopy() const { return Node(*root_); }
 	int getHeight() const { return getHeight(root_); }
 	int getNodeCount() const { return nodeCount_; }
+	Node findNodeCopy(int) const;
+	std::vector<Node> getNodesCopies() const { return root_->getNodesCopies(); }
+	Node getLowestNodeCopy() const { return getNodesCopies().front(); }
+	Node getHighestNodeCopy() const { return getNodesCopies().back(); }
 
 	//Adding
 
@@ -40,8 +46,6 @@ public:
 	void addNode(const std::vector<int>&);
 	void addNode(const std::vector<Node>&);
 	void addNode(Node&);
-
-	Node findNodeCopy(int) const;
 
 	//Output
 
