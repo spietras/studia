@@ -15,9 +15,17 @@ private:
 
 	void setNumber(const int num) { num_ = num; }
 	void setLeftChild(const Node*);
-	void setLeftChild(int, bool = false);
+	/**
+	 * \param n Number
+	 * \param over If false changes number of existing node. If true makes new node in place of existing
+	 */
+	void setLeftChild(int n, bool over = false);
 	void setRightChild(const Node*);
-	void setRightChild(int, bool = false);
+	/**
+	 *\param n Number
+	* \param over If false changes number of existing node. If true makes new node in place of existing
+	*/
+	void setRightChild(int n, bool over = false);
 
 	std::vector<Node> getNodesCopies() const;
 public:
