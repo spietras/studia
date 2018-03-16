@@ -55,7 +55,7 @@ public:
 	 * \return Nullptr if leftchild doesn't exist \n
 	 *		   Pointer to the copy of it otherwise
 	 */
-	Node* getLeftChildCopy() const
+	Node* getLeftChildCopyPointer() const
 	{
 		if(!leftChild_) return nullptr;
 		return new Node(*leftChild_);
@@ -69,7 +69,7 @@ public:
 	* \return Nullptr if rightchild doesn't exist \n
 	*		   Pointer to the copy of it otherwise
 	*/
-	Node* getRightChildCopy() const
+	Node* getRightChildCopyPointer() const
 	{
 		if(!rightChild_) return nullptr;
 		return new Node(*rightChild_);
