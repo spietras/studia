@@ -143,3 +143,14 @@ vector<Node> Node::getNodesCopies() const
 	}
 	return nodes;
 }
+
+vector<int> Node::getNodeValues() const
+{
+	auto nodes = getNodesCopies();
+	vector<int> values;
+
+	for (Node n : nodes)
+		values.push_back(n.num_);
+
+	return values;
+}
