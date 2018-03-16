@@ -13,7 +13,6 @@ private:
 
 	//Setters
 
-	void setNumber(const int num) { num_ = num; }
 	void setLeftChild(const Node*);
 	/**
 	 * \param n Number

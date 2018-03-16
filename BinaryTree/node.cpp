@@ -87,6 +87,7 @@ void Node::setLeftChild(const int num, const bool over)
 		return;
 	}
 
+	//Otherwise just change number
 	leftChild_->num_ = num;
 }
 
@@ -117,6 +118,7 @@ void Node::setRightChild(const int num, const bool over)
 		return;
 	}
 
+	//Otherwise just change number
 	rightChild_->num_ = num;
 }
 
