@@ -12,13 +12,13 @@ BinaryTree::BinaryTree(const int num) : nodeCount_(1)
 BinaryTree::BinaryTree(const int root, const vector<int>& values) : nodeCount_(1)
 {
 	root_ = new Node(root);
-	addNode(values);
+	addNodes(values);
 }
 
 BinaryTree::BinaryTree(const Node& root, const std::vector<Node>& nodes) : nodeCount_(1)
 {
 	root_ = new Node(root);
-	addNode(nodes);
+	addNodes(nodes);
 }
 
 BinaryTree::BinaryTree(const BinaryTree& bt) : nodeCount_(1)
@@ -37,11 +37,6 @@ BinaryTree::BinaryTree(BinaryTree&& bt) noexcept : nodeCount_(1)
 BinaryTree::BinaryTree(const Node& node) : nodeCount_(1)
 {
 	root_ = new Node(node);
-}
-
-BinaryTree::~BinaryTree()
-{
-	delete root_;
 }
 
 BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
@@ -87,18 +82,6 @@ void BinaryTree::addNode(const int num)
 	nodeCount_++;
 }
 
-void BinaryTree::addNode(const std::vector<int>& values)
-{
-	for(int value : values)
-		addNode(value);
-}
-
-void BinaryTree::addNode(const std::vector<Node>& nodes)
-{
-	for(Node n : nodes)
-		addNode(n);
-}
-
 void BinaryTree::addNode(Node& node)
 {
 	auto nodes = node.getNodesCopies();
@@ -110,9 +93,9 @@ void BinaryTree::addNode(Node& node)
 void BinaryTree::removeNode(int num)
 {
 	Node* n = findNodePointer(num);
-	if (!n) return;
+	if(!n) return;
 	Node* p = findParentNodePointer(root_, n->num_);
-	if (p == n) return; //If parent is the same as node to remove, then the node is root, and we can't remove root
+	if(p == n) return; //If parent is the same as node to remove, then the node is root, and we can't remove root
 
 	//Get all subnodes of node to remove...
 	auto subnodes = n->getNodesCopies();
@@ -129,7 +112,7 @@ void BinaryTree::removeNode(int num)
 	//.. except the node to remove
 	subnodes.erase(subnodes.begin() + pos);
 
-	if (p->leftChild_ == n)
+	if(p->leftChild_ == n)
 		p->leftChild_ = nullptr;
 	else
 		p->rightChild_ = nullptr;
@@ -138,13 +121,7 @@ void BinaryTree::removeNode(int num)
 
 	nodeCount_--;
 
-	addNode(subnodes);
-}
-
-void BinaryTree::removeNodes(const std::vector<int>& values)
-{
-	for (int n : values)
-		removeNode(n);
+	addNodes(subnodes);
 }
 
 Node* BinaryTree::findNodeCopyPointer(const int num) const
@@ -159,62 +136,64 @@ Node* BinaryTree::findNodeCopyPointer(const int num) const
 
 Node* BinaryTree::getNodePointer(Node* currentNode, const int num)
 {
-	if(currentNode->num_ == num)
+	if(currentNode->num_ == num) //Node found
 		return currentNode;
 
-	if(currentNode->num_ > num)
+	if(currentNode->num_ > num) //Go left
 	{
-		if(currentNode->leftChild_)
+		if(currentNode->leftChild_) //Left child exists
 			return getNodePointer(currentNode->leftChild_, num);
 
-		return nullptr;
+		return nullptr; //Left child doesn't exist
 	}
 
-	if(currentNode->rightChild_)
+	//Go right
+
+	if(currentNode->rightChild_) //Right child exist
 		return getNodePointer(currentNode->rightChild_, num);
 
-	return nullptr;
+	return nullptr; //Right child doesn't exist
 }
 
 Node* BinaryTree::findParentNodePointer(Node* currentNode, int n)
 {
-	if (currentNode->num_ == n)
+	if(currentNode->num_ == n) //Starting node, can't get parent
 		return currentNode;
 
-	if (!currentNode->rightChild_ && !currentNode->leftChild_)
+	if(!currentNode->rightChild_ && !currentNode->leftChild_) //No children, this is potential parent
 		return currentNode;
 
-	if(currentNode->leftChild_ && n < currentNode->num_)
+	if(currentNode->leftChild_ && n < currentNode->num_) //There is a left child and we should go left
 	{
-		if (n == currentNode->leftChild_->num_)
+		if(n == currentNode->leftChild_->num_) //Node found
 			return currentNode;
 
 		return findParentNodePointer(currentNode->leftChild_, n);
 	}
 
-	if(currentNode->rightChild_ && n > currentNode->num_)
+	if(currentNode->rightChild_ && n > currentNode->num_) //There is a right child and we should go right
 	{
-		if (n == currentNode->rightChild_->num_)
+		if(n == currentNode->rightChild_->num_) //Node found
 			return currentNode;
 
 		return findParentNodePointer(currentNode->rightChild_, n);
 	}
 
-	return currentNode;
+	return currentNode; //The direction we should go is null, this is potential parent
 }
 
 int BinaryTree::getHeight(Node* n) const
 {
-	if(!n->rightChild_ && !n->leftChild_)
+	if(!n->rightChild_ && !n->leftChild_) //No children, start from here
 		return 1;
 
-	if(n->leftChild_ && n->rightChild_)
-		return 1 + max(getHeight(n->leftChild_), getHeight(n->rightChild_));
+	if(n->leftChild_ && n->rightChild_) //Both children exist
+		return 1 + max(getHeight(n->leftChild_), getHeight(n->rightChild_)); //Increment maximum count of both children
 
-	if(n->leftChild_)
-		return 1 + getHeight(n->leftChild_);
+	if(n->leftChild_) //Only left child exist
+		return 1 + getHeight(n->leftChild_); //Increment count of left child
 
-	return 1 + getHeight(n->rightChild_);
+	return 1 + getHeight(n->rightChild_); //Only right child exist, increment count of right child
 }
 
 void BinaryTree::printPretty() const
