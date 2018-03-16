@@ -122,35 +122,24 @@ void Node::setRightChild(const int num, const bool over)
 	rightChild_->num_ = num;
 }
 
-vector<Node> Node::getNodesCopies() const
+vector<int> Node::getValues() const
 {
-	vector<Node> nodes;
+	vector<int> values;
 
 	//Get all subnodes in ascending order
 
 	if(leftChild_)
 	{
-		auto leftNodes = leftChild_->getNodesCopies();
-		nodes.insert(nodes.end(), leftNodes.begin(), leftNodes.end());
+		auto leftNodes = leftChild_->getValues();
+		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
 	}
 
-	nodes.push_back(Node(*this));
+	values.push_back(this->num_);
 
 	if(rightChild_)
 	{
-		auto rightNodes = rightChild_->getNodesCopies();
-		nodes.insert(nodes.end(), rightNodes.begin(), rightNodes.end());
+		auto rightNodes = rightChild_->getValues();
+		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
 	}
-	return nodes;
-}
-
-vector<int> Node::getNodeValues() const
-{
-	auto nodes = getNodesCopies();
-	vector<int> values;
-
-	for (Node n : nodes)
-		values.push_back(n.num_);
-
 	return values;
 }

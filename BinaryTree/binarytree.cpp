@@ -4,39 +4,45 @@
 
 using namespace std;
 
-BinaryTree::BinaryTree(const int num) : nodeCount_(1)
+BinaryTree::BinaryTree(const int num) : nodeCount_(0)
 {
 	root_ = new Node(num);
+	nodeCount_++;
 }
 
-BinaryTree::BinaryTree(const int root, const vector<int>& values) : nodeCount_(1)
+BinaryTree::BinaryTree(const int root, const vector<int>& values) : nodeCount_(0)
 {
 	root_ = new Node(root);
+	nodeCount_++;
 	addNodes(values);
 }
 
-BinaryTree::BinaryTree(const Node& root, const vector<Node>& nodes) : nodeCount_(1)
+BinaryTree::BinaryTree(const int root, const std::vector<BinaryTree>& trees) : nodeCount_(0)
 {
 	root_ = new Node(root);
-	addNodes(nodes);
+	nodeCount_++;
+	addNodes(trees);
 }
 
-BinaryTree::BinaryTree(const BinaryTree& bt) : nodeCount_(1)
+BinaryTree::BinaryTree(const BinaryTree& bt) : nodeCount_(0)
 {
 	//Copies root from given binary tree
 	root_ = new Node(*bt.root_);
+	nodeCount_ = bt.getNodeCount();
 }
 
-BinaryTree::BinaryTree(BinaryTree&& bt) noexcept : nodeCount_(1)
+BinaryTree::BinaryTree(BinaryTree&& bt) noexcept : nodeCount_(0)
 {
 	//Moves pointer to the root to this object
 	root_ = bt.root_;
+	nodeCount_ = bt.getNodeCount();
 	bt.root_ = nullptr;
 }
 
-BinaryTree::BinaryTree(const Node& node) : nodeCount_(1)
+BinaryTree::BinaryTree(const Node& node) : nodeCount_(0)
 {
 	root_ = new Node(node);
+	nodeCount_ = node.getValues().size();
 }
 
 BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
@@ -48,6 +54,7 @@ BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
 	//Delete current root and make new
 	delete root_;
 	root_ = new Node(*bt.root_);
+	nodeCount_ = bt.getNodeCount();
 	return *this;
 }
 
@@ -56,6 +63,7 @@ BinaryTree& BinaryTree::operator=(BinaryTree&& bt) noexcept
 	//Delete current root and just "steal" existing root from given object 
 	delete root_;
 	root_ = bt.root_;
+	nodeCount_ = bt.getNodeCount();
 	bt.root_ = nullptr;
 	return *this;
 }
@@ -63,6 +71,9 @@ BinaryTree& BinaryTree::operator=(BinaryTree&& bt) noexcept
 void BinaryTree::addNode(const int num)
 {
 	if(root_->num_ == num)
+		return;
+
+	if (findNodePointer(num))
 		return;
 
 	//Find parent node
@@ -82,14 +93,6 @@ void BinaryTree::addNode(const int num)
 	nodeCount_++;
 }
 
-void BinaryTree::addNode(Node& node)
-{
-	auto values = node.getNodeValues();
-
-	for(int n : values)
-		addNode(n);
-}
-
 void BinaryTree::removeNode(int num)
 {
 	Node* n = findNodePointer(num);
@@ -98,7 +101,7 @@ void BinaryTree::removeNode(int num)
 	if(p == n) return; //If parent is the same as node to remove, then the node is root, and we can't remove root
 
 	//Get all subnodes of node to remove...
-	auto subnodes = n->getNodeValues();
+	auto subnodes = n->getValues();
 	int pos = 0;
 	for(unsigned int i = 0; i < subnodes.size(); i++)
 	{
@@ -117,6 +120,7 @@ void BinaryTree::removeNode(int num)
 	else
 		p->rightChild_ = nullptr;
 
+	nodeCount_ -= subnodes.size();
 	delete n;
 
 	nodeCount_--;
@@ -208,7 +212,7 @@ void BinaryTree::printPretty() const
 void BinaryTree::printAscending() const
 {
 	cout << endl << "Nodes in ascending order: " << endl;
-	auto values = root_->getNodeValues();
+	auto values = root_->getValues();
 	for(int n : values)
 		cout << " " << n << " ";
 
@@ -218,7 +222,7 @@ void BinaryTree::printAscending() const
 void BinaryTree::printDescending() const
 {
 	cout << endl << "Nodes in descending order: " << endl;
-	auto values = root_->getNodeValues();
+	auto values = root_->getValues();
 	reverse(values.begin(), values.end());
 	for(int n : values)
 		cout << " " << n << " ";

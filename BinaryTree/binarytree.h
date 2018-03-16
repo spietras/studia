@@ -45,7 +45,7 @@ public:
 
 	explicit BinaryTree(int);
 	BinaryTree(int, const std::vector<int>&);
-	BinaryTree(const Node&, const std::vector<Node>&);
+	BinaryTree(int, const std::vector<BinaryTree>&);
 	BinaryTree(const BinaryTree&); //Copy constructor
 	BinaryTree(BinaryTree&&) noexcept; //Move constructor
 	explicit BinaryTree(const Node&);
@@ -72,17 +72,16 @@ public:
 	*		  Pointer to the copy of it otherwise
 	*/
 	Node* findNodeCopyPointer(int) const;
-	std::vector<Node> getNodesCopies() const { return root_->getNodesCopies(); }
-	std::vector<int> getNodeValues() const { return root_->getNodeValues(); }
-	Node getLowestNodeCopy() const { return getNodesCopies().front(); }
-	Node getHighestNodeCopy() const { return getNodesCopies().back(); }
+	std::vector<int> getValues() const { return root_->getValues(); }
+	int getLowest() const { return getValues().front(); }
+	int getHighest() const { return getValues().back(); }
 
 	//Adding
 
 	void addNode(int);
-	void addNode(Node&);
+	void addNodes(BinaryTree& tree) { addNodes(tree.getValues()); }
 	void addNodes(const std::vector<int>& values) { for(int n : values) addNode(n); }
-	void addNodes(const std::vector<Node>& nodes) { for(Node n : nodes) addNode(n); }
+	void addNodes(const std::vector<BinaryTree>& trees) { for(BinaryTree t : trees) addNodes(t); }
 
 	//Removing
 	void removeNode(int);
@@ -97,7 +96,7 @@ public:
 	bool contains(int n) const { return findNodePointer(n) != nullptr; }
 };
 
-inline bool operator==(const BinaryTree& left, const BinaryTree& right) { return left.getNodeValues() == right.getNodeValues(); }
+inline bool operator==(const BinaryTree& left, const BinaryTree& right) { return left.getValues() == right.getValues(); }
 inline bool operator!=(const BinaryTree& left, const BinaryTree& right) { return !operator==(left, right); }
 inline bool operator< (const BinaryTree& left, const BinaryTree& right) { return left.getNodeCount() < right.getNodeCount(); }
 inline bool operator> (const BinaryTree& left, const BinaryTree& right) { return  operator< (right, left); }
