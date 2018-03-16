@@ -15,7 +15,7 @@ BinaryTree::BinaryTree(const int root, const vector<int>& values) : nodeCount_(1
 	addNodes(values);
 }
 
-BinaryTree::BinaryTree(const Node& root, const std::vector<Node>& nodes) : nodeCount_(1)
+BinaryTree::BinaryTree(const Node& root, const vector<Node>& nodes) : nodeCount_(1)
 {
 	root_ = new Node(root);
 	addNodes(nodes);
@@ -84,10 +84,10 @@ void BinaryTree::addNode(const int num)
 
 void BinaryTree::addNode(Node& node)
 {
-	auto nodes = node.getNodesCopies();
+	auto values = node.getNodeValues();
 
-	for(Node n : nodes)
-		addNode(n.num_);
+	for(int n : values)
+		addNode(n);
 }
 
 void BinaryTree::removeNode(int num)
@@ -98,11 +98,11 @@ void BinaryTree::removeNode(int num)
 	if(p == n) return; //If parent is the same as node to remove, then the node is root, and we can't remove root
 
 	//Get all subnodes of node to remove...
-	auto subnodes = n->getNodesCopies();
+	auto subnodes = n->getNodeValues();
 	int pos = 0;
 	for(unsigned int i = 0; i < subnodes.size(); i++)
 	{
-		if(subnodes.at(i).num_ == num)
+		if(subnodes.at(i) == num)
 		{
 			pos = i;
 			break;
@@ -208,9 +208,9 @@ void BinaryTree::printPretty() const
 void BinaryTree::printAscending() const
 {
 	cout << endl << "Nodes in ascending order: " << endl;
-	auto nodes = root_->getNodesCopies();
-	for(Node n : nodes)
-		cout << " " << n.num_ << " ";
+	auto values = root_->getNodeValues();
+	for(int n : values)
+		cout << " " << n << " ";
 
 	cout << endl;
 }
@@ -218,10 +218,10 @@ void BinaryTree::printAscending() const
 void BinaryTree::printDescending() const
 {
 	cout << endl << "Nodes in descending order: " << endl;
-	auto nodes = root_->getNodesCopies();
-	reverse(nodes.begin(), nodes.end());
-	for(Node n : nodes)
-		cout << " " << n.num_ << " ";
+	auto values = root_->getNodeValues();
+	reverse(values.begin(), values.end());
+	for(int n : values)
+		cout << " " << n << " ";
 
 	cout << endl;
 }

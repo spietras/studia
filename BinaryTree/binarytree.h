@@ -73,6 +73,7 @@ public:
 	*/
 	Node* findNodeCopyPointer(int) const;
 	std::vector<Node> getNodesCopies() const { return root_->getNodesCopies(); }
+	std::vector<int> getNodeValues() const { return root_->getNodeValues(); }
 	Node getLowestNodeCopy() const { return getNodesCopies().front(); }
 	Node getHighestNodeCopy() const { return getNodesCopies().back(); }
 
@@ -92,4 +93,13 @@ public:
 	void printPretty() const;
 	void printAscending() const;
 	void printDescending() const;
+
+	bool contains(int n) const { return findNodePointer(n) != nullptr; }
 };
+
+inline bool operator==(const BinaryTree& left, const BinaryTree& right) { return left.getNodeValues() == right.getNodeValues(); }
+inline bool operator!=(const BinaryTree& left, const BinaryTree& right) { return !operator==(left, right); }
+inline bool operator< (const BinaryTree& left, const BinaryTree& right) { return left.getNodeCount() < right.getNodeCount(); }
+inline bool operator> (const BinaryTree& left, const BinaryTree& right) { return  operator< (right, left); }
+inline bool operator<=(const BinaryTree& left, const BinaryTree& right) { return !operator> (left, right); }
+inline bool operator>=(const BinaryTree& left, const BinaryTree& right) { return !operator< (left, right); }
