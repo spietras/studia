@@ -71,7 +71,7 @@ void BinaryTree::addNode(const int num)
 		return;
 
 	//Find parent node
-	Node* p = getNode(root_, num);
+	Node* p = findParentNodePointer(root_, num);
 
 	if(p->num_ == num)
 		return;
@@ -107,12 +107,55 @@ void BinaryTree::addNode(Node& node)
 		addNode(n.num_);
 }
 
-Node BinaryTree::findNodeCopy(const int num) const
+void BinaryTree::removeNode(int num)
 {
-	return Node(*getNode(root_, num)); //Always returns some node
+	Node* n = findNodePointer(num);
+	if (!n) return;
+	Node* p = findParentNodePointer(root_, n->num_);
+	if (p == n) return; //If parent is the same as node to remove, then the node is root, and we can't remove root
+
+	//Get all subnodes of node to remove...
+	auto subnodes = n->getNodesCopies();
+	int pos = 0;
+	for(unsigned int i = 0; i < subnodes.size(); i++)
+	{
+		if(subnodes.at(i).num_ == num)
+		{
+			pos = i;
+			break;
+		}
+	}
+
+	//.. except the node to remove
+	subnodes.erase(subnodes.begin() + pos);
+
+	if (p->leftChild_ == n)
+		p->leftChild_ = nullptr;
+	else
+		p->rightChild_ = nullptr;
+
+	delete n;
+
+	addNode(subnodes);
 }
 
-Node* BinaryTree::getNode(Node* currentNode, const int num)
+void BinaryTree::removeNodes(const std::vector<int>& values)
+{
+	for (int n : values)
+		removeNode(n);
+}
+
+Node* BinaryTree::findNodeCopyPointer(const int num) const
+{
+	Node* n = getNodePointer(root_, num);
+
+	if(!n)
+		return nullptr;
+
+	return new Node(*n);
+}
+
+Node* BinaryTree::getNodePointer(Node* currentNode, const int num)
 {
 	if(currentNode->num_ == num)
 		return currentNode;
@@ -120,13 +163,40 @@ Node* BinaryTree::getNode(Node* currentNode, const int num)
 	if(currentNode->num_ > num)
 	{
 		if(currentNode->leftChild_)
-			return getNode(currentNode->leftChild_, num);
+			return getNodePointer(currentNode->leftChild_, num);
 
-		return currentNode;
+		return nullptr;
 	}
 
 	if(currentNode->rightChild_)
-		return getNode(currentNode->rightChild_, num);
+		return getNodePointer(currentNode->rightChild_, num);
+
+	return nullptr;
+}
+
+Node* BinaryTree::findParentNodePointer(Node* currentNode, int n)
+{
+	if (currentNode->num_ == n)
+		return currentNode;
+
+	if (!currentNode->rightChild_ && !currentNode->leftChild_)
+		return currentNode;
+
+	if(currentNode->leftChild_ && n < currentNode->num_)
+	{
+		if (n == currentNode->leftChild_->num_)
+			return currentNode;
+
+		return findParentNodePointer(currentNode->leftChild_, n);
+	}
+
+	if(currentNode->rightChild_ && n > currentNode->num_)
+	{
+		if (n == currentNode->rightChild_->num_)
+			return currentNode;
+
+		return findParentNodePointer(currentNode->rightChild_, n);
+	}
 
 	return currentNode;
 }

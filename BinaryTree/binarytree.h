@@ -10,7 +10,9 @@ private:
 
 	static void printNode(const Node*, int);
 	static void indent(int);
-	static Node* getNode(Node*, int);
+	static Node* getNodePointer(Node*, int);
+	Node* findNodePointer(int n) const { return getNodePointer(root_, n); }
+	static Node* findParentNodePointer(Node*, int);
 	int getHeight(Node*) const;
 public:
 	//Constructors
@@ -35,7 +37,7 @@ public:
 	Node getRootCopy() const { return Node(*root_); }
 	int getHeight() const { return getHeight(root_); }
 	int getNodeCount() const { return nodeCount_; }
-	Node findNodeCopy(int) const;
+	Node* findNodeCopyPointer(int) const;
 	std::vector<Node> getNodesCopies() const { return root_->getNodesCopies(); }
 	Node getLowestNodeCopy() const { return getNodesCopies().front(); }
 	Node getHighestNodeCopy() const { return getNodesCopies().back(); }
@@ -46,6 +48,10 @@ public:
 	void addNode(const std::vector<int>&);
 	void addNode(const std::vector<Node>&);
 	void addNode(Node&);
+
+	//Removing
+	void removeNode(int);
+	void removeNodes(const std::vector<int>&);
 
 	//Output
 
