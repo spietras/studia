@@ -26,8 +26,7 @@ private:
 	*/
 	void setRightChild(int n, bool over = false);
 
-	std::vector<Node> getNodesCopies() const;
-	std::vector<int> getNodeValues() const;
+	std::vector<int> getValues() const;
 public:
 	//Constructors
 
