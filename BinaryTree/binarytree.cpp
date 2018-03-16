@@ -136,6 +136,8 @@ void BinaryTree::removeNode(int num)
 
 	delete n;
 
+	nodeCount_--;
+
 	addNode(subnodes);
 }
 
