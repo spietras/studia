@@ -122,23 +122,23 @@ void Node::setRightChild(const int num, const bool over)
 	rightChild_->num_ = num;
 }
 
-vector<int> Node::getValues() const
+vector<int> Node::getValuesPreOrder() const
 {
 	vector<int> values;
 
-	//Get all subnodes in ascending order
-
-	if(leftChild_)
-	{
-		auto leftNodes = leftChild_->getValues();
-		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
-	}
+	//Get all subnodes in preorder
 
 	values.push_back(this->num_);
 
+	if(leftChild_)
+	{
+		auto leftNodes = leftChild_->getValuesPreOrder();
+		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
+	}
+
 	if(rightChild_)
 	{
-		auto rightNodes = rightChild_->getValues();
+		auto rightNodes = rightChild_->getValuesPreOrder();
 		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
 	}
 	return values;
