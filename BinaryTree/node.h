@@ -15,18 +15,18 @@ private:
 
 	void setLeftChild(const Node*);
 	/**
-	 * \param n Number
+	 * \param num Number
 	 * \param over If false changes number of existing node. If true makes new node in place of existing
 	 */
-	void setLeftChild(int n, bool over = false);
+	void setLeftChild(int num, bool over = false);
 	void setRightChild(const Node*);
 	/**
-	 *\param n Number
+	 *\param num Number
 	* \param over If false changes number of existing node. If true makes new node in place of existing
 	*/
-	void setRightChild(int n, bool over = false);
+	void setRightChild(int num, bool over = false);
 
-	std::vector<int> getValues() const;
+	std::vector<int> getValuesPreOrder() const;
 public:
 	//Constructors
 

@@ -15,8 +15,8 @@ private:
 	*
 	* It's a pointer to actual object, not a copy! \n
 	*
-	* \return Nullptr if node not found \n
-	*		  Pointer to it otherwise
+	* \return Nullptr if node not found
+	* \return Pointer to it otherwise
 	*/
 	static Node* getNodePointer(Node*, int);
 
@@ -25,8 +25,8 @@ private:
 	*
 	* It's a pointer to actual object, not a copy! \n
 	*
-	* \return Nullptr if node not found \n
-	*		  Pointer to it otherwise
+	* \return Nullptr if node not found
+	* \return Pointer to it otherwise
 	*/
 	Node* findNodePointer(int n) const { return getNodePointer(root_, n); }
 	/**
@@ -34,12 +34,15 @@ private:
 	*
 	* It's a pointer to actual object, not a copy! \n
 	*
-	* \return Pointer to root if searching for root parent \n
-	*		  Pointer to parent of existing node if node found
-	*		  Pointer to node where value should be added if not found
+	* \return Pointer to root if searching for root parent
+	* \return Pointer to parent of existing node if node found
+	* \return Pointer to node where value should be added if not found
 	*/
-	static Node* findParentNodePointer(Node*, int);
+	Node* findParentNodePointer(Node*, int) const;
 	int getHeight(Node*) const;
+	void removeNode(Node* n);
+	void removeDelete(Node* node, Node* parent);
+	void removeReplace(Node*);
 public:
 	//Constructors
 
@@ -68,18 +71,18 @@ public:
 	*
 	* You are responsible for deleting the pointer! \n
 	*
-	* \return Nullptr if node not found \n
-	*		  Pointer to the copy of it otherwise
+	* \return Nullptr if node not found
+	* \return Pointer to the copy of it otherwise
 	*/
 	Node* findNodeCopyPointer(int) const;
-	std::vector<int> getValues() const { return root_->getValues(); }
-	int getLowest() const { return getValues().front(); }
-	int getHighest() const { return getValues().back(); }
+	std::vector<int> getValuesPreOrder() const { return root_->getValuesPreOrder(); }
+	int getLowest() const;
+	int getHighest() const;
 
 	//Adding
 
 	void addNode(int);
-	void addNodes(BinaryTree& tree) { addNodes(tree.getValues()); }
+	void addNodes(BinaryTree& tree) { addNodes(tree.getValuesPreOrder()); }
 	void addNodes(const std::vector<int>& values) { for(int n : values) addNode(n); }
 	void addNodes(const std::vector<BinaryTree>& trees) { for(BinaryTree t : trees) addNodes(t); }
 
@@ -90,15 +93,25 @@ public:
 	//Output
 
 	void printPretty() const;
+	void printPreorder() const;
 	void printAscending() const;
 	void printDescending() const;
 
 	bool contains(int n) const { return findNodePointer(n) != nullptr; }
 };
 
-inline bool operator==(const BinaryTree& left, const BinaryTree& right) { return left.getValues() == right.getValues(); }
+inline bool operator==(const BinaryTree& left, const BinaryTree& right)
+{
+	return left.getValuesPreOrder() == right.getValuesPreOrder();
+}
+
 inline bool operator!=(const BinaryTree& left, const BinaryTree& right) { return !operator==(left, right); }
-inline bool operator< (const BinaryTree& left, const BinaryTree& right) { return left.getNodeCount() < right.getNodeCount(); }
-inline bool operator> (const BinaryTree& left, const BinaryTree& right) { return  operator< (right, left); }
-inline bool operator<=(const BinaryTree& left, const BinaryTree& right) { return !operator> (left, right); }
-inline bool operator>=(const BinaryTree& left, const BinaryTree& right) { return !operator< (left, right); }
+
+inline bool operator<(const BinaryTree& left, const BinaryTree& right)
+{
+	return left.getNodeCount() < right.getNodeCount();
+}
+
+inline bool operator>(const BinaryTree& left, const BinaryTree& right) { return operator<(right, left); }
+inline bool operator<=(const BinaryTree& left, const BinaryTree& right) { return !operator>(left, right); }
+inline bool operator>=(const BinaryTree& left, const BinaryTree& right) { return !operator<(left, right); }
