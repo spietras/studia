@@ -278,6 +278,22 @@ void BinaryTree::removeNode(int num)
 	removeNode(node);
 }
 
+void BinaryTree::changeNumber(int oldNum, int newNum)
+{
+	Node* n = findNodePointer(oldNum);
+	if(!n) return;
+
+	if(n == root_)
+		return n->changeNumber(newNum);
+
+	Node* p = findParentNodePointer(root_, oldNum);
+
+	if(p->leftChild_ == n && newNum < p->num_)
+		return n->changeNumber(newNum);
+	if(p->rightChild_ == n && newNum > p->num_)
+		return n->changeNumber(newNum);
+}
+
 void BinaryTree::printPretty() const
 {
 	cout << endl << "Binary Tree Structure: " << endl;

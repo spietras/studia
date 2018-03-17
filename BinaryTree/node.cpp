@@ -51,6 +51,44 @@ Node& Node::operator=(Node&& node) noexcept
 	return *this;
 }
 
+void Node::changeNumber(int newNum)
+{
+	if(!leftChild_ && !rightChild_) //No children, can change to anything
+	{
+		num_ = newNum;
+		return;
+	}
+
+	if(leftChild_ && rightChild_) //Both children
+	{
+		if(newNum > leftChild_->num_ && newNum < rightChild_->num_) //Can change if value is in between children values
+		{
+			num_ = newNum;
+			return;
+		}
+
+		return;
+	}
+
+	if(leftChild_) //Only left child
+	{
+		if(newNum > leftChild_->num_) //Value must be greater than left child value
+		{
+			num_ = newNum;
+			return;
+		}
+
+		return;
+	}
+
+	//Only right child
+
+	if(newNum < rightChild_->num_) //Value must be less than right child value
+	{
+		num_ = newNum;
+	}
+}
+
 Node::~Node()
 {
 	//Recursively deletes all subnodes
