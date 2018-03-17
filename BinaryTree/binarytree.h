@@ -60,6 +60,43 @@ public:
 
 	BinaryTree& operator=(const BinaryTree&); //Copy assignment
 	BinaryTree& operator=(BinaryTree&&) noexcept; //Move assignment
+	BinaryTree& operator+=(const BinaryTree& right)
+	{
+		addNodes(right);
+		return *this;
+	}
+
+	BinaryTree& operator+=(int n)
+	{
+		addNode(n);
+		return *this;
+	}
+
+	BinaryTree& operator+=(const std::vector<int>& values)
+	{
+		addNodes(values);
+		return *this;
+	}
+
+	BinaryTree& operator-=(const BinaryTree& right)
+	{
+		removeNodes(right);
+		return *this;
+	}
+
+	BinaryTree& operator-=(int n)
+	{
+		removeNode(n);
+		return *this;
+	}
+
+	BinaryTree& operator-=(const std::vector<int>& values)
+	{
+		removeNodes(values);
+		return *this;
+	}
+
+	Node* operator[](int n) const { return findNodeCopyPointer(n); }
 
 	//Getters
 
@@ -82,13 +119,16 @@ public:
 	//Adding
 
 	void addNode(int);
-	void addNodes(BinaryTree& tree) { addNodes(tree.getValuesPreOrder()); }
+	void addNodes(const BinaryTree& tree) { addNodes(tree.getValuesPreOrder()); }
 	void addNodes(const std::vector<int>& values) { for(int n : values) addNode(n); }
-	void addNodes(const std::vector<BinaryTree>& trees) { for(BinaryTree t : trees) addNodes(t); }
+	void addNodes(const std::vector<BinaryTree>& trees) { for(const BinaryTree& t : trees) addNodes(t); }
 
 	//Removing
 	void removeNode(int);
+	void removeNodes(const BinaryTree& tree) { removeNodes(tree.getValuesPreOrder()); }
 	void removeNodes(const std::vector<int>& values) { for(int n : values) removeNode(n); }
+
+	void changeNumber(int oldNum, int newNum);
 
 	//Output
 
@@ -115,3 +155,39 @@ inline bool operator<(const BinaryTree& left, const BinaryTree& right)
 inline bool operator>(const BinaryTree& left, const BinaryTree& right) { return operator<(right, left); }
 inline bool operator<=(const BinaryTree& left, const BinaryTree& right) { return !operator>(left, right); }
 inline bool operator>=(const BinaryTree& left, const BinaryTree& right) { return !operator<(left, right); }
+
+inline BinaryTree operator+(BinaryTree left, const BinaryTree& right)
+{
+	left += right;
+	return left;
+}
+
+inline BinaryTree operator+(BinaryTree left, int right)
+{
+	left += right;
+	return left;
+}
+
+inline BinaryTree operator+(BinaryTree left, const std::vector<int>& right)
+{
+	left += right;
+	return left;
+}
+
+inline BinaryTree operator-(BinaryTree left, const BinaryTree& right)
+{
+	left -= right;
+	return left;
+}
+
+inline BinaryTree operator-(BinaryTree left, int right)
+{
+	left -= right;
+	return left;
+}
+
+inline BinaryTree operator-(BinaryTree left, const std::vector<int>& right)
+{
+	left -= right;
+	return left;
+}

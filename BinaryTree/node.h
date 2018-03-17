@@ -73,4 +73,6 @@ public:
 		if(!rightChild_) return nullptr;
 		return new Node(*rightChild_);
 	}
+
+	void changeNumber(int newNum);
 };
