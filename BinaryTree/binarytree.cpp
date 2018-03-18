@@ -321,7 +321,7 @@ void BinaryTree::printAscending(ostream& str) const
 void BinaryTree::printDescending(ostream& str) const
 {
 	auto values = getValuesPreOrder();
-	sort(values.begin(), values.end(), greater<>());
+	sort(values.begin(), values.end(), greater<int>());
 	for(int n : values)
 		str << " " << n << " ";
 }
