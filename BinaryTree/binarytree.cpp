@@ -303,36 +303,45 @@ void BinaryTree::printPretty() const
 	cout << endl;
 }
 
-void BinaryTree::printPreorder() const
+void BinaryTree::printPreorder(ostream& str) const
 {
-	cout << endl << "Nodes in preorder: " << endl;
 	auto values = getValuesPreOrder();
 	for(int n : values)
-		cout << " " << n << " ";
-
-	cout << endl;
+		str << " " << n << " ";
 }
 
-void BinaryTree::printAscending() const
+void BinaryTree::printAscending(ostream& str) const
 {
-	cout << endl << "Nodes in ascending order: " << endl;
 	auto values = getValuesPreOrder();
 	sort(values.begin(), values.end());
 	for(int n : values)
-		cout << " " << n << " ";
-
-	cout << endl;
+		str << " " << n << " ";
 }
 
-void BinaryTree::printDescending() const
+void BinaryTree::printDescending(ostream& str) const
 {
-	cout << endl << "Nodes in descending order: " << endl;
 	auto values = getValuesPreOrder();
 	sort(values.begin(), values.end(), greater<>());
 	for(int n : values)
-		cout << " " << n << " ";
+		str << " " << n << " ";
+}
 
-	cout << endl;
+bool BinaryTree::contains(const std::vector<int>& values) const
+{
+	for(int n : values) 
+		if(!contains(n)) return false;
+	return true;
+}
+
+std::istream& operator>>(std::istream& is, BinaryTree& tree)
+{
+	int n;
+	vector<int> values;
+	while(is.peek() != '\n' && is >> n)  values.push_back(n);
+
+	tree.addNodes(values);
+
+	return is;
 }
 
 void BinaryTree::printNode(const Node* n, const int level)

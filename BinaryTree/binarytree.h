@@ -133,11 +133,14 @@ public:
 	//Output
 
 	void printPretty() const;
-	void printPreorder() const;
-	void printAscending() const;
-	void printDescending() const;
+	void printPreorder(std::ostream& = std::cout) const;
+	void printAscending(std::ostream& = std::cout) const;
+	void printDescending(std::ostream& = std::cout) const;
 
 	bool contains(int n) const { return findNodePointer(n) != nullptr; }
+	bool contains(const std::vector<int>& values) const;
+	bool contains(const BinaryTree& tree) const { return contains(tree.getValuesPreOrder()); }
+	bool contains(const Node& n) const { return contains(n.num_) && contains(n.leftChild_->num_) && contains(n.rightChild_->num_); }
 };
 
 inline bool operator==(const BinaryTree& left, const BinaryTree& right)
@@ -191,3 +194,7 @@ inline BinaryTree operator-(BinaryTree left, const std::vector<int>& right)
 	left -= right;
 	return left;
 }
+
+inline std::ostream& operator<<(std::ostream& os, const BinaryTree& tree) { tree.printPreorder(os); return os; }
+
+std::istream& operator>>(std::istream& is, BinaryTree& tree);
