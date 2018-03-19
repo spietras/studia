@@ -337,7 +337,23 @@ std::istream& operator>>(std::istream& is, BinaryTree& tree)
 {
 	int n;
 	vector<int> values;
-	while(is.peek() != '\n' && is >> n)  values.push_back(n);
+
+	while(is.peek() != '\n')
+	{
+		if(is.peek() == ' ' || is.peek() == '\t')
+		{
+			is.get();
+			continue;
+		}
+
+		if(is >> n)
+		{
+			values.push_back(n);
+			continue;
+		}
+
+		break;
+	}
 
 	tree.addNodes(values);
 
