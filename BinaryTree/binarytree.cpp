@@ -283,15 +283,24 @@ void BinaryTree::changeNumber(int oldNum, int newNum)
 	Node* n = findNodePointer(oldNum);
 	if(!n) return;
 
+	if(findNodePointer(newNum)) return;
+
+	if(n->leftChild_ && newNum <= BinaryTree(*n->leftChild_).getHighest()) return;
+
+	if(n->rightChild_ && newNum >= BinaryTree(*n->rightChild_).getLowest()) return;
+
 	if(n == root_)
-		return n->changeNumber(newNum);
+	{
+		n->num_ = newNum;
+		return;
+	}
 
 	Node* p = findParentNodePointer(root_, oldNum);
 
 	if(p->leftChild_ == n && newNum < p->num_)
-		return n->changeNumber(newNum);
-	if(p->rightChild_ == n && newNum > p->num_)
-		return n->changeNumber(newNum);
+		n->num_ = newNum;
+	else if(p->rightChild_ == n && newNum > p->num_)
+		n->num_ = newNum;
 }
 
 void BinaryTree::printPretty() const

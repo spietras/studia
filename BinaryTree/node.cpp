@@ -51,44 +51,6 @@ Node& Node::operator=(Node&& node) noexcept
 	return *this;
 }
 
-void Node::changeNumber(int newNum)
-{
-	if(!leftChild_ && !rightChild_) //No children, can change to anything
-	{
-		num_ = newNum;
-		return;
-	}
-
-	if(leftChild_ && rightChild_) //Both children
-	{
-		if(newNum > leftChild_->num_ && newNum < rightChild_->num_) //Can change if value is in between children values
-		{
-			num_ = newNum;
-			return;
-		}
-
-		return;
-	}
-
-	if(leftChild_) //Only left child
-	{
-		if(newNum > leftChild_->num_) //Value must be greater than left child value
-		{
-			num_ = newNum;
-			return;
-		}
-
-		return;
-	}
-
-	//Only right child
-
-	if(newNum < rightChild_->num_) //Value must be less than right child value
-	{
-		num_ = newNum;
-	}
-}
-
 Node::~Node()
 {
 	//Recursively deletes all subnodes
@@ -114,18 +76,14 @@ void Node::setLeftChild(const Node* node)
 	leftChild_ = new Node(*node);
 }
 
-void Node::setLeftChild(const int num, const bool over)
+void Node::setLeftChild(const int num)
 {
-	//Create new node if overriding is enabled or child is null
-	if(over || !leftChild_)
+	if(!leftChild_)
 	{
-		Node* n = new Node(num);
-		setLeftChild(n);
-		delete n;
+		leftChild_ = new Node(num);
 		return;
 	}
 
-	//Otherwise just change number
 	leftChild_->num_ = num;
 }
 
@@ -145,18 +103,14 @@ void Node::setRightChild(const Node* node)
 	rightChild_ = new Node(*node);
 }
 
-void Node::setRightChild(const int num, const bool over)
+void Node::setRightChild(const int num)
 {
-	//Create new node if overriding is enabled or child is null
-	if(over || !rightChild_)
+	if(!rightChild_)
 	{
-		Node* n = new Node(num);
-		setRightChild(n);
-		delete n;
+		rightChild_ = new Node(num);
 		return;
 	}
 
-	//Otherwise just change number
 	rightChild_->num_ = num;
 }
 
