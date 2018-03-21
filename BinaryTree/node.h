@@ -14,17 +14,9 @@ private:
 	//Setters
 
 	void setLeftChild(const Node*);
-	/**
-	 * \param num Number
-	 * \param over If false changes number of existing node. If true makes new node in place of existing
-	 */
-	void setLeftChild(int num, bool over = false);
+	void setLeftChild(int num);
 	void setRightChild(const Node*);
-	/**
-	 *\param num Number
-	* \param over If false changes number of existing node. If true makes new node in place of existing
-	*/
-	void setRightChild(int num, bool over = false);
+	void setRightChild(int num);
 
 	std::vector<int> getValuesPreOrder() const;
 public:
@@ -73,6 +65,4 @@ public:
 		if(!rightChild_) return nullptr;
 		return new Node(*rightChild_);
 	}
-
-	void changeNumber(int newNum);
 };
