@@ -1,7 +1,5 @@
 #include "node.h"
 
-using namespace std;
-
 Node::Node(const int num)
 {
 	num_ = num;
@@ -60,7 +58,7 @@ Node::~Node()
 	rightChild_ = nullptr;
 }
 
-void Node::setLeftChild(const Node* node)
+void Node::setLeftChild(Node* node)
 {
 	if(node == leftChild_)
 		return;
@@ -87,7 +85,7 @@ void Node::setLeftChild(const int num)
 	leftChild_->num_ = num;
 }
 
-void Node::setRightChild(const Node* node)
+void Node::setRightChild(Node* node)
 {
 	if(node == rightChild_)
 		return;
@@ -112,26 +110,4 @@ void Node::setRightChild(const int num)
 	}
 
 	rightChild_->num_ = num;
-}
-
-vector<int> Node::getValuesPreOrder() const
-{
-	vector<int> values;
-
-	//Get all subnodes in preorder
-
-	values.push_back(this->num_);
-
-	if(leftChild_)
-	{
-		auto leftNodes = leftChild_->getValuesPreOrder();
-		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
-	}
-
-	if(rightChild_)
-	{
-		auto rightNodes = rightChild_->getValuesPreOrder();
-		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
-	}
-	return values;
 }
