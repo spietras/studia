@@ -19,7 +19,6 @@ private:
 	* \return Pointer to it otherwise
 	*/
 	static Node* getNodePointer(Node*, int);
-
 	/**
 	* \brief Searches for node and return pointer to it if found \n
 	*
@@ -43,6 +42,7 @@ private:
 	void removeNode(Node* n);
 	void removeDelete(Node* node, Node* parent);
 	void removeReplace(Node*);
+	static std::vector<int> getValuesPreOrderRecursive(const Node*);
 public:
 	//Constructors
 
@@ -65,37 +65,73 @@ public:
 		addNodes(right);
 		return *this;
 	}
-
 	BinaryTree& operator+=(int n)
 	{
 		addNode(n);
 		return *this;
 	}
-
 	BinaryTree& operator+=(const std::vector<int>& values)
 	{
 		addNodes(values);
 		return *this;
 	}
-
 	BinaryTree& operator-=(const BinaryTree& right)
 	{
 		removeNodes(right);
 		return *this;
 	}
-
 	BinaryTree& operator-=(int n)
 	{
 		removeNode(n);
 		return *this;
 	}
-
 	BinaryTree& operator-=(const std::vector<int>& values)
 	{
 		removeNodes(values);
 		return *this;
 	}
-
+	bool operator==(const BinaryTree& right) const { return getValuesPreOrder() == right.getValuesPreOrder(); }
+	bool operator!=(const BinaryTree& right) const { return !(*this==right); }
+	bool operator<(const BinaryTree& right) const { return getNodeCount() < right.getNodeCount(); }
+	bool operator>(const BinaryTree& right) const { return right < *this; }
+	bool operator<=(const BinaryTree& right) const { return !(*this > right); }
+	bool operator>=(const BinaryTree& right) const { return !(*this < right); }
+	BinaryTree operator+(const BinaryTree& right) const
+	{
+		BinaryTree tree = *this;
+		tree += right;
+		return tree;
+	}
+	BinaryTree operator+(int right) const
+	{
+		BinaryTree tree = *this;
+		tree += right;
+		return tree;
+	}
+	BinaryTree operator+(const std::vector<int>& right) const
+	{
+		BinaryTree tree = *this;
+		tree += right;
+		return tree;
+	}
+	BinaryTree operator-(const BinaryTree& right) const
+	{
+		BinaryTree tree = *this;
+		tree -= right;
+		return tree;
+	}
+	BinaryTree operator-(int right) const
+	{
+		BinaryTree tree = *this;
+		tree -= right;
+		return tree;
+	}
+	BinaryTree operator-(const std::vector<int>& right) const
+	{
+		BinaryTree tree = *this;
+		tree -= right;
+		return tree;
+	}
 	Node* operator[](int n) const { return findNodeCopyPointer(n); }
 
 	//Getters
@@ -112,7 +148,7 @@ public:
 	* \return Pointer to the copy of it otherwise
 	*/
 	Node* findNodeCopyPointer(int) const;
-	std::vector<int> getValuesPreOrder() const { return root_->getValuesPreOrder(); }
+	std::vector<int> getValuesPreOrder() const { return getValuesPreOrderRecursive(root_); }
 	int getLowest() const;
 	int getHighest() const;
 
@@ -141,58 +177,6 @@ public:
 	bool contains(const std::vector<int>& values) const;
 	bool contains(const BinaryTree& tree) const { return contains(tree.getValuesPreOrder()); }
 };
-
-inline bool operator==(const BinaryTree& left, const BinaryTree& right)
-{
-	return left.getValuesPreOrder() == right.getValuesPreOrder();
-}
-
-inline bool operator!=(const BinaryTree& left, const BinaryTree& right) { return !operator==(left, right); }
-
-inline bool operator<(const BinaryTree& left, const BinaryTree& right)
-{
-	return left.getNodeCount() < right.getNodeCount();
-}
-
-inline bool operator>(const BinaryTree& left, const BinaryTree& right) { return operator<(right, left); }
-inline bool operator<=(const BinaryTree& left, const BinaryTree& right) { return !operator>(left, right); }
-inline bool operator>=(const BinaryTree& left, const BinaryTree& right) { return !operator<(left, right); }
-
-inline BinaryTree operator+(BinaryTree left, const BinaryTree& right)
-{
-	left += right;
-	return left;
-}
-
-inline BinaryTree operator+(BinaryTree left, int right)
-{
-	left += right;
-	return left;
-}
-
-inline BinaryTree operator+(BinaryTree left, const std::vector<int>& right)
-{
-	left += right;
-	return left;
-}
-
-inline BinaryTree operator-(BinaryTree left, const BinaryTree& right)
-{
-	left -= right;
-	return left;
-}
-
-inline BinaryTree operator-(BinaryTree left, int right)
-{
-	left -= right;
-	return left;
-}
-
-inline BinaryTree operator-(BinaryTree left, const std::vector<int>& right)
-{
-	left -= right;
-	return left;
-}
 
 inline std::ostream& operator<<(std::ostream& os, const BinaryTree& tree) { tree.printPreorder(os); return os; }
 
