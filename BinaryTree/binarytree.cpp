@@ -44,7 +44,7 @@ BinaryTree::BinaryTree(BinaryTree&& bt) noexcept : nodeCount_(0)
 BinaryTree::BinaryTree(const Node& node) : nodeCount_(0)
 {
 	root_ = new Node(node);
-	nodeCount_ = node.getValuesPreOrder().size();
+	nodeCount_ = getValuesPreOrderRecursive(&node).size();
 }
 
 BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
@@ -235,7 +235,7 @@ void BinaryTree::removeDelete(Node* node, Node* parent)
 	 */
 
 	//Get all subnodes of node to remove...
-	auto subnodes = node->getValuesPreOrder();
+	auto subnodes = getValuesPreOrderRecursive(node);
 
 	nodeCount_ -= subnodes.size();
 
@@ -269,6 +269,28 @@ void BinaryTree::removeReplace(Node* node)
 	const int n = rightMininum->num_;
 	removeNode(rightMininum);
 	node->num_ = n;
+}
+
+std::vector<int> BinaryTree::getValuesPreOrderRecursive(const Node* current)
+{
+	vector<int> values;
+
+	//Get all subnodes in preorder
+
+	values.push_back(current->num_);
+
+	if(current->leftChild_)
+	{
+		auto leftNodes = getValuesPreOrderRecursive(current->leftChild_);
+		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
+	}
+
+	if(current->rightChild_)
+	{
+		auto rightNodes = getValuesPreOrderRecursive(current->rightChild_);
+		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
+	}
+	return values;
 }
 
 void BinaryTree::removeNode(int num)
