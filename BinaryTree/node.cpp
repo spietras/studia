@@ -113,25 +113,3 @@ void Node::setRightChild(const int num)
 
 	rightChild_->num_ = num;
 }
-
-vector<int> Node::getValuesPreOrder() const
-{
-	vector<int> values;
-
-	//Get all subnodes in preorder
-
-	values.push_back(this->num_);
-
-	if(leftChild_)
-	{
-		auto leftNodes = leftChild_->getValuesPreOrder();
-		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
-	}
-
-	if(rightChild_)
-	{
-		auto rightNodes = rightChild_->getValuesPreOrder();
-		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
-	}
-	return values;
-}

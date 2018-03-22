@@ -17,8 +17,6 @@ private:
 	void setLeftChild(int num);
 	void setRightChild(const Node*);
 	void setRightChild(int num);
-
-	std::vector<int> getValuesPreOrder() const;
 public:
 	//Constructors
 
