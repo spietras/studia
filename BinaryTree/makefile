@@ -14,7 +14,7 @@ endif
 OBJ = $(BUILD)/obj
 
 #TARGET
-TARGET = $(BUILD)/Projekt1.out
+TARGET = $(BUILD)/BinaryTree.out
 
 #FILES
 SOURCE_FILES= main.cpp node.cpp binarytree.cpp
