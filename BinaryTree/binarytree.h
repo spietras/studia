@@ -176,7 +176,6 @@ public:
 	bool contains(int n) const { return findNodePointer(n) != nullptr; }
 	bool contains(const std::vector<int>& values) const;
 	bool contains(const BinaryTree& tree) const { return contains(tree.getValuesPreOrder()); }
-	bool contains(const Node& n) const { return contains(n.num_) && contains(n.leftChild_->num_) && contains(n.rightChild_->num_); }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const BinaryTree& tree) { tree.printPreorder(os); return os; }
