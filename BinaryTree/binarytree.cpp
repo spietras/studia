@@ -44,7 +44,7 @@ BinaryTree::BinaryTree(BinaryTree&& bt) noexcept : nodeCount_(0)
 BinaryTree::BinaryTree(const Node& node) : nodeCount_(0)
 {
 	root_ = new Node(node);
-	nodeCount_ = node.getValuesPreOrder().size();
+	nodeCount_ = getValuesPreOrderRecursive(&node).size();
 }
 
 BinaryTree& BinaryTree::operator=(const BinaryTree& bt)
@@ -72,7 +72,7 @@ BinaryTree& BinaryTree::operator=(BinaryTree&& bt) noexcept
 
 void BinaryTree::addNode(const int num)
 {
-	if(root_->num_ == num)
+	if(root_->getNumber() == num)
 		return;
 
 	if(findNodePointer(num))
@@ -82,10 +82,10 @@ void BinaryTree::addNode(const int num)
 	Node* p = findParentNodePointer(root_, num);
 	if(!p) return;
 
-	if(p->num_ == num)
+	if(p->getNumber() == num)
 		return;
 
-	if(p->num_ > num)
+	if(p->getNumber() > num)
 	{
 		p->setLeftChild(num);
 		nodeCount_++;
@@ -100,24 +100,22 @@ void BinaryTree::removeNode(Node* n)
 {
 	assert(n);
 
-	if(n->num_ == root_->num_ || !findNodePointer(n->num_))
+	if(n->getNumber() == root_->getNumber() || !findNodePointer(n->getNumber()))
 		return;
 
 	//Now we are sure node n is in this binary tree and it isn't root. Therefore it must have a parent
 
-	Node* p = findParentNodePointer(root_, n->num_);
+	Node* p = findParentNodePointer(root_, n->getNumber());
 
-	if(n->leftChild_ && n->rightChild_)
+	if(n->getLeftChild() && n->getRightChild())
 		return removeReplace(n);
 
-	if(!n->leftChild_ && !n->rightChild_)
+	if(!n->getLeftChild() && !n->getRightChild())
 	{
-		if(p->leftChild_ == n)
-			p->leftChild_ = nullptr;
+		if(p->getLeftChild() == n)
+			p->setLeftChild(nullptr);
 		else
-			p->rightChild_ = nullptr;
-
-		delete n;
+			p->setRightChild(nullptr);
 
 		nodeCount_--;
 
@@ -154,21 +152,21 @@ Node* BinaryTree::getNodePointer(Node* currentNode, const int num)
 {
 	assert(currentNode);
 
-	if(currentNode->num_ == num) //Node found
+	if(currentNode->getNumber() == num) //Node found
 		return currentNode;
 
-	if(currentNode->num_ > num) //Go left
+	if(currentNode->getNumber() > num) //Go left
 	{
-		if(currentNode->leftChild_) //Left child exists
-			return getNodePointer(currentNode->leftChild_, num);
+		if(currentNode->getLeftChild()) //Left child exists
+			return getNodePointer(currentNode->getLeftChild(), num);
 
 		return nullptr; //Left child doesn't exist
 	}
 
 	//Go right
 
-	if(currentNode->rightChild_) //Right child exist
-		return getNodePointer(currentNode->rightChild_, num);
+	if(currentNode->getRightChild()) //Right child exist
+		return getNodePointer(currentNode->getRightChild(), num);
 
 	return nullptr; //Right child doesn't exist
 }
@@ -176,28 +174,28 @@ Node* BinaryTree::getNodePointer(Node* currentNode, const int num)
 Node* BinaryTree::findParentNodePointer(Node* currentNode, int n) const
 {
 	assert(currentNode);
-	assert(n != root_->num_);
+	assert(n != root_->getNumber());
 
-	if(currentNode->num_ == n) //Starting node, can't get parent
+	if(currentNode->getNumber() == n) //Starting node, can't get parent
 		return currentNode;
 
-	if(!currentNode->rightChild_ && !currentNode->leftChild_) //No children, this is potential parent
+	if(!currentNode->getLeftChild() && !currentNode->getRightChild()) //No children, this is potential parent
 		return currentNode;
 
-	if(currentNode->leftChild_ && n < currentNode->num_) //There is a left child and we should go left
+	if(currentNode->getLeftChild() && n < currentNode->getNumber()) //There is a left child and we should go left
 	{
-		if(n == currentNode->leftChild_->num_) //Node found
+		if(n == currentNode->getLeftChild()->getNumber()) //Node found
 			return currentNode;
 
-		return findParentNodePointer(currentNode->leftChild_, n);
+		return findParentNodePointer(currentNode->getLeftChild(), n);
 	}
 
-	if(currentNode->rightChild_ && n > currentNode->num_) //There is a right child and we should go right
+	if(currentNode->getRightChild() && n > currentNode->getNumber()) //There is a right child and we should go right
 	{
-		if(n == currentNode->rightChild_->num_) //Node found
+		if(n == currentNode->getRightChild()->getNumber()) //Node found
 			return currentNode;
 
-		return findParentNodePointer(currentNode->rightChild_, n);
+		return findParentNodePointer(currentNode->getRightChild(), n);
 	}
 
 	return currentNode; //The direction we should go is null, this is potential parent
@@ -207,26 +205,26 @@ int BinaryTree::getHeight(Node* n) const
 {
 	assert(n);
 
-	if(!n->rightChild_ && !n->leftChild_) //No children, start from here
+	if(!n->getRightChild() && !n->getLeftChild()) //No children, start from here
 		return 1;
 
-	if(n->leftChild_ && n->rightChild_) //Both children exist
-		return 1 + max(getHeight(n->leftChild_), getHeight(n->rightChild_)); //Increment maximum count of both children
+	if(n->getLeftChild() && n->getRightChild()) //Both children exist
+		return 1 + max(getHeight(n->getLeftChild()), getHeight(n->getRightChild())); //Increment maximum count of both children
 
-	if(n->leftChild_) //Only left child exist
-		return 1 + getHeight(n->leftChild_); //Increment count of left child
+	if(n->getLeftChild()) //Only left child exist
+		return 1 + getHeight(n->getLeftChild()); //Increment count of left child
 
-	return 1 + getHeight(n->rightChild_); //Only right child exist, increment count of right child
+	return 1 + getHeight(n->getRightChild()); //Only right child exist, increment count of right child
 }
 
 void BinaryTree::removeDelete(Node* node, Node* parent)
 {
 	assert(node);
 	assert(parent);
-	assert(node->num_ != root_->num_);
-	assert(findNodePointer(node->num_));
-	assert(findNodePointer(parent->num_));
-	assert(!node->leftChild_ != !node->rightChild_);
+	assert(node->getNumber() != root_->getNumber());
+	assert(findNodePointer(node->getNumber()));
+	assert(findNodePointer(parent->getNumber()));
+	assert(!node->getLeftChild() != !node->getRightChild());
 
 	/*
 	 * This function is viable for deleting node with only one children
@@ -235,19 +233,17 @@ void BinaryTree::removeDelete(Node* node, Node* parent)
 	 */
 
 	//Get all subnodes of node to remove...
-	auto subnodes = node->getValuesPreOrder();
+	auto subnodes = getValuesPreOrderRecursive(node);
 
 	nodeCount_ -= subnodes.size();
 
 	//.. except the node to remove
 	subnodes.erase(subnodes.begin());
 
-	if(parent->leftChild_ == node)
-		parent->leftChild_ = nullptr;
+	if(parent->getLeftChild() == node)
+		parent->setLeftChild(nullptr);
 	else
-		parent->rightChild_ = nullptr;
-
-	delete node;
+		parent->setRightChild(nullptr);
 
 	addNodes(subnodes);
 }
@@ -255,9 +251,9 @@ void BinaryTree::removeDelete(Node* node, Node* parent)
 void BinaryTree::removeReplace(Node* node)
 {
 	assert(node);
-	assert(node->num_ != root_->num_);
-	assert(findNodePointer(node->num_));
-	assert(node->leftChild_ && node->rightChild_);
+	assert(node->getNumber() != root_->getNumber());
+	assert(findNodePointer(node->getNumber()));
+	assert(node->getLeftChild() && node->getRightChild());
 
 	/*
 	 * This function is viable for node with both children present
@@ -265,10 +261,32 @@ void BinaryTree::removeReplace(Node* node)
 	 * Now we can find minimum from right subtree or maximum from left subtree and just change values with node
 	 */
 
-	Node* rightMininum = findNodePointer(BinaryTree(*node->rightChild_).getLowest());
-	const int n = rightMininum->num_;
+	Node* rightMininum = findNodePointer(BinaryTree(*node->getRightChild()).getLowest());
+	const int n = rightMininum->getNumber();
 	removeNode(rightMininum);
-	node->num_ = n;
+	node->setNumber(n);
+}
+
+std::vector<int> BinaryTree::getValuesPreOrderRecursive(const Node* current)
+{
+	vector<int> values;
+
+	//Get all subnodes in preorder
+
+	values.push_back(current->getNumber());
+
+	if(current->getLeftChild())
+	{
+		auto leftNodes = getValuesPreOrderRecursive(current->getLeftChild());
+		values.insert(values.end(), leftNodes.begin(), leftNodes.end());
+	}
+
+	if(current->getRightChild())
+	{
+		auto rightNodes = getValuesPreOrderRecursive(current->getRightChild());
+		values.insert(values.end(), rightNodes.begin(), rightNodes.end());
+	}
+	return values;
 }
 
 void BinaryTree::removeNode(int num)
@@ -283,15 +301,24 @@ void BinaryTree::changeNumber(int oldNum, int newNum)
 	Node* n = findNodePointer(oldNum);
 	if(!n) return;
 
+	if(findNodePointer(newNum)) return;
+
+	if(n->getLeftChild() && newNum <= BinaryTree(*n->getLeftChild()).getHighest()) return;
+
+	if(n->getRightChild() && newNum >= BinaryTree(*n->getRightChild()).getLowest()) return;
+
 	if(n == root_)
-		return n->changeNumber(newNum);
+	{
+		n->setNumber(newNum);
+		return;
+	}
 
 	Node* p = findParentNodePointer(root_, oldNum);
 
-	if(p->leftChild_ == n && newNum < p->num_)
-		return n->changeNumber(newNum);
-	if(p->rightChild_ == n && newNum > p->num_)
-		return n->changeNumber(newNum);
+	if(p->getLeftChild() == n && newNum < p->getNumber())
+		n->setNumber(newNum);
+	else if(p->getRightChild() == n && newNum > p->getNumber())
+		n->setNumber(newNum);
 }
 
 void BinaryTree::printPretty() const
@@ -367,9 +394,9 @@ void BinaryTree::printNode(const Node* n, const int level)
 	if(n == nullptr) return;
 
 	indent(level);
-	cout << "(" << n->num_ << ")" << endl;
-	printNode(n->leftChild_, level + 1);
-	printNode(n->rightChild_, level + 1);
+	cout << "(" << n->getNumber() << ")" << endl;
+	printNode(n->getLeftChild(), level + 1);
+	printNode(n->getRightChild(), level + 1);
 }
 
 void BinaryTree::indent(const int level)
