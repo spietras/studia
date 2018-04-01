@@ -1,32 +1,12 @@
 #pragma once
-#include <vector>
-
-class BinaryTree;
 
 class Node
 {
-	friend class BinaryTree;
 private:
 	int num_;
 	Node* rightChild_;
 	Node* leftChild_;
 
-	//Setters
-
-	void setLeftChild(const Node*);
-	/**
-	 * \param num Number
-	 * \param over If false changes number of existing node. If true makes new node in place of existing
-	 */
-	void setLeftChild(int num, bool over = false);
-	void setRightChild(const Node*);
-	/**
-	 *\param num Number
-	* \param over If false changes number of existing node. If true makes new node in place of existing
-	*/
-	void setRightChild(int num, bool over = false);
-
-	std::vector<int> getValuesPreOrder() const;
 public:
 	//Constructors
 
@@ -45,34 +25,14 @@ public:
 	//Getters
 
 	int getNumber() const { return num_; }
+	Node* getLeftChild() const { return leftChild_; }
+	Node* getRightChild() const { return rightChild_; }
 
-	/**
-	 * \brief Gets pointer to copy of left child \n
-	 * 
-	 * You are responsible for deleting the pointer! \n
-	 * 
-	 * \return Nullptr if leftchild doesn't exist \n
-	 *		   Pointer to the copy of it otherwise
-	 */
-	Node* getLeftChildCopyPointer() const
-	{
-		if(!leftChild_) return nullptr;
-		return new Node(*leftChild_);
-	}
+	//Setters
 
-	/**
-	* \brief Gets pointer to copy of right child \n
-	*
-	* You are responsible for deleting the pointer! \n
-	*
-	* \return Nullptr if rightchild doesn't exist \n
-	*		   Pointer to the copy of it otherwise
-	*/
-	Node* getRightChildCopyPointer() const
-	{
-		if(!rightChild_) return nullptr;
-		return new Node(*rightChild_);
-	}
-
-	void changeNumber(int newNum);
+	void setNumber(int n) { num_ = n; }
+	void setLeftChild(Node*);
+	void setLeftChild(int num);
+	void setRightChild(Node*);
+	void setRightChild(int num);
 };
