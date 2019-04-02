@@ -9,45 +9,123 @@
 	.eqv CODES_LENGTH	66048	# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
 	.eqv FILENAME_LENGTH	256
 	.eqv FILES		3
-
-	# one level for loop macro
-	.macro for (%regIterator, %from, %to, %bodyMacroName)
-	add %regIterator, $zero, %from
-	Loop:
-	jal %bodyMacroName
-	add %regIterator, %regIterator, 1
-	ble %regIterator, %to, Loop
-	.end_macro
 	
 	masks:			.byte	128, 64, 32, 16, 8, 4, 2, 1	# 10000000, 01000000, 00100000, 00010000, 00001000, 00000100, 00000010, 00000001
 	
 	chunk:			.byte	0:CHUNK_LENGTH			# input buffer
+	.align 2
+	chunkCount:		.word	0				# how many symbols in chunk
 	
+	.align 2
 	frequencies:		.word	0:MAX_SYMBOLS			# symbol frequency list
 	
 	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree
+	.align 2
 	nodesCount:		.word	0				# number of nodes
 	
 	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue
+	.align 2
 	pqHead:			.word	0				# index of head of priority queue
+	.align 2
 	pqUsed:			.word	0				# first free index in queue array
+	.align 2
 	pqCount:		.word	0				# number of nodes currently in queue
 	
+	.align 2
 	codes:			.word	0:CODES_LENGTH			# symbol to code list
 	symbolsCount:		.byte	0				# how many symbols are used
 	
 	codedData:		.byte	0:CHUNK_LENGTH			# output buffer
+	.align 2
 	codedDataFirstFreeBit:	.word	0				# first free bit of output buffer
 	trailingBitsCount:	.byte	0				# how many trailing bits were added
 	
-	fileDescriptors:	.word	FILES
-	fileEnded:		.byte	FILES
+	fileNameBuffer:		.byte	0:FILENAME_LENGTH
+	.align 2
+	fileDescriptors:	.word	0:FILES
+	fileEnded:		.byte	0:FILES
+	
+#	LOOP TEMPLATE
+#	add $iterator, $zero, start
+#	loopLabel:
+#		bgt $iterator, end, endLoopLabel
+
+#		...
+#		add $iterator, $iterator, 1
+
+#		b loopLabel
+#	endLoopLabel:
 	
 .text
 
 main:
+	la $a0, fileNameBuffer
+	li $a1, FILENAME_LENGTH
+	li $v0, 8
+	syscall
+	
+	la $a0, fileNameBuffer
+	jal changeNewlineToZero
+	
+	la $a0, fileNameBuffer
+	li $a1, 0
+	li $a2, 0
+	jal openFile
+	
+	li $a0, 0
+	la $a1, chunk
+	li $a2, CHUNK_LENGTH
+	jal readToBuffer
+	sw $v0, chunkCount
+	
+	jal countSymbolsInChunk
+	
+	add $t9, $zero, 1
+	li $s7, MAX_SYMBOLS
+	la $s6, frequencies
+	printLoop:
+		bgt $t9, $s7, endPrintLoop
+		lw $s5, ($s6)
+		
+		move $a0, $t9
+		sub $a0, $a0, 1
+		li $v0, 11
+		syscall
+		
+		li $a0, ':'
+		li $v0, 11
+		syscall
+		
+		move $a0, $s5
+		jal printInt
+		
+		li $a0, '\n'
+		li $v0, 11
+		syscall
+		
+		add $s6, $s6, 4
+	
+		add $t9, $t9, 1
+		b printLoop
+	endPrintLoop:
+	
+	jal createNodeList
+	
+	li $a0, 0
+	jal closeFile
 	
 	j end
+
+# $a0 - address of buffer
+changeNewlineToZero:
+	findNewlineLoop:
+		lb $s7, ($a0)
+		
+		add $a0, $a0, 1
+		bne $s7, '\n', findNewlineLoop
+		
+	sb $zero, -1($a0)	
+	jr $ra
 
 # $a0 - word to print
 printBinary:
@@ -72,12 +150,13 @@ modulo:
 fill:
 	add $t9, $zero, 1
 	fillLoop:
+		bgt $t9, $a1, endFillLoop
+		sb $a2, ($a0)
+		add $a0, $a0, 1
 	
-	sb $a2, ($a0)
-	add $a0, $a0, 1
-	
-	add $t9, $t9, 1
-	ble $t9, $a1, fillLoop
+		add $t9, $t9, 1
+		b fillLoop
+	endFillLoop:
 	
 	jr $ra
 	
@@ -131,11 +210,62 @@ closeFile:
 	jr $ra
 
 countSymbolsInChunk:
-
+	li $s7, MAX_SYMBOLS
+	sub $s7, $s7, 1
+	add $t9, $zero, 0
+	countSymbolsSymbolLoop:
+		bgt $t9, $s7, endCountSymbolsSymbolLoop
+		add $t8, $zero, 1
+		lw $s6, chunkCount
+		la $s5, chunk
+		countSymbolsByteLoop:
+			bgt $t8, $s6, endCountSymbolByteLoop
+			lb $s4, ($s5)
+			add $s5, $s5, 1
+			add $t8, $t8, 1
+			bne $s4, $t9, countSymbolsByteLoop # if symbol from chunk is not the one currently processed continue
+			
+			mul $s4, $s4, 4
+			lw $s3, frequencies($s4)
+			add $s3, $s3, 1
+			sw $s3, frequencies($s4)	# else increment the symbol's frequency
+	
+			b countSymbolsByteLoop
+		endCountSymbolByteLoop:
+		add $t9, $t9, 1
+		b countSymbolsSymbolLoop
+	endCountSymbolsSymbolLoop:
 	jr $ra
 
 createNodeList:
+	la $s7, nodes
+	add $t9, $zero, 0
+	li $s6, MAX_SYMBOLS
+	sub $s6, $s6, 1
+	createNodesLoop:
+		bgt $t9, $s6, endcreateNodesLoop
+		move $s5, $t9
+		add $t9, $t9, 1
+		
+		mul $s4, $s5, 4
+		lw $s4, frequencies($s4)
+		
+		beqz $s4, createNodesLoop
+		
+		sw $s5, ($s7)
+		sw $s4, 4($s7)
+		li $s4, -1
+		sw $s4, 8($s7)
+		sw $s4, 12($s7)
+		sw $s4, 16($s7)
+		
+		add $s7, $s7, 20
+		lb $s4, symbolsCount
+		add $s4, $s4, 1
+		sb $s4, symbolsCount
 
+		b createNodesLoop
+	endcreateNodesLoop:
 	jr $ra
 
 # $a0 - node index
