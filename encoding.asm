@@ -19,11 +19,11 @@
 	.align 2
 	frequencies:		.word	0:MAX_SYMBOLS			# symbol frequency list
 	
-	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree
+	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree (symbol[4], frequency[4], leftChildIndex[4], rightChildIndex[4], parentIndex[4])
 	.align 2
 	nodesCount:		.word	0				# number of nodes
 	
-	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue
+	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue (priority[4], next[4], nodeIndex[4])
 	.align 2
 	pqHead:			.word	-1				# index of head of priority queue
 	.align 2
@@ -32,7 +32,7 @@
 	pqCount:		.word	0				# number of nodes currently in queue
 	
 	.align 2
-	codes:			.word	0:CODES_LENGTH			# symbol to code list
+	codes:			.word	0:CODES_LENGTH			# symbol to code list (symbol[1], length[1], code[256])
 	symbolsCount:		.byte	0				# how many symbols are used
 	
 	codedData:		.byte	0:CHUNK_LENGTH			# output buffer
@@ -426,12 +426,16 @@ buildHuffmanTree:
 
 # $a0 - bit, $a1 - code index, $a2 - bit index
 writeCodeBit:
-
+	li $s7, MAX_SYMBOLS
+	add $s7, $s7, 2
+	mul $s7, $s7, $a1
+	add $s7, $s7, $a2
+	sw $a0, codes+2($s7)
 	jr $ra
 
 # $a0 - code index
 inverseCode:
-
+	
 	jr $ra
 
 # $a0 - code index
