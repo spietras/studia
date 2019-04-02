@@ -223,31 +223,22 @@ closeFile:
 	jr $ra
 
 countSymbolsInChunk:
-	li $s7, MAX_SYMBOLS
-	sub $s7, $s7, 1
-	add $t9, $zero, 0
-	countSymbolsSymbolLoop: #for each symbol
-		bgt $t9, $s7, endCountSymbolsSymbolLoop
-		add $t8, $zero, 1
-		lw $s6, chunkCount
-		la $s5, chunk
-		countSymbolsByteLoop: #for each byte in chunk
-			bgt $t8, $s6, endCountSymbolByteLoop
-			lb $s4, ($s5)
-			add $s5, $s5, 1
-			add $t8, $t8, 1
-			bne $s4, $t9, countSymbolsByteLoop	# if symbol from chunk is not the one currently processed continue
-			
-			mul $s4, $s4, 4
-			lw $s3, frequencies($s4)
-			add $s3, $s3, 1
-			sw $s3, frequencies($s4)		# else increment the symbol's frequency
-	
-			b countSymbolsByteLoop
-		endCountSymbolByteLoop:
+	add $t9, $zero, 1
+	la $s7, chunk
+	countSymbolsByteLoop:
+		bgt $t9, CHUNK_LENGTH, endCountSymbolsByteLoop
 		add $t9, $t9, 1
-		b countSymbolsSymbolLoop
-	endCountSymbolsSymbolLoop:
+
+		lb $s6, ($s7)
+		add $s7, $s7, 1
+		
+		mul $s6, $s6, 4
+		lw $s5, frequencies($s6)
+		add $s5, $s5, 1
+		sw $s5, frequencies($s6)
+
+		b countSymbolsByteLoop
+	endCountSymbolsByteLoop:
 	jr $ra
 
 createNodeList:
