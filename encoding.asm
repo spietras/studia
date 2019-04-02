@@ -84,60 +84,7 @@ main:
 	
 	jal createNodeList
 	
-
-	add $t9, $zero, 0
-	lw $s7, symbolsCount
-	sub $s7, $s7, 1
-	pushLoop:
-		bgt $t9, $s7, endPushLoop
-		add $t9, $t9, 1
-		
-		move $a0, $t9
-		sub $a0, $a0, 1
-		add $sp, $sp, -8
-		sw $t9, ($sp)
-		sw $s7, 4($sp)
-		jal pushQueue
-		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		add $sp, $sp, 8
-
-		b pushLoop
-	endPushLoop:
-	
-	add $t9, $zero, 0
-	lw $s7, symbolsCount
-	sub $s7, $s7, 1
-	popLoop:
-		bgt $t9, $s7, endPopLoop
-		add $t9, $t9, 1
-		
-		add $sp, $sp, -8
-		sw $t9, ($sp)
-		sw $s7, 4($sp)
-		jal popQueue
-		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		add $sp, $sp, 8
-		
-		mul $v0, $v0, BYTES_PER_NODE
-		lw $v0, nodes($v0)
-		
-		move $a0, $v0
-		add $sp, $sp, -8
-		sw $t9, ($sp)
-		sw $s7, 4($sp)
-		jal printCharacter
-		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		add $sp, $sp, 8
-		
-		li $a0, ' '
-		li $v0, 11
-		syscall
-
-		b popLoop
-	endPopLoop:
+	jal buildHuffmanTree
 	
 	j end
 
@@ -403,7 +350,87 @@ popQueue:
 	jr $ra
 
 buildHuffmanTree:
+	lw $s7, symbolsCount
+	sw $s7, nodesCount
+	
+	add $t9, $zero, 0
+	sub $s7, $s7, 1
+	treePushLoop:
+		bgt $t9, $s7, endTreePushLoop
+		add $t9, $t9, 1
+		
+		move $a0, $t9
+		sub $a0, $a0, 1
+		add $sp, $sp, -12
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		sw $ra, 8($sp)
+		jal pushQueue			# push every leaf to queue
+		lw $ra, 8($sp)
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 12
 
+		b treePushLoop
+	endTreePushLoop:
+	
+	treePopLoop:
+		lw $t9, pqCount
+		ble $t9, 1, endTreePopLoop	# while there is more than one node in queue
+		
+		add $sp, $sp, -4
+		sw $ra, ($sp)
+		jal popQueue
+		lw $ra, ($sp)
+		add $sp, $sp, 4
+		
+		move $s6, $v0			# first popped node
+		
+		add $sp, $sp, -8
+		sw $s6, 4($sp)
+		sw $ra, ($sp)
+		jal popQueue
+		lw $ra, ($sp)
+		lw $s6, 4($sp)
+		add $sp, $sp, 8
+		
+		move $s5, $v0			# second popped node
+		
+		#create new internal node
+		lw $s7, nodesCount
+		mul $s4, $s7, BYTES_PER_NODE
+		li $s3, -1
+		sw $s3, nodes($s4)		# invalid symbol
+		sw $s3, nodes+16($s4)		# no parent
+		sw $s6, nodes+8($s4)		# left child
+		sw $s5, nodes+12($s4)		# right child
+		
+		mul $s6, $s6, BYTES_PER_NODE
+		mul $s5, $s5, BYTES_PER_NODE
+		
+		lw $s3, nodes+4($s6)
+		lw $s2, nodes+4($s5)
+		add $s3, $s3, $s2
+		sw $s3, nodes+4($s4)		# priority = left child priority + right child priority
+		
+		sw $s7, nodes+16($s6)		# left child parent = new node
+		sw $s7, nodes+16($s5)		# right child parent = new node
+		
+		move $a0, $s7
+		add $sp, $sp, -8
+		sw $s7, ($sp)
+		sw $ra, 4($sp)
+		jal pushQueue			# push internal node to queue
+		lw $ra, 4($sp)
+		lw $s7, ($sp)
+		add $sp, $sp, 8
+		
+		add $s7, $s7, 1
+		sw $s7, nodesCount
+		
+		b treePopLoop
+	endTreePopLoop:
+	
 	jr $ra
 
 # $a0 - bit, $a1 - code index, $a2 - bit index
