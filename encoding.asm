@@ -80,34 +80,7 @@ main:
 	
 	jal countSymbolsInChunk
 	
-	add $t9, $zero, 1
-	li $s7, MAX_SYMBOLS
-	la $s6, frequencies
-	printLoop:
-		bgt $t9, $s7, endPrintLoop
-		lw $s5, ($s6)
-		
-		move $a0, $t9
-		sub $a0, $a0, 1
-		li $v0, 11
-		syscall
-		
-		li $a0, ':'
-		li $v0, 11
-		syscall
-		
-		move $a0, $s5
-		jal printInt
-		
-		li $a0, '\n'
-		li $v0, 11
-		syscall
-		
-		add $s6, $s6, 4
-	
-		add $t9, $t9, 1
-		b printLoop
-	endPrintLoop:
+	jal printFrequencies
 	
 	jal createNodeList
 	
@@ -138,6 +111,41 @@ printInt:
 	li $v0, 1
 	syscall
 	jr $ra
+	
+printFrequencies:
+	add $t9, $zero, 1
+	li $s7, MAX_SYMBOLS
+	la $s6, frequencies
+	printLoop: # from 1 to 256
+		bgt $t9, $s7, endPrintLoop
+		lw $s5, ($s6)
+		
+		move $a0, $t9
+		sub $a0, $a0, 1
+		li $v0, 11
+		syscall		# print symbol
+		
+		li $a0, ':'
+		li $v0, 11
+		syscall		# print ':'
+		
+		move $a0, $s5
+		add $sp, $sp, -4
+		sw $ra, ($sp)
+		jal printInt	#print frequency
+		lw $ra, ($sp)
+		add $sp, $sp, 4
+		
+		li $a0, '\n'
+		li $v0, 11
+		syscall		#print new line
+		
+		add $s6, $s6, 4
+	
+		add $t9, $t9, 1
+		b printLoop
+	endPrintLoop:
+	jr $ra
 
 # $v0 = $a0 % $a1
 modulo:
@@ -149,7 +157,7 @@ modulo:
 # $a0 - buffer address, $a1 - buffer length in bytes, $a2 - value (byte)
 fill:
 	add $t9, $zero, 1
-	fillLoop:
+	fillLoop: # from 1 to buffer length
 		bgt $t9, $a1, endFillLoop
 		sb $a2, ($a0)
 		add $a0, $a0, 1
@@ -163,12 +171,12 @@ fill:
 # $a0 - byte (value), $a1 - bit index (from left), $a2 - value
 # $v0 - changed byte
 setBit:
-	lb $s7, masks($a1) # n-th mask
-	not $s7, $s7 # inverse mask
-	and $a0, $a0, $s7 # clear bit in byte
+	lb $s7, masks($a1) 	# n-th mask
+	not $s7, $s7 		# inverse mask
+	and $a0, $a0, $s7 	# clear bit in byte
 	li $s7, 7
 	sub $s7, $s7, $a1
-	sllv $a2, $a2, $s7 # shift left (7-n) times
+	sllv $a2, $a2, $s7 	# shift left (7-n) times
 	or $a0, $a0, $a2
 	move $v0, $a0
 	jr $ra
@@ -213,22 +221,22 @@ countSymbolsInChunk:
 	li $s7, MAX_SYMBOLS
 	sub $s7, $s7, 1
 	add $t9, $zero, 0
-	countSymbolsSymbolLoop:
+	countSymbolsSymbolLoop: #for each symbol
 		bgt $t9, $s7, endCountSymbolsSymbolLoop
 		add $t8, $zero, 1
 		lw $s6, chunkCount
 		la $s5, chunk
-		countSymbolsByteLoop:
+		countSymbolsByteLoop: #for each byte in chunk
 			bgt $t8, $s6, endCountSymbolByteLoop
 			lb $s4, ($s5)
 			add $s5, $s5, 1
 			add $t8, $t8, 1
-			bne $s4, $t9, countSymbolsByteLoop # if symbol from chunk is not the one currently processed continue
+			bne $s4, $t9, countSymbolsByteLoop	# if symbol from chunk is not the one currently processed continue
 			
 			mul $s4, $s4, 4
 			lw $s3, frequencies($s4)
 			add $s3, $s3, 1
-			sw $s3, frequencies($s4)	# else increment the symbol's frequency
+			sw $s3, frequencies($s4)		# else increment the symbol's frequency
 	
 			b countSymbolsByteLoop
 		endCountSymbolByteLoop:
@@ -242,7 +250,7 @@ createNodeList:
 	add $t9, $zero, 0
 	li $s6, MAX_SYMBOLS
 	sub $s6, $s6, 1
-	createNodesLoop:
+	createNodesLoop: # for each symbol
 		bgt $t9, $s6, endcreateNodesLoop
 		move $s5, $t9
 		add $t9, $t9, 1
@@ -252,12 +260,12 @@ createNodeList:
 		
 		beqz $s4, createNodesLoop
 		
-		sw $s5, ($s7)
-		sw $s4, 4($s7)
+		sw $s5, ($s7) 	# symbol
+		sw $s4, 4($s7) 	# frequency
 		li $s4, -1
-		sw $s4, 8($s7)
-		sw $s4, 12($s7)
-		sw $s4, 16($s7)
+		sw $s4, 8($s7) 	# left child: -1
+		sw $s4, 12($s7)	# right child: -1
+		sw $s4, 16($s7)	# parent: -1
 		
 		add $s7, $s7, 20
 		lb $s4, symbolsCount
