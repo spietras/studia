@@ -25,7 +25,7 @@
 	
 	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue
 	.align 2
-	pqHead:			.word	0				# index of head of priority queue
+	pqHead:			.word	-1				# index of head of priority queue
 	.align 2
 	pqUsed:			.word	0				# first free index in queue array
 	.align 2
@@ -84,8 +84,60 @@ main:
 	
 	jal createNodeList
 	
-	li $a0, 0
-	jal closeFile
+
+	add $t9, $zero, 0
+	lw $s7, symbolsCount
+	sub $s7, $s7, 1
+	pushLoop:
+		bgt $t9, $s7, endPushLoop
+		add $t9, $t9, 1
+		
+		move $a0, $t9
+		sub $a0, $a0, 1
+		add $sp, $sp, -8
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		jal pushQueue
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 8
+
+		b pushLoop
+	endPushLoop:
+	
+	add $t9, $zero, 0
+	lw $s7, symbolsCount
+	sub $s7, $s7, 1
+	popLoop:
+		bgt $t9, $s7, endPopLoop
+		add $t9, $t9, 1
+		
+		add $sp, $sp, -8
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		jal popQueue
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 8
+		
+		mul $v0, $v0, BYTES_PER_NODE
+		lw $v0, nodes($v0)
+		
+		move $a0, $v0
+		add $sp, $sp, -8
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		jal printCharacter
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 8
+		
+		li $a0, ' '
+		li $v0, 11
+		syscall
+
+		b popLoop
+	endPopLoop:
 	
 	j end
 
@@ -109,6 +161,12 @@ printBinary:
 # $a0 - int to print
 printInt:
 	li $v0, 1
+	syscall
+	jr $ra
+
+# $a0 - character to print
+printCharacter:
+	li $v0, 11
 	syscall
 	jr $ra
 	
@@ -278,12 +336,70 @@ createNodeList:
 
 # $a0 - node index
 pushQueue:
-
+	mul $s7, $a0, BYTES_PER_NODE
+	lw $s7, nodes+4($s7)					# priority
+	lw $s0, pqUsed			
+	mul $s6, $s0, BYTES_PER_PQNODE			# BYTES_PER_PQNODE * pqUsed
+	sw $s7, pqNodes($s6)				# priority
+	li $s5, -1
+	sw $s5, pqNodes+4($s6)				# next: -1
+	sw $a0, pqNodes+8($s6)				# node index
+	
+	lw $s5, pqHead					# pqHead
+	beq $s5, -1, emptyHead
+	
+		mul $s4, $s5, BYTES_PER_PQNODE		# BYTES_PER_PQNODE * pqHead
+		lw $s3, pqNodes($s4)
+		ble $s3, $s7, pushAfterHead
+		pushBeforeHead:
+			sw $s5, pqNodes+4($s6)
+			sw $s0, pqHead
+			b endPush
+		pushAfterHead:
+			move $t8, $s5
+			lw $t9, pqNodes+4($s4)		# next node
+			pushAfterHeadLoop:
+				sne $t7, $t9, -1
+				mul $s4, $t9, BYTES_PER_PQNODE
+				lw $s4, pqNodes($s4)
+				slt $t6, $s4, $s7
+				and $t6, $t7, $t6
+				beqz $t6, endPushAfterHeadLoop
+				
+				move $t8, $t9		# current = next
+				mul $t9, $t9, BYTES_PER_PQNODE
+				lw $t9, pqNodes+4($t9)	# next
+				b pushAfterHeadLoop
+			endPushAfterHeadLoop: 		# appropriate place found
+			mul $s6, $s0, BYTES_PER_PQNODE
+			sw $t9, pqNodes+4($s6)		# new->next = next
+			mul $s6, $t8, BYTES_PER_PQNODE
+			sw $s0, pqNodes+4($s6)		# current->next = new
+			b endPush
+		emptyHead:
+			sw $s0, pqHead
+			b endPush
+	endPush:
+	
+	add $s7, $s0, 1
+	sw $s7, pqUsed
+	
+	lw $s7, pqCount
+	add $s7, $s7, 1
+	sw $s7, pqCount 
+	
 	jr $ra
 
 # $v0 - popped node index
 popQueue:
-
+	lw $s7, pqHead
+	mul $s7, $s7, BYTES_PER_PQNODE
+	lw $v0, pqNodes+8($s7)		# node index
+	lw $s6, pqNodes+4($s7)		# next
+	sw $s6, pqHead
+	lw $s7, pqCount
+	sub $s7, $s7, 1
+	sw $s7, pqCount
 	jr $ra
 
 buildHuffmanTree:
