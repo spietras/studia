@@ -1,14 +1,25 @@
 .data
 
-	.eqv CHUNK_LENGTH	1024
-	.eqv MAX_SYMBOLS	256
-	.eqv BYTES_PER_NODE	20
-	.eqv NODES_LENGTH	10220	# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
-	.eqv BYTES_PER_PQNODE	12
-	.eqv PQNODES_LENGTH	6132	# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
-	.eqv CODES_LENGTH	66048	# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
-	.eqv FILENAME_LENGTH	256
-	.eqv FILES		3
+	.eqv SYSCALL_PRINTINT		1
+	.eqv SYSCALL_PRINTINTBINARY	35
+	.eqv SYSCALL_PRINTCHARACTER	11
+	.eqv SYSCALL_PRINTSTRING	4
+	.eqv SYSCALL_READSTRING		8
+	.eqv SYSCALL_EXIT		10
+	.eqv SYSCALL_OPENFILE		13
+	.eqv SYSCALL_READFILE		14
+	.eqv SYSCALL_WRITEFILE		15
+	.eqv SYSCALL_CLOSEFILE		16
+
+	.eqv CHUNK_LENGTH		1024
+	.eqv MAX_SYMBOLS		256
+	.eqv BYTES_PER_NODE		20
+	.eqv NODES_LENGTH		10220	# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
+	.eqv BYTES_PER_PQNODE		12
+	.eqv PQNODES_LENGTH		6132	# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
+	.eqv CODES_LENGTH		66048	# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
+	.eqv FILENAME_LENGTH		256
+	.eqv FILES			3
 	
 	masks:			.byte	128, 64, 32, 16, 8, 4, 2, 1	# 10000000, 01000000, 00100000, 00010000, 00001000, 00000100, 00000010, 00000001
 	
@@ -101,19 +112,19 @@ changeNewlineToZero:
 
 # $a0 - word to print
 printBinary:
-	li $v0, 35
+	li $v0, SYSCALL_PRINTINTBINARY
 	syscall
 	jr $ra
 	
 # $a0 - int to print
 printInt:
-	li $v0, 1
+	li $v0, SYSCALL_PRINTINT
 	syscall
 	jr $ra
 
 # $a0 - character to print
 printCharacter:
-	li $v0, 11
+	li $v0, SYSCALL_PRINTCHARACTER
 	syscall
 	jr $ra
 	
@@ -127,11 +138,11 @@ printFrequencies:
 		
 		move $a0, $t9
 		sub $a0, $a0, 1
-		li $v0, 11
+		li $v0, SYSCALL_PRINTCHARACTER
 		syscall		# print symbol
 		
 		li $a0, ':'
-		li $v0, 11
+		li $v0, SYSCALL_PRINTCHARACTER
 		syscall		# print ':'
 		
 		move $a0, $s5
@@ -142,7 +153,7 @@ printFrequencies:
 		add $sp, $sp, 4
 		
 		li $a0, '\n'
-		li $v0, 11
+		li $v0, SYSCALL_PRINTCHARACTER
 		syscall		#print new line
 		
 		add $s6, $s6, 4
@@ -188,7 +199,7 @@ setBit:
 
 # $a0 - address to filename (absolute), $a1 - mode (0 - read, 1 - write, 9 - append), $a2 - file index
 openFile:
-	li $v0, 13
+	li $v0, SYSCALL_OPENFILE
 	syscall
 	mul $a2, $a2, 4
 	sw $v0, fileDescriptors($a2)
@@ -198,7 +209,7 @@ openFile:
 writeToFile:
 	mul $a0, $a0, 4
 	lw $a0, fileDescriptors($a0)
-	li $v0, 15
+	li $v0, SYSCALL_WRITEFILE
 	syscall
 	jr $ra
 
@@ -208,7 +219,7 @@ readToBuffer:
 	move $s7, $a0
 	mul $a0, $a0, 4
 	lw $a0, fileDescriptors($a0)
-	li $v0, 14
+	li $v0, SYSCALL_READFILE
 	syscall
 	sne $s6, $v0, $a2
 	sb $s6, fileEnded($s7)
@@ -218,7 +229,7 @@ readToBuffer:
 closeFile:
 	mul $a0, $a0, 4
 	lw $a0, fileDescriptors($a0)
-	li $v0, 16
+	li $v0, SYSCALL_CLOSEFILE
 	syscall
 	jr $ra
 
