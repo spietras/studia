@@ -97,6 +97,10 @@ main:
 	
 	jal buildHuffmanTree
 	
+	jal createCodeList
+	
+	jal printCodes
+	
 	j end
 
 # $a0 - address of buffer
@@ -132,35 +136,100 @@ printFrequencies:
 	add $t9, $zero, 1
 	li $s7, MAX_SYMBOLS
 	la $s6, frequencies
-	printLoop: # from 1 to 256
-		bgt $t9, $s7, endPrintLoop
+	printFrequenciesLoop: # from 1 to 256
+		bgt $t9, $s7, endPrintFrequenciesLoop
 		lw $s5, ($s6)
 		
 		move $a0, $t9
 		sub $a0, $a0, 1
 		li $v0, SYSCALL_PRINTCHARACTER
-		syscall		# print symbol
+		syscall						# print symbol
 		
 		li $a0, ':'
 		li $v0, SYSCALL_PRINTCHARACTER
-		syscall		# print ':'
+		syscall						# print ':'
 		
 		move $a0, $s5
 		add $sp, $sp, -4
 		sw $ra, ($sp)
-		jal printInt	#print frequency
+		jal printInt					#print frequency
 		lw $ra, ($sp)
 		add $sp, $sp, 4
 		
 		li $a0, '\n'
 		li $v0, SYSCALL_PRINTCHARACTER
-		syscall		#print new line
+		syscall						#print new line
 		
 		add $s6, $s6, 4
 	
 		add $t9, $t9, 1
-		b printLoop
-	endPrintLoop:
+		b printFrequenciesLoop
+	endPrintFrequenciesLoop:
+	jr $ra
+	
+printCodes:
+	add $t9, $zero, 1
+	lb $s7, symbolsCount
+	la $s6, codes
+	printCodesLoop: # for every symbol used
+		bgt $t9, $s7, endPrintCodesLoop
+		lb $s5, ($s6)					# symbol
+		
+		move $s3, $s6
+		
+		move $a0, $s5
+		li $v0, SYSCALL_PRINTCHARACTER
+		syscall						# print symbol
+		
+		li $a0, ':'
+		li $v0, SYSCALL_PRINTCHARACTER
+		syscall						# print ':'
+		
+		add $s6, $s6, 1
+		lb $s5, ($s6)					#length
+		add $s6, $s6, 1
+		add $t8, $zero, 1
+		printSingleCodeLoop:
+			bgt $t8, $s5, endPrintSingleCodeLoop
+
+			lb $s4, ($s6)
+			
+			add $sp, $sp, -28
+			sw $t9, ($sp)
+			sw $s7, 4($sp)
+			sw $s3, 8($sp)
+			sw $s5, 12($sp)
+			sw $t8, 16($sp)
+			sw $s6, 20($sp)
+			sw $ra, 24($sp)
+			move $a0, $s4
+			jal printInt				#print bit
+			lw $ra, 24($sp)
+			lw $s6, 20($sp)
+			lw $t8, 16($sp)
+			lw $s5, 12($sp)
+			lw $s3, 8($sp)
+			lw $s7, 4($sp)
+			lw $t9, ($sp)
+			add $sp, $sp, 28
+			
+			add $s6, $s6, 1
+			add $t8, $t8, 1
+
+			b printSingleCodeLoop
+		endPrintSingleCodeLoop:
+			
+		li $a0, '\n'
+		li $v0, SYSCALL_PRINTCHARACTER
+		syscall						#print new line
+		
+		add $s3, $s3, 2
+		add $s3, $s3, MAX_SYMBOLS
+		move $s6, $s3
+	
+		add $t9, $t9, 1
+		b printCodesLoop
+	endPrintCodesLoop:
 	jr $ra
 
 # $v0 = $a0 % $a1
@@ -235,9 +304,10 @@ closeFile:
 
 countSymbolsInChunk:
 	add $t9, $zero, 1
+	lw $t8, chunkCount
 	la $s7, chunk
 	countSymbolsByteLoop:
-		bgt $t9, CHUNK_LENGTH, endCountSymbolsByteLoop
+		bgt $t9, $t8, endCountSymbolsByteLoop
 		add $t9, $t9, 1
 
 		lb $s6, ($s7)
@@ -441,21 +511,139 @@ writeCodeBit:
 	add $s7, $s7, 2
 	mul $s7, $s7, $a1
 	add $s7, $s7, $a2
-	sw $a0, codes+2($s7)
+	sb $a0, codes+2($s7)
 	jr $ra
 
 # $a0 - code index
 inverseCode:
-	
+	li $t9, MAX_SYMBOLS
+	add $t9, $t9, 2
+	mul $t9, $t9, $a0
+	add $t9, $t9, 1
+	lb $s7, codes($t9)		# code length
+	add $t9, $t9, 1			# start
+	add $t8, $t9, $s7	
+	sub $t8, $t8, 1			# end
+	inverseCodeLoop:
+		bge $t9, $t8, endInverseCodeLoop
+		
+		lb $s7, codes($t9)
+		lb $s6, codes($t8)
+		sb $s6, codes($t9)
+		sb $s7, codes($t8)
+		
+		add $t9, $t9, 1
+		sub $t8, $t8, 1
+
+		b inverseCodeLoop
+	endInverseCodeLoop:
 	jr $ra
 
 # $a0 - code index
 createCode:
+	lb $s7, symbolsCount
+	bne $s7, 1, moreThanOneSymbol
+	singleSymbol:
+		add $sp, $sp, -8
+		sw $a0, ($sp)
+		sw $ra, 4($sp)
+		move $a1, $a0
+		li $a0, 0
+		li $a2, 0
+		jal writeCodeBit	# if there is only one symbol, it's code is 0
+		lw $ra, 4($sp)
+		lw $a0, ($sp)
+		add $sp, $sp, 8
+		
+		li $s7, MAX_SYMBOLS
+		add $s7, $s7, 2
+		mul $s7, $s7, $a0
+		li $s6, 1
+		sb $s6, codes+1($s7)
+		
+		jr $ra
+	moreThanOneSymbol:
+	
+	li $s7, 0					# current bit
+	move $t9, $a0					# current node
+	
+	treeTraversalLoop:
+		mul $s6, $t9, BYTES_PER_NODE
+		lw $s6, nodes+16($s6)
+		beq $s6, -1, endTreeTraversalLoop	# stop when node has no parent
 
+		move $t8, $t9				# previous node
+		mul $s6, $t8, BYTES_PER_NODE
+		lw $t9, nodes+16($s6)			# current node = parent of current node
+		
+		mul $s6, $t9, BYTES_PER_NODE
+		lw $s6, nodes+8($s6)
+		
+		seq $s6, $t8, $s6			# left child = 0, right child = 1
+		
+		add $sp, $sp, -16
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		sw $a0, 8($sp)
+		sw $ra, 12($sp)
+		move $a1, $a0
+		move $a0, $s6
+		move $a2, $s7
+		jal writeCodeBit
+		lw $ra, 12($sp)
+		lw $a0, 8($sp)
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 16
+		
+		add $s7, $s7, 1
+
+		b treeTraversalLoop
+	endTreeTraversalLoop:
+	
+	li $s6, MAX_SYMBOLS
+	add $s6, $s6, 2
+	mul $s6, $s6, $a0
+	sb $s7, codes+1($s6)				# code length
+	
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	jal inverseCode
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 
 createCodeList:
+	lb $s7, symbolsCount
+	sub $s7, $s7, 1
+	add $t9, $zero, 0
+	createCodesLoop:
+		bgt $t9, $s7, endCreateCodesLoop
+		
+		mul $s6, $t9, BYTES_PER_NODE
+		lw $s6, nodes($s6)			#symbol
+		
+		li $s5, MAX_SYMBOLS
+		add $s5, $s5, 2
+		mul $s5, $s5, $t9
+		sb $s6, codes($s5)
+		
+		add $sp, $sp, -12
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		sw $ra, 8($sp)
+		move $a0, $t9
+		jal createCode
+		lw $ra, 8($sp)
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		add $sp, $sp, 12
 
+		add $t9, $t9, 1
+
+		b createCodesLoop
+	endCreateCodesLoop:
 	jr $ra
 
 writeCodeListToFile:
