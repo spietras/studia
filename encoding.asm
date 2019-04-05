@@ -19,7 +19,7 @@
 	.eqv PQNODES_LENGTH		6132	# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
 	.eqv CODES_LENGTH		66048	# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
 	.eqv FILENAME_LENGTH		256
-	.eqv FILES			3
+	.eqv FILES			2
 	
 	masks:			.byte	128, 64, 32, 16, 8, 4, 2, 1	# 10000000, 01000000, 00100000, 00010000, 00001000, 00000100, 00000010, 00000001
 	
@@ -52,10 +52,12 @@
 	
 	fileNameBuffer:		.byte	0:FILENAME_LENGTH
 	.align 2
-	fileDescriptors:	.word	0:FILES
+	fileDescriptors:	.word	0:FILES				# 0 - input, 1 - output
 	fileEnded:		.byte	0:FILES
 	
 	fileSize:		.word	0				# how many symbols are in original file
+	
+	tempWord:		.word	0				# helper for writing to files
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
@@ -96,6 +98,9 @@ main:
 	jal readToBuffer
 	sw $v0, chunkCount
 	
+	li $a0, 0
+	jal closeFile
+	
 	jal countSymbolsInChunk
 	
 	jal printFrequencies
@@ -107,6 +112,26 @@ main:
 	jal createCodeList
 	
 	jal printCodes
+	
+	la $a0, fileNameBuffer
+	li $a1, FILENAME_LENGTH
+	li $v0, 8
+	syscall
+	
+	la $a0, fileNameBuffer
+	jal changeNewlineToZero
+	
+	la $a0, fileNameBuffer
+	li $a1, 1
+	li $a2, 1
+	jal openFile
+	
+	jal writeFileSizeToFile
+	
+	jal writeCodeListToFile
+	
+	li $a0, 1
+	jal closeFile
 	
 	j end
 
@@ -664,11 +689,165 @@ createCodeList:
 	jr $ra
 	
 writeFileSizeToFile:
-
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 1
+	la $a1, fileSize
+	li $s2, 4
+	jal writeToFile
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 
 writeCodeListToFile:
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 1
+	la $a1, symbolsCount
+	li $a2, 1
+	jal writeToFile
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
+	add $t9, $zero, 0
+	lb $t8, symbolsCount
+	sub $t8, $t8, 1
+	codeListToFileSymbolLoop:
+		bgt $t9, $t8, endCodeListToFileSymbolLoop
+		
+		li $s7, MAX_SYMBOLS
+		add $s7, $s7, 2
+		mul $s7, $s7, $t9			# beginning of current code list entry
+		
+		lb $s6, codes($s7)			# symbol
+		sb $s6, tempWord
+		
+		add $sp, $sp, -16
+		sw $s7, 12($sp)
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 1
+		la $a1, tempWord
+		li $a2, 1
+		jal writeToFile				# write symbol
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		lw $s7, 12($sp)
+		add $sp, $sp, 16
+		
+		lb $s6, codes+1($s7)
+		sb $s6, tempWord
+		
+		add $sp, $sp, -16
+		sw $s7, 12($sp)
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 1
+		la $a1, tempWord
+		li $a2, 1
+		jal writeToFile				# write length
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		lw $s7, 12($sp)
+		add $sp, $sp, 16
+		
+		lb $s6, tempWord			# length
+		
+		li $s5, 0				# byte to write
+		li $s4, 0				# how many bits used in byte
+		
+		add $t7, $zero, 0
+		sub $t6, $s6, 1
+		codeListToFileCodeLoop:
+			bgt $t7, $t6, endCodeListToFileCodeLoop
+			
+			lb $s6, codes+2($s7)		# bit of code
+			
+			add $sp, $sp, -32
+			sw $s4, 28($sp)
+			sw $s5, 24($sp)
+			sw $t6, 20($sp)
+			sw $t7, 16($sp)
+			sw $s7, 12($sp)
+			sw $t8, 8($sp)
+			sw $t9, 4($sp)
+			sw $ra, ($sp)
+			move $a0, $s5
+			move $a1, $s4
+			move $a2, $s6
+			jal setBit			# set proper bit in byte
+			lw $ra, ($sp)
+			lw $t9, 4($sp)
+			lw $t8, 8($sp)
+			lw $s7, 12($sp)
+			lw $t7, 16($sp)
+			lw $t6, 20($sp)
+			lw $s5, 24($sp)
+			lw $s4, 28($sp)
+			add $sp, $sp, 32
+			
+			move $s5, $v0
+			
+			add $s4, $s4, 1	
+			add $s7, $s7, 1
+			add $t7, $t7, 1
+			
+			bne $s4, 8, codeListToFileCodeLoop
+			
+			sb $s5, tempWord
+			
+			add $sp, $sp, -24
+			sw $t6, 20($sp)
+			sw $t7, 16($sp)
+			sw $s7, 12($sp)
+			sw $t8, 8($sp)
+			sw $t9, 4($sp)
+			sw $ra, ($sp)
+			li $a0, 1
+			la $a1, tempWord		# if whole byte is used, write it to file
+			li $a2, 1
+			jal writeToFile
+			lw $ra, ($sp)
+			lw $t9, 4($sp)
+			lw $t8, 8($sp)
+			lw $s7, 12($sp)
+			lw $t7, 16($sp)
+			lw $t6, 20($sp)
+			add $sp, $sp, 24
+			
+			li $s5, 0
+			li $s4, 0
 
+			b codeListToFileCodeLoop
+		endCodeListToFileCodeLoop:
+		
+		add $t9, $t9, 1
+		
+		beq $s4, 0, codeListToFileSymbolLoop
+		
+		sb $s5, tempWord
+		
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 1
+		la $a1, tempWord			# write rest of byte
+		li $a2, 1
+		jal writeToFile
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+
+		b codeListToFileSymbolLoop
+	endCodeListToFileSymbolLoop:
+	
 	jr $ra
 
 writeCodedDataToFile:
