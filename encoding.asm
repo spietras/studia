@@ -49,12 +49,19 @@
 	codedData:		.byte	0:CHUNK_LENGTH			# output buffer
 	.align 2
 	codedDataFirstFreeBit:	.word	0				# first free bit of output buffer
-	trailingBitsCount:	.byte	0				# how many trailing bits were added
 	
 	fileNameBuffer:		.byte	0:FILENAME_LENGTH
 	.align 2
 	fileDescriptors:	.word	0:FILES
 	fileEnded:		.byte	0:FILES
+	
+	fileSize:		.word	0				# how many symbols are in original file
+	
+#	ENCODED FILE STRUCTURE:
+#	file size [4]
+#	symbols count [1]
+#	codes list (for each symbol: symbol [1], code length [1], code [code length])
+#	encoded symbols [...]
 	
 #	LOOP TEMPLATE
 #	add $iterator, $zero, start
@@ -503,6 +510,16 @@ buildHuffmanTree:
 		b treePopLoop
 	endTreePopLoop:
 	
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	jal popQueue
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
+	mul $s7, $v0, BYTES_PER_NODE
+	lw $s7, nodes+4($s7)
+	sw $s7, fileSize			# root stores how many symbols are in original file
+	
 	jr $ra
 
 # $a0 - bit, $a1 - code index, $a2 - bit index
@@ -645,6 +662,10 @@ createCodeList:
 		b createCodesLoop
 	endCreateCodesLoop:
 	jr $ra
+	
+writeFileSizeToFile:
+
+	jr $ra
 
 writeCodeListToFile:
 
@@ -664,10 +685,6 @@ writeReplacedSymbols:
 	jr $ra
 
 writeRestOfCodedData:
-
-	jr $ra
-
-addTrailingBitsInfo:
 
 	jr $ra
 
