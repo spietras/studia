@@ -14,10 +14,10 @@
 	.eqv CHUNK_LENGTH		1024
 	.eqv MAX_SYMBOLS		256
 	.eqv BYTES_PER_NODE		20
-	.eqv NODES_LENGTH		10220	# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
+	.eqv NODES_LENGTH		10220				# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
 	.eqv BYTES_PER_PQNODE		12
-	.eqv PQNODES_LENGTH		6132	# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
-	.eqv CODES_LENGTH		66048	# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
+	.eqv PQNODES_LENGTH		6132				# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
+	.eqv CODES_LENGTH		66048				# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
 	.eqv FILENAME_LENGTH		256
 	.eqv FILES			2
 	
@@ -92,23 +92,31 @@ main:
 	li $a2, 0
 	jal openFile
 	
-	li $a0, 0
-	la $a1, chunk
-	li $a2, CHUNK_LENGTH
-	jal readToBuffer
-	sw $v0, chunkCount
+	readCountLoop:
+		li $a0, 0
+		la $a1, chunk
+		li $a2, CHUNK_LENGTH
+		jal readToBuffer
+		sw $v0, chunkCount
+		
+		jal countSymbolsInChunk
+		
+		lb $s7, fileEnded
+		bne $s7, 1, readCountLoop
+	endReadCountLoop:
 	
 	li $a0, 0
 	jal closeFile
 	
-	jal countSymbolsInChunk
+	la $a0, fileNameBuffer
+	li $a1, 0
+	li $a2, 0
+	jal openFile
 	
 	jal printFrequencies
 	
 	jal createNodeList
-	
-	jal buildHuffmanTree
-	
+	jal buildHuffmanTree	
 	jal createCodeList
 	
 	jal printCodes
@@ -126,11 +134,28 @@ main:
 	li $a2, 1
 	jal openFile
 	
-	jal writeFileSizeToFile
-	
+	jal writeFileSizeToFile	
 	jal writeCodeListToFile
 	
+	encodeLoop:
+		li $a0, 0
+		la $a1, chunk
+		li $a2, CHUNK_LENGTH
+		jal readToBuffer
+		sw $v0, chunkCount
+		
+		jal writeReplacedSymbols
+		
+		lb $s7, fileEnded
+		bne $s7, 1, encodeLoop
+	endEncodeLoop:
+	
+	jal writeRestOfCodedData
+	
 	li $a0, 1
+	jal closeFile
+	
+	li $a0, 0
 	jal closeFile
 	
 	j end
@@ -660,7 +685,7 @@ createCodeList:
 	lb $s7, symbolsCount
 	sub $s7, $s7, 1
 	add $t9, $zero, 0
-	createCodesLoop:
+	createCodesLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $s7, endCreateCodesLoop
 		
 		mul $s6, $t9, BYTES_PER_NODE
@@ -713,7 +738,7 @@ writeCodeListToFile:
 	add $t9, $zero, 0
 	lb $t8, symbolsCount
 	sub $t8, $t8, 1
-	codeListToFileSymbolLoop:
+	codeListToFileSymbolLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $t8, endCodeListToFileSymbolLoop
 		
 		li $s7, MAX_SYMBOLS
@@ -763,7 +788,7 @@ writeCodeListToFile:
 		
 		add $t7, $zero, 0
 		sub $t6, $s6, 1
-		codeListToFileCodeLoop:
+		codeListToFileCodeLoop: # from 0 to (length - 1)
 			bgt $t7, $t6, endCodeListToFileCodeLoop
 			
 			lb $s6, codes+2($s7)		# bit of code
@@ -849,22 +874,186 @@ writeCodeListToFile:
 	endCodeListToFileSymbolLoop:
 	
 	jr $ra
+	
+# $a0 - symbol
+# $v0 - index
+findCodeIndex:
+	add $t9, $zero, 0
+	lb $s7, symbolsCount
+	sub $s7, $s7, 1
+	findCodeIndexLoop: # from 0 to (symbolsCount - 1)
+		bgt $t9, $s7, codeIndexNotFound
+
+		li $s6, MAX_SYMBOLS
+		add $s6, $s6, 2
+		mul $s6, $s6, $t9
+		
+		lb $s6, codes($s6)
+		
+		add $t9, $t9, 1
+		
+		bne $s6, $a0, findCodeIndexLoop
+		
+		codeIndexFound:
+		sub $v0, $t9, 1
+		jr $ra
+	codeIndexNotFound:
+	li $v0, -1
+	jr $ra
 
 writeCodedDataToFile:
-
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 1
+	la $a1, codedData
+	li $a2, CHUNK_LENGTH
+	jal writeToFile
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 
 # $a0 - value
 addToCodedData:
-
+	move $s7, $a0
+	lw $s6, codedDataFirstFreeBit
+	
+	li $s5, 8
+	divu $s6, $s5
+	mfhi $s5			# remainder
+	mflo $s4			# which byte
+	
+	lb $s3, codedData($s4)		# loaded byte
+	
+	add $sp, $sp, -12
+	sw $s6, 8($sp)
+	sw $s4, 4($sp)
+	sw $ra, ($sp)
+	move $a0, $s3
+	move $a1, $s5
+	move $a2, $s7
+	jal setBit
+	lw $ra, ($sp)
+	lw $s4, 4($sp)
+	lw $s6, 8($sp)
+	add $sp, $sp, 12
+	
+	move $s3, $v0
+	
+	sb $s3, codedData($s4)
+	
+	add $s6, $s6, 1
+	sw $s6, codedDataFirstFreeBit
+	
+	li $s7, CHUNK_LENGTH
+	mul $s7, $s7, 8
+	blt $s6, $s7, endCodedDataFilled
+	codedDataFilled:
+		add $sp, $sp, -4
+		sw $ra, ($sp)
+		jal writeCodedDataToFile
+		lw $ra, ($sp)
+		add $sp, $sp, 4
+		
+		add $sp, $sp, -4
+		sw $ra, ($sp)
+		la $a0, codedData
+		li $a1, CHUNK_LENGTH
+		li $a2, 0
+		jal fill
+		lw $ra, ($sp)
+		add $sp, $sp, 4
+		
+		li $s7, 0
+		sw $s7, codedDataFirstFreeBit
+	endCodedDataFilled:
+	
 	jr $ra
 
 writeReplacedSymbols:
+	add $t9, $zero, 0
+	lw $t8, chunkCount
+	sub $t8, $t8, 1
+	replaceSymbolsChunkLoop: # for each byte in chunk
+		bgt $t9, $t8, endReplaceSymbolsChunkLoop
 
+		lb $s7, chunk($t9)		# symbol
+		
+		add $sp, $sp, -12
+		sw $t9, 8($sp)
+		sw $t8, 4($sp)
+		sw $ra, ($sp)
+		move $a0, $s7
+		jal findCodeIndex
+		lw $ra, ($sp)
+		lw $t8, 4($sp)
+		lw $t9, 8($sp)
+		add $sp, $sp, 12
+		
+		move $s7, $v0			# code index
+		
+		li $s6, MAX_SYMBOLS
+		add $s6, $s6, 2
+		mul $s6, $s6, $s7		# (2 + MAX_SYMBOLS) * code index
+		
+		lb $s5, codes+1($s6)		# code length
+		
+		add $t7, $zero, 0
+		sub $t6, $s5, 1
+		replaceSymbolsBitLoop: # from 0 to (code length - 1)
+			bgt $t7, $t6, endReplaceSymbolsBitLoop
+
+			add $s4, $s6, $t7
+			lb $s4, codes+2($s4)
+			
+			add $sp, $sp, -24
+			sw $t6, 20($sp)
+			sw $t7, 16($sp)
+			sw $s6, 12($sp)
+			sw $t9, 8($sp)
+			sw $t8, 4($sp)
+			sw $ra, ($sp)
+			move $a0, $s4
+			jal addToCodedData
+			lw $ra, ($sp)
+			lw $t8, 4($sp)
+			lw $t9, 8($sp)
+			lw $s6, 12($sp)
+			lw $t7, 16($sp)
+			lw $t6, 20($sp)
+			add $sp, $sp, 24
+			
+			add $t7, $t7, 1
+
+			b replaceSymbolsBitLoop
+		endReplaceSymbolsBitLoop:
+		
+		add $t9, $t9, 1
+
+		b replaceSymbolsChunkLoop
+	endReplaceSymbolsChunkLoop:
 	jr $ra
 
 writeRestOfCodedData:
-
+	lw $s7, codedDataFirstFreeBit
+	li $s6, 8
+	
+	divu $s7, $s6
+	mfhi $s7			# remainder
+	mflo $s6
+	
+	sne $s7, $s7, 0
+	add $s6, $s6, $s7		# needed bytes
+	
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 1
+	la $a1, codedData
+	move $a2, $s6
+	jal writeToFile
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 
 end:
