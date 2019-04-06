@@ -39,7 +39,7 @@
 	.align 2
 	huffmanTree:		.word	0:MAX_HUFFMAN_TREE_NODES
 	.align 2
-	currentNode:		.word	0
+	currentNode:		.word	0				# current node when stepping down the tree while decoding
 	currentSymbol:		.byte	0
 
 	inputBuffer:		.byte	0:CHUNK_LENGTH			# input buffer
@@ -70,6 +70,25 @@
 .text
 
 main:
+	la $a0, fileNameBuffer
+	li $a1, FILENAME_LENGTH
+	li $v0, 8
+	syscall
+	
+	la $a0, fileNameBuffer
+	jal changeNewlineToZero
+	
+	la $a0, fileNameBuffer
+	li $a1, 0
+	li $a2, 0
+	jal openFile
+	
+	jal readFileSize
+	jal readSymbolsCount
+	jal buildHuffmanTree
+	
+	li $a0, 0
+	jal closeFile
 
 	j end
 	
@@ -123,14 +142,15 @@ fill:
 	
 	jr $ra
 	
-# $a0 - byte (value), $a2 - bit index (from left)
+# $a0 - byte (value), $a1 - bit index (from left)
 # $v0 - value 
 readBit:
-	lb $s7, masks($s2)
+	lb $s7, masks($a1)
 	and $a0, $a0, $s7
 	li $s7, 7
-	sub $s7, $s7, $a2
+	sub $s7, $s7, $a1
 	srlv $v0, $a0, $s7
+	and $v0, $v0, 1
 	jr $ra
 
 # $a0 - address to filename (absolute), $a1 - mode (0 - read, 1 - write, 9 - append), $a2 - file index
@@ -170,27 +190,190 @@ closeFile:
 	jr $ra
 	
 readFileSize:
-
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 0
+	la $a1, fileSize
+	li $a2, 4
+	jal readToBuffer
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 	
 readSymbolsCount:
-
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	li $a0, 0
+	la $a1, symbolsCount
+	li $a2, 1
+	jal readToBuffer
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
 	jr $ra
 	
 extendCode:
+	li $s7, 0		# current bit
+	la $s6, codeBuffer	# current byte address
+	
+	lb $t8, codeLength
+	sub $t8, $t8, 1
+	add $t9, $zero, 0
+	extendCodeLoop: # from 0 to (code length - 1)
+		bgt $t9, $t8, endExtendCodeLoop
 
+		bne $s7, 8, endNextByte
+			add $s6, $s6, 1
+			li $s7, 0
+		endNextByte:	
+		
+		add $sp, $sp, -20
+		sw $s6, 16($sp)
+		sw $s7, 12($sp)
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		lb $a0, ($s6)
+		move $a1, $s7
+		jal readBit
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		lw $s7, 12($sp)
+		lw $s6, 16($sp)
+		add $sp, $sp, 20
+		
+		sb $v0, codeExtended($t9)
+		
+		add $s7, $s7, 1
+		add $t9, $t9, 1
+
+		b extendCodeLoop
+	endExtendCodeLoop:
+	
 	jr $ra
 	
 addLeaf:
+	li $s7, 0				# current node
+	
+	lb $t8, codeLength
+	sub $t8, $t8, 1
+	add $t9, $zero, 0
+	addLeafLoop: # from 0 to (code length - 1)
+		bgt $t9, $t8, endAddLeafLoop
 
+		lb $s6, codeExtended($t9)	# bit
+
+		mul $s5, $s7, 2
+		add $s5, $s5, 1
+		add $s7, $s5, $s6		# go left or right depending on bit		
+
+		add $t9, $t9, 1
+
+		b addLeafLoop
+	endAddLeafLoop:
+	
+	mul $s7,$s7, 4
+	lb $s6, currentSymbol
+	sw $s6, huffmanTree($s7)		# save symbol
+	
 	jr $ra
 	
 buildHuffmanTree:
+	add $sp, $sp, -4
+	sw $ra, ($sp)
+	la $a0, huffmanTree
+	li $a1, MAX_HUFFMAN_TREE_NODES
+	li $a2, -1
+	jal fill
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	
+	lb $t8, symbolsCount
+	sub $t8, $t8, 1
+	add $t9, $zero, 0
+	huffmanTreeLoop: # from 0 to (symbols count - 1)
+		bgt $t9, $t8, endHuffmanTreeLoop
+
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 0
+		la $a1, currentSymbol
+		li $a2, 1
+		jal readToBuffer
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+		
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 0
+		la $a1, codeLength
+		li $a2, 1
+		jal readToBuffer
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+		
+		lb $s7, codeLength
+		li $s6, 8
+		div $s7, $s6
+		
+		mflo $s7
+		mfhi $s6
+		
+		sne $s6, $s6, 0
+		add $s7, $s7, $s6		# needed bytes
+		
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		li $a0, 0
+		la $a1, codeBuffer
+		move $a2, $s7
+		jal readToBuffer		# read code
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+		
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		jal extendCode
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+		
+		add $sp, $sp, -12
+		sw $t8, 8($sp)
+		sw $t9, 4($sp)
+		sw $ra, ($sp)
+		jal addLeaf
+		lw $ra, ($sp)
+		lw $t9, 4($sp)
+		lw $t8, 8($sp)
+		add $sp, $sp, 12
+
+		add $t9, $t9, 1
+
+		b huffmanTreeLoop
+	endHuffmanTreeLoop:
 
 	jr $ra
 	
 stepDownTheTree:
-
+	
 	jr $ra
 
 end:
