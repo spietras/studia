@@ -55,8 +55,10 @@
 	fileDescriptors:	.word	0:FILES				# 0 - input, 1 - output
 	fileEnded:		.byte	0:FILES
 	
+	.align 2
 	fileSize:		.word	0				# how many symbols are in original file
 	
+	.align 2
 	tempWord:		.word	0				# helper for writing to files
 	
 #	ENCODED FILE STRUCTURE:
