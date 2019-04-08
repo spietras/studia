@@ -30,11 +30,13 @@
 	.align 2
 	frequencies:		.word	0:MAX_SYMBOLS			# symbol frequency list
 	
-	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree (symbol[4], frequency[4], leftChildIndex[4], rightChildIndex[4], parentIndex[4])
 	.align 2
-	nodesCount:		.word	0				# number of nodes
+	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree (symbol[4], frequency[4], leftChildAddress[4], rightChildAddress[4], parentAddress[4])
+	.align 2
+	firstFreeNodeAddress:	.word	0				# number of nodes
 	
-	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue (priority[4], next[4], nodeIndex[4])
+	.align 2
+	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue (priority[4], next[4], nodeAddress[4])
 	.align 2
 	pqHead:			.word	-1				# index of head of priority queue
 	.align 2
@@ -68,7 +70,7 @@
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
-#	symbols count [1]
+#	symbols count [2]
 #	codes list (for each symbol: symbol [1], code length [1], code [code length])
 #	encoded symbols [...]
 	
@@ -422,30 +424,26 @@ createNodeList:
 		
 		sw $s5, ($s7) 	# symbol
 		sw $s4, 4($s7) 	# frequency
-		li $s4, -1
-		sw $s4, 8($s7) 	# left child: -1
-		sw $s4, 12($s7)	# right child: -1
-		sw $s4, 16($s7)	# parent: -1
 		
-		add $s7, $s7, 20
+		add $s7, $s7, BYTES_PER_NODE
 		lw $s4, symbolsCount
 		add $s4, $s4, 1
 		sw $s4, symbolsCount
 
 		b createNodesLoop
 	endcreateNodesLoop:
+	sw $s7, firstFreeNodeAddress
 	jr $ra
 
-# $a0 - node index
+# $a0 - node address
 pushQueue:
-	mul $s7, $a0, BYTES_PER_NODE
-	lw $s7, nodes+4($s7)					# priority
+	lw $s7, 4($a0)					# priority
 	lw $s0, pqUsed			
 	mul $s6, $s0, BYTES_PER_PQNODE			# BYTES_PER_PQNODE * pqUsed
 	sw $s7, pqNodes($s6)				# priority
 	li $s5, -1
 	sw $s5, pqNodes+4($s6)				# next: -1
-	sw $a0, pqNodes+8($s6)				# node index
+	sw $a0, pqNodes+8($s6)				# node address
 	
 	lw $s5, pqHead					# pqHead
 	beq $s5, -1, emptyHead
@@ -492,7 +490,7 @@ pushQueue:
 	
 	jr $ra
 
-# $v0 - popped node index
+# $v0 - popped node address
 popQueue:
 	lw $s7, pqHead
 	mul $s7, $s7, BYTES_PER_PQNODE
@@ -506,25 +504,28 @@ popQueue:
 
 buildHuffmanTree:
 	lw $s7, symbolsCount
-	sw $s7, nodesCount
 	
+	la $t8, nodes
 	add $t9, $zero, 0
 	sub $s7, $s7, 1
 	treePushLoop:
 		bgt $t9, $s7, endTreePushLoop
 		add $t9, $t9, 1
 		
-		move $a0, $t9
-		sub $a0, $a0, 1
-		add $sp, $sp, -12
-		sw $t9, ($sp)
+		move $a0, $t8
+		add $sp, $sp, -16
+		sw $t8, 12($sp)
+		sw $t9, 8($sp)
 		sw $s7, 4($sp)
-		sw $ra, 8($sp)
+		sw $ra, ($sp)
 		jal pushQueue			# push every leaf to queue
-		lw $ra, 8($sp)
+		lw $ra, ($sp)
 		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		add $sp, $sp, 12
+		lw $t9, 8($sp)
+		lw $t8, 12($sp)
+		add $sp, $sp, 16
+		
+		add $t8, $t8, BYTES_PER_NODE
 
 		b treePushLoop
 	endTreePushLoop:
@@ -552,24 +553,20 @@ buildHuffmanTree:
 		move $s5, $v0			# second popped node
 		
 		#create new internal node
-		lw $s7, nodesCount
-		mul $s4, $s7, BYTES_PER_NODE
+		lw $s7, firstFreeNodeAddress
+
 		li $s3, -1
-		sw $s3, nodes($s4)		# invalid symbol
-		sw $s3, nodes+16($s4)		# no parent
-		sw $s6, nodes+8($s4)		# left child
-		sw $s5, nodes+12($s4)		# right child
+		sw $s3, ($s7)			# invalid symbol
+		sw $s6, 8($s7)			# left child
+		sw $s5, 12($s7)			# right child
 		
-		mul $s6, $s6, BYTES_PER_NODE
-		mul $s5, $s5, BYTES_PER_NODE
-		
-		lw $s3, nodes+4($s6)
-		lw $s2, nodes+4($s5)
+		lw $s3, 4($s6)
+		lw $s2, 4($s5)
 		add $s3, $s3, $s2
-		sw $s3, nodes+4($s4)		# priority = left child priority + right child priority
+		sw $s3, 4($s7)			# priority = left child priority + right child priority
 		
-		sw $s7, nodes+16($s6)		# left child parent = new node
-		sw $s7, nodes+16($s5)		# right child parent = new node
+		sw $s7, 16($s6)			# left child parent = new node
+		sw $s7, 16($s5)			# right child parent = new node
 		
 		move $a0, $s7
 		add $sp, $sp, -8
@@ -580,8 +577,8 @@ buildHuffmanTree:
 		lw $s7, ($sp)
 		add $sp, $sp, 8
 		
-		add $s7, $s7, 1
-		sw $s7, nodesCount
+		add $s7, $s7, BYTES_PER_NODE
+		sw $s7, firstFreeNodeAddress
 		
 		b treePopLoop
 	endTreePopLoop:
@@ -592,8 +589,7 @@ buildHuffmanTree:
 	lw $ra, ($sp)
 	add $sp, $sp, 4
 	
-	mul $s7, $v0, BYTES_PER_NODE
-	lw $s7, nodes+4($s7)
+	lw $s7, 4($v0)
 	sw $s7, fileSize			# root stores how many symbols are in original file
 	
 	jr $ra
@@ -657,20 +653,19 @@ createCode:
 		jr $ra
 	moreThanOneSymbol:
 	
+	la $s7, nodes
+	mul $t9, $a0, BYTES_PER_NODE
+	add $t9, $t9, $s7				# current node address
 	li $s7, 0					# current bit
-	move $t9, $a0					# current node
 	
 	treeTraversalLoop:
-		mul $s6, $t9, BYTES_PER_NODE
-		lw $s6, nodes+16($s6)
-		beq $s6, -1, endTreeTraversalLoop	# stop when node has no parent
+		lw $s6, 16($t9)
+		beq $s6, 0, endTreeTraversalLoop	# stop when node has no parent
 
-		move $t8, $t9				# previous node
-		mul $s6, $t8, BYTES_PER_NODE
-		lw $t9, nodes+16($s6)			# current node = parent of current node
+		move $t8, $t9				# previous node address
+		move $t9, $s6				# current node = parent of current node
 		
-		mul $s6, $t9, BYTES_PER_NODE
-		lw $s6, nodes+8($s6)
+		lw $s6, 8($t9)
 		
 		seq $s6, $t8, $s6			# left child = 0, right child = 1
 		
@@ -708,31 +703,34 @@ createCode:
 	jr $ra
 
 createCodeList:
+	la $t8, nodes
 	lw $s7, symbolsCount
 	sub $s7, $s7, 1
 	add $t9, $zero, 0
 	createCodesLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $s7, endCreateCodesLoop
 		
-		mul $s6, $t9, BYTES_PER_NODE
-		lw $s6, nodes($s6)			#symbol
+		lw $s6, ($t8)			#symbol
 		
 		li $s5, MAX_SYMBOLS
 		add $s5, $s5, 2
 		mul $s5, $s5, $t9
 		sb $s6, codes($s5)
 		
-		add $sp, $sp, -12
-		sw $t9, ($sp)
+		add $sp, $sp, -16
+		sw $t8, 12($sp)
+		sw $t9, 8($sp)
 		sw $s7, 4($sp)
-		sw $ra, 8($sp)
+		sw $ra, ($sp)
 		move $a0, $t9
 		jal createCode
-		lw $ra, 8($sp)
+		lw $ra, ($sp)
 		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		add $sp, $sp, 12
-
+		lw $t9, 8($sp)
+		lw $t8, 12($sp)
+		add $sp, $sp, 16
+		
+		add $t8, $t8, BYTES_PER_NODE
 		add $t9, $t9, 1
 
 		b createCodesLoop

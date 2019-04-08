@@ -59,7 +59,7 @@
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
-#	symbols count [1]
+#	symbols count [2]
 #	codes list (for each symbol: symbol [1], code length [1], code [code length])
 #	encoded symbols [...]
 	
