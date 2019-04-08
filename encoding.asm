@@ -11,7 +11,7 @@
 	.eqv SYSCALL_WRITEFILE		15
 	.eqv SYSCALL_CLOSEFILE		16
 
-	.eqv CHUNK_LENGTH		1024
+	.eqv CHUNK_LENGTH		65536
 	.eqv MAX_SYMBOLS		256
 	.eqv BYTES_PER_NODE		20
 	.eqv NODES_LENGTH		10220				# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
@@ -44,7 +44,8 @@
 	
 	.align 2
 	codes:			.word	0:CODES_LENGTH			# symbol to code list (symbol[1], length[1], code[256])
-	symbolsCount:		.byte	0				# how many symbols are used
+	.align 2
+	symbolsCount:		.word	0				# how many symbols are used
 	
 	codedData:		.byte	0:CHUNK_LENGTH			# output buffer
 	.align 2
@@ -57,9 +58,8 @@
 	
 	.align 2
 	fileSize:		.word	0				# how many symbols are in original file
-	
-	.align 2
-	tempWord:		.word	0				# helper for writing to files
+
+	tempByte:		.byte	0				# helper for writing to files
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
@@ -103,7 +103,7 @@ main:
 		
 		jal countSymbolsInChunk
 		
-		lb $s7, fileEnded
+		lbu $s7, fileEnded
 		bne $s7, 1, readCountLoop
 	endReadCountLoop:
 	
@@ -115,13 +115,13 @@ main:
 	li $a2, 0
 	jal openFile
 	
-	jal printFrequencies
+	#jal printFrequencies
 	
 	jal createNodeList
 	jal buildHuffmanTree	
 	jal createCodeList
 	
-	jal printCodes
+	#jal printCodes
 	
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
@@ -148,7 +148,7 @@ main:
 		
 		jal writeReplacedSymbols
 		
-		lb $s7, fileEnded
+		lbu $s7, fileEnded
 		bne $s7, 1, encodeLoop
 	endEncodeLoop:
 	
@@ -165,7 +165,7 @@ main:
 # $a0 - address of buffer
 changeNewlineToZero:
 	findNewlineLoop:
-		lb $s7, ($a0)
+		lbu $s7, ($a0)
 		
 		add $a0, $a0, 1
 		bne $s7, '\n', findNewlineLoop
@@ -228,11 +228,11 @@ printFrequencies:
 	
 printCodes:
 	add $t9, $zero, 1
-	lb $s7, symbolsCount
+	lw $s7, symbolsCount
 	la $s6, codes
 	printCodesLoop: # for every symbol used
 		bgt $t9, $s7, endPrintCodesLoop
-		lb $s5, ($s6)					# symbol
+		lbu $s5, ($s6)					# symbol
 		
 		move $s3, $s6
 		
@@ -245,13 +245,13 @@ printCodes:
 		syscall						# print ':'
 		
 		add $s6, $s6, 1
-		lb $s5, ($s6)					#length
+		lbu $s5, ($s6)					#length
 		add $s6, $s6, 1
 		add $t8, $zero, 1
 		printSingleCodeLoop:
 			bgt $t8, $s5, endPrintSingleCodeLoop
 
-			lb $s4, ($s6)
+			lbu $s4, ($s6)
 			
 			add $sp, $sp, -28
 			sw $t9, ($sp)
@@ -315,7 +315,7 @@ fill:
 # $a0 - byte (value), $a1 - bit index (from left), $a2 - value
 # $v0 - changed byte
 setBit:
-	lb $s7, masks($a1) 	# n-th mask
+	lbu $s7, masks($a1) 	# n-th mask
 	not $s7, $s7 		# inverse mask
 	and $a0, $a0, $s7 	# clear bit in byte
 	li $s7, 7
@@ -369,7 +369,7 @@ countSymbolsInChunk:
 		bgt $t9, $t8, endCountSymbolsByteLoop
 		add $t9, $t9, 1
 
-		lb $s6, ($s7)
+		lbu $s6, ($s7)
 		add $s7, $s7, 1
 		
 		mul $s6, $s6, 4
@@ -404,9 +404,9 @@ createNodeList:
 		sw $s4, 16($s7)	# parent: -1
 		
 		add $s7, $s7, 20
-		lb $s4, symbolsCount
+		lw $s4, symbolsCount
 		add $s4, $s4, 1
-		sb $s4, symbolsCount
+		sw $s4, symbolsCount
 
 		b createNodesLoop
 	endcreateNodesLoop:
@@ -589,15 +589,15 @@ inverseCode:
 	add $t9, $t9, 2
 	mul $t9, $t9, $a0
 	add $t9, $t9, 1
-	lb $s7, codes($t9)		# code length
+	lbu $s7, codes($t9)		# code length
 	add $t9, $t9, 1			# start
 	add $t8, $t9, $s7	
 	sub $t8, $t8, 1			# end
 	inverseCodeLoop:
 		bge $t9, $t8, endInverseCodeLoop
 		
-		lb $s7, codes($t9)
-		lb $s6, codes($t8)
+		lbu $s7, codes($t9)
+		lbu $s6, codes($t8)
 		sb $s6, codes($t9)
 		sb $s7, codes($t8)
 		
@@ -610,7 +610,7 @@ inverseCode:
 
 # $a0 - code index
 createCode:
-	lb $s7, symbolsCount
+	lw $s7, symbolsCount
 	bne $s7, 1, moreThanOneSymbol
 	singleSymbol:
 		add $sp, $sp, -8
@@ -684,7 +684,7 @@ createCode:
 	jr $ra
 
 createCodeList:
-	lb $s7, symbolsCount
+	lw $s7, symbolsCount
 	sub $s7, $s7, 1
 	add $t9, $zero, 0
 	createCodesLoop: # from 0 to (symbolsCount - 1)
@@ -732,13 +732,13 @@ writeCodeListToFile:
 	sw $ra, ($sp)
 	li $a0, 1
 	la $a1, symbolsCount
-	li $a2, 1
+	li $a2, 2
 	jal writeToFile
 	lw $ra, ($sp)
 	add $sp, $sp, 4
 	
 	add $t9, $zero, 0
-	lb $t8, symbolsCount
+	lw $t8, symbolsCount
 	sub $t8, $t8, 1
 	codeListToFileSymbolLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $t8, endCodeListToFileSymbolLoop
@@ -747,8 +747,8 @@ writeCodeListToFile:
 		add $s7, $s7, 2
 		mul $s7, $s7, $t9			# beginning of current code list entry
 		
-		lb $s6, codes($s7)			# symbol
-		sb $s6, tempWord
+		lbu $s6, codes($s7)			# symbol
+		sb $s6, tempByte
 		
 		add $sp, $sp, -16
 		sw $s7, 12($sp)
@@ -756,7 +756,7 @@ writeCodeListToFile:
 		sw $t9, 4($sp)
 		sw $ra, ($sp)
 		li $a0, 1
-		la $a1, tempWord
+		la $a1, tempByte
 		li $a2, 1
 		jal writeToFile				# write symbol
 		lw $ra, ($sp)
@@ -765,8 +765,8 @@ writeCodeListToFile:
 		lw $s7, 12($sp)
 		add $sp, $sp, 16
 		
-		lb $s6, codes+1($s7)
-		sb $s6, tempWord
+		lbu $s6, codes+1($s7)
+		sb $s6, tempByte
 		
 		add $sp, $sp, -16
 		sw $s7, 12($sp)
@@ -774,7 +774,7 @@ writeCodeListToFile:
 		sw $t9, 4($sp)
 		sw $ra, ($sp)
 		li $a0, 1
-		la $a1, tempWord
+		la $a1, tempByte
 		li $a2, 1
 		jal writeToFile				# write length
 		lw $ra, ($sp)
@@ -783,7 +783,7 @@ writeCodeListToFile:
 		lw $s7, 12($sp)
 		add $sp, $sp, 16
 		
-		lb $s6, tempWord			# length
+		lbu $s6, tempByte			# length
 		
 		li $s5, 0				# byte to write
 		li $s4, 0				# how many bits used in byte
@@ -793,7 +793,7 @@ writeCodeListToFile:
 		codeListToFileCodeLoop: # from 0 to (length - 1)
 			bgt $t7, $t6, endCodeListToFileCodeLoop
 			
-			lb $s6, codes+2($s7)		# bit of code
+			lbu $s6, codes+2($s7)		# bit of code
 			
 			add $sp, $sp, -32
 			sw $s4, 28($sp)
@@ -826,7 +826,7 @@ writeCodeListToFile:
 			
 			bne $s4, 8, codeListToFileCodeLoop
 			
-			sb $s5, tempWord
+			sb $s5, tempByte
 			
 			add $sp, $sp, -24
 			sw $t6, 20($sp)
@@ -836,7 +836,7 @@ writeCodeListToFile:
 			sw $t9, 4($sp)
 			sw $ra, ($sp)
 			li $a0, 1
-			la $a1, tempWord		# if whole byte is used, write it to file
+			la $a1, tempByte		# if whole byte is used, write it to file
 			li $a2, 1
 			jal writeToFile
 			lw $ra, ($sp)
@@ -857,14 +857,14 @@ writeCodeListToFile:
 		
 		beq $s4, 0, codeListToFileSymbolLoop
 		
-		sb $s5, tempWord
+		sb $s5, tempByte
 		
 		add $sp, $sp, -12
 		sw $t8, 8($sp)
 		sw $t9, 4($sp)
 		sw $ra, ($sp)
 		li $a0, 1
-		la $a1, tempWord			# write rest of byte
+		la $a1, tempByte			# write rest of byte
 		li $a2, 1
 		jal writeToFile
 		lw $ra, ($sp)
@@ -881,7 +881,7 @@ writeCodeListToFile:
 # $v0 - index
 findCodeIndex:
 	add $t9, $zero, 0
-	lb $s7, symbolsCount
+	lw $s7, symbolsCount
 	sub $s7, $s7, 1
 	findCodeIndexLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $s7, codeIndexNotFound
@@ -890,7 +890,7 @@ findCodeIndex:
 		add $s6, $s6, 2
 		mul $s6, $s6, $t9
 		
-		lb $s6, codes($s6)
+		lbu $s6, codes($s6)
 		
 		add $t9, $t9, 1
 		
@@ -925,7 +925,7 @@ addToCodedData:
 	mfhi $s5			# remainder
 	mflo $s4			# which byte
 	
-	lb $s3, codedData($s4)		# loaded byte
+	lbu $s3, codedData($s4)		# loaded byte
 	
 	add $sp, $sp, -12
 	sw $s6, 8($sp)
@@ -979,7 +979,7 @@ writeReplacedSymbols:
 	replaceSymbolsChunkLoop: # for each byte in chunk
 		bgt $t9, $t8, endReplaceSymbolsChunkLoop
 
-		lb $s7, chunk($t9)		# symbol
+		lbu $s7, chunk($t9)		# symbol
 		
 		add $sp, $sp, -12
 		sw $t9, 8($sp)
@@ -998,7 +998,7 @@ writeReplacedSymbols:
 		add $s6, $s6, 2
 		mul $s6, $s6, $s7		# (2 + MAX_SYMBOLS) * code index
 		
-		lb $s5, codes+1($s6)		# code length
+		lbu $s5, codes+1($s6)		# code length
 		
 		add $t7, $zero, 0
 		sub $t6, $s5, 1
@@ -1006,7 +1006,7 @@ writeReplacedSymbols:
 			bgt $t7, $t6, endReplaceSymbolsBitLoop
 
 			add $s4, $s6, $t7
-			lb $s4, codes+2($s4)
+			lbu $s4, codes+2($s4)
 			
 			add $sp, $sp, -24
 			sw $t6, 20($sp)
