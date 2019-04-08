@@ -331,28 +331,20 @@ buildHuffmanTree:
 	addu $t9, $zero, 0
 	huffmanTreeLoop: # from 0 to (symbols count - 1)
 		bgt $t9, $t8, endHuffmanTreeLoop
-
-		addu $sp, $sp, -8
-		sw $t8, 4($sp)
-		sw $t9, ($sp)
-		li $a0, 0
-		la $a1, currentSymbol
-		li $a2, 1
-		jal readToBuffer
-		lw $t9, ($sp)
-		lw $t8, 4($sp)
-		addu $sp, $sp, 8
 		
 		addu $sp, $sp, -8
 		sw $t8, 4($sp)
 		sw $t9, ($sp)
+
+		li $a0, 0
+		la $a1, currentSymbol
+		li $a2, 1
+		jal readToBuffer
+
 		li $a0, 0
 		la $a1, codeLength
 		li $a2, 1
 		jal readToBuffer
-		lw $t9, ($sp)
-		lw $t8, 4($sp)
-		addu $sp, $sp, 8
 		
 		lbu $s7, codeLength
 		li $s6, 8
@@ -364,29 +356,15 @@ buildHuffmanTree:
 		sne $s6, $s6, 0
 		addu $s7, $s7, $s6		# needed bytes
 		
-		addu $sp, $sp, -8
-		sw $t8, 4($sp)
-		sw $t9, ($sp)
 		li $a0, 0
 		la $a1, codeBuffer
 		move $a2, $s7
 		jal readToBuffer		# read code
-		lw $t9, ($sp)
-		lw $t8, 4($sp)
-		addu $sp, $sp, 8
 		
-		addu $sp, $sp, -8
-		sw $t8, 4($sp)
-		sw $t9, ($sp)
 		jal extendCode
-		lw $t9, ($sp)
-		lw $t8, 4($sp)
-		addu $sp, $sp, 8
 		
-		addu $sp, $sp, -8
-		sw $t8, 4($sp)
-		sw $t9, ($sp)
 		jal addLeaf
+		
 		lw $t9, ($sp)
 		lw $t8, 4($sp)
 		addu $sp, $sp, 8

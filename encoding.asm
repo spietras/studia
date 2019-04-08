@@ -283,33 +283,38 @@ printCodes:
 		lbu $s5, ($s6)					#length
 		addu $s6, $s6, 1
 		addu $t8, $zero, 1
+		
+		addu $sp, $sp, -12
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		sw $s3, 8($sp)
+		
 		printSingleCodeLoop:
 			bgt $t8, $s5, endPrintSingleCodeLoop
 
 			lbu $s4, ($s6)
 			
-			addu $sp, $sp, -24
-			sw $t9, ($sp)
-			sw $s7, 4($sp)
-			sw $s3, 8($sp)
-			sw $s5, 12($sp)
-			sw $t8, 16($sp)
-			sw $s6, 20($sp)
+			addu $sp, $sp, -12
+			sw $s5, ($sp)
+			sw $t8, 4($sp)
+			sw $s6, 8($sp)
 			move $a0, $s4
 			jal printInt				#print bit
-			lw $s6, 20($sp)
-			lw $t8, 16($sp)
-			lw $s5, 12($sp)
-			lw $s3, 8($sp)
-			lw $s7, 4($sp)
-			lw $t9, ($sp)
-			addu $sp, $sp, 24
+			lw $s6, 8($sp)
+			lw $t8, 4($sp)
+			lw $s5, ($sp)
+			addu $sp, $sp, 12
 			
 			addu $s6, $s6, 1
 			addu $t8, $t8, 1
 
 			b printSingleCodeLoop
 		endPrintSingleCodeLoop:
+		
+		lw $s3, 8($sp)
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		addu $sp, $sp, 12
 			
 		li $a0, '\n'
 		li $v0, SYSCALL_PRINTCHARACTER
@@ -754,34 +759,34 @@ writeCodeListToFile:
 		lbu $s6, ($t5)				# symbol
 		sb $s6, tempByte
 		
-		addu $sp, $sp, -12
-		sw $t5, 8($sp)
+		addu $sp, $sp, -8
 		sw $t8, 4($sp)
 		sw $t9, ($sp)
+			
+		addu $sp, $sp, -4
+		sw $t5, ($sp)
 		li $a0, 1
 		la $a1, tempByte
 		li $a2, 1
 		jal writeToFile				# write symbol
-		lw $t9, ($sp)
-		lw $t8, 4($sp)
-		lw $t5, 8($sp)
-		addu $sp, $sp, 12
+		lw $t5, ($sp)
+		addu $sp, $sp, 4
 		
 		lbu $s6, 1($t5)
 		sb $s6, tempByte
 		
-		addu $sp, $sp, -12
-		sw $t5, 8($sp)
-		sw $t8, 4($sp)
-		sw $t9, ($sp)
+		addu $sp, $sp, -4
+		sw $t5, ($sp)
 		li $a0, 1
 		la $a1, tempByte
 		li $a2, 1
 		jal writeToFile				# write length
+		lw $t5, ($sp)
+		addu $sp, $sp, 4
+		
 		lw $t9, ($sp)
 		lw $t8, 4($sp)
-		lw $t5, 8($sp)
-		addu $sp, $sp, 12
+		addu $sp, $sp, 8
 		
 		lbu $s6, tempByte			# length
 		
@@ -792,31 +797,32 @@ writeCodeListToFile:
 		
 		addu $t7, $zero, 0
 		sub $t6, $s6, 1
+		
+		addu $sp, $sp, -8
+		sw $t8, 4($sp)
+		sw $t9, ($sp)
+		
 		codeListToFileCodeLoop: # from 0 to (length - 1)
 			bgt $t7, $t6, endCodeListToFileCodeLoop
 			
 			lbu $s6, ($t4)		# bit of code
 			
-			addu $sp, $sp, -28
-			sw $s4, 24($sp)
-			sw $s5, 20($sp)
-			sw $t6, 16($sp)
-			sw $t7, 12($sp)
-			sw $t4, 8($sp)
-			sw $t8, 4($sp)
-			sw $t9, ($sp)
+			addu $sp, $sp, -20
+			sw $s4, 16($sp)
+			sw $s5, 12($sp)
+			sw $t6, 8($sp)
+			sw $t7, 4($sp)
+			sw $t4, ($sp)
 			move $a0, $s5
 			move $a1, $s4
 			move $a2, $s6
 			jal setBit			# set proper bit in byte
-			lw $t9, ($sp)
-			lw $t8, 4($sp)
-			lw $t4, 8($sp)
-			lw $t7, 12($sp)
-			lw $t6, 16($sp)
-			lw $s5, 20($sp)
-			lw $s4, 24($sp)
-			addu $sp, $sp, 28
+			lw $t4, ($sp)
+			lw $t7, 4($sp)
+			lw $t6, 8($sp)
+			lw $s5, 12($sp)
+			lw $s4, 16($sp)
+			addu $sp, $sp, 20
 			
 			move $s5, $v0
 			
@@ -828,28 +834,28 @@ writeCodeListToFile:
 			
 			sb $s5, tempByte
 			
-			addu $sp, $sp, -20
-			sw $t6, 16($sp)
-			sw $t7, 12($sp)
-			sw $t4, 8($sp)
-			sw $t8, 4($sp)
-			sw $t9, ($sp)
+			addu $sp, $sp, -12
+			sw $t6, 8($sp)
+			sw $t7, 4($sp)
+			sw $t4, ($sp)
 			li $a0, 1
 			la $a1, tempByte		# if whole byte is used, write it to file
 			li $a2, 1
 			jal writeToFile
-			lw $t9, ($sp)
-			lw $t8, 4($sp)
-			lw $t4, 8($sp)
-			lw $t7, 12($sp)
-			lw $t6, 16($sp)
-			addu $sp, $sp, 20
+			lw $t4, ($sp)
+			lw $t7, 4($sp)
+			lw $t6, 8($sp)
+			addu $sp, $sp, 12
 			
 			li $s5, 0
 			li $s4, 0
 
 			b codeListToFileCodeLoop
 		endCodeListToFileCodeLoop:
+		
+		lw $t9, ($sp)
+		lw $t8, 4($sp)
+		addu $sp, $sp, 8
 		
 		addu $t9, $t9, 1
 		addu $t5, $t5, BYTES_PER_CODE
@@ -985,33 +991,38 @@ writeReplacedSymbols:
 		
 		addu $t7, $zero, 0
 		sub $t6, $s5, 1
+		
+		addu $sp, $sp, -12
+		sw $s6, 8($sp)
+		sw $t9, 4($sp)
+		sw $t8, ($sp)
+		
 		replaceSymbolsBitLoop: # from 0 to (code length - 1)
 			bgt $t7, $t6, endReplaceSymbolsBitLoop
 
 			lbu $s4, ($s7)
 			
-			addu $sp, $sp, -24
-			sw $s7, 20($sp)
-			sw $t6, 16($sp)
-			sw $t7, 12($sp)
-			sw $s6, 8($sp)
-			sw $t9, 4($sp)
-			sw $t8, ($sp)
+			addu $sp, $sp, -12
+			sw $s7, 8($sp)
+			sw $t6, 4($sp)
+			sw $t7, ($sp)
 			move $a0, $s4
 			jal addToCodedData
-			lw $t8, ($sp)
-			lw $t9, 4($sp)
-			lw $s6, 8($sp)
-			lw $t7, 12($sp)
-			lw $t6, 16($sp)
-			lw $s7, 20($sp)
-			addu $sp, $sp, 24
+			lw $t7, ($sp)
+			lw $t6, 4($sp)
+			lw $s7, 8($sp)
+			addu $sp, $sp, 12
 			
 			addu $s7, $s7, 1
 			addu $t7, $t7, 1
 
 			b replaceSymbolsBitLoop
 		endReplaceSymbolsBitLoop:
+		
+		lw $t8, ($sp)
+		lw $t9, 4($sp)
+		lw $s6, 8($sp)
+		addu, $sp, $sp, 12
 		
 		addu $t9, $t9, 1
 
