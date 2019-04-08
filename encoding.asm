@@ -61,6 +61,11 @@
 
 	tempByte:		.byte	0				# helper for writing to files
 	
+	inputPrompt:		.asciiz	"\nInput file:\n"
+	outputPrompt:		.asciiz	"\nOutput file: \n"
+	freqHeading:		.asciiz "\nFrequencies:\n"
+	codesHeading:		.asciiz "\nCodes:\n"
+	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
 #	symbols count [1]
@@ -81,9 +86,13 @@
 .text
 
 main:
+	la $a0, inputPrompt
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
-	li $v0, 8
+	li $v0, SYSCALL_READSTRING
 	syscall
 	
 	la $a0, fileNameBuffer
@@ -115,17 +124,22 @@ main:
 	li $a2, 0
 	jal openFile
 	
-	#jal printFrequencies
+	jal printFrequencies
 	
 	jal createNodeList
 	jal buildHuffmanTree	
 	jal createCodeList
 	
-	#jal printCodes
+	jal printCodes
+	
+	la $a0, outputPrompt
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
-	li $v0, 8
+	li $v0, SYSCALL_READSTRING
 	syscall
 	
 	la $a0, fileNameBuffer
@@ -192,6 +206,10 @@ printCharacter:
 	jr $ra
 	
 printFrequencies:
+	la $a0, freqHeading
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	add $t9, $zero, 1
 	li $s7, MAX_SYMBOLS
 	la $s6, frequencies
@@ -199,8 +217,13 @@ printFrequencies:
 		bgt $t9, $s7, endPrintFrequenciesLoop
 		lw $s5, ($s6)
 		
+		add $s6, $s6, 4	
+		add $t9, $t9, 1
+		
+		beq $s5, 0, printFrequenciesLoop
+		
 		move $a0, $t9
-		sub $a0, $a0, 1
+		sub $a0, $a0, 2
 		li $v0, SYSCALL_PRINTCHARACTER
 		syscall						# print symbol
 		
@@ -219,14 +242,15 @@ printFrequencies:
 		li $v0, SYSCALL_PRINTCHARACTER
 		syscall						#print new line
 		
-		add $s6, $s6, 4
-	
-		add $t9, $t9, 1
 		b printFrequenciesLoop
 	endPrintFrequenciesLoop:
 	jr $ra
 	
 printCodes:
+	la $a0, codesHeading
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	add $t9, $zero, 1
 	lw $s7, symbolsCount
 	la $s6, codes

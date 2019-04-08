@@ -54,6 +54,9 @@
 	.align 2
 	symbolsDecoded:		.word	0
 	
+	inputPrompt:		.asciiz	"Input file:\n"
+	outputPrompt:		.asciiz	"Output file: \n"
+	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
 #	symbols count [1]
@@ -74,9 +77,13 @@
 .text
 
 main:
+	la $a0, inputPrompt
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
-	li $v0, 8
+	li $v0, SYSCALL_READSTRING
 	syscall
 	
 	la $a0, fileNameBuffer
@@ -94,9 +101,13 @@ main:
 	li $s7, CHUNK_LENGTH
 	sw $s7, inputBufferCount
 	
+	la $a0, outputPrompt
+	li $v0, SYSCALL_PRINTSTRING
+	syscall
+	
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
-	li $v0, 8
+	li $v0, SYSCALL_READSTRING
 	syscall
 	
 	la $a0, fileNameBuffer
