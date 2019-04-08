@@ -38,9 +38,9 @@
 	.align 2
 	pqNodes:		.byte	0:PQNODES_LENGTH		# nodes for priority queue (priority[4], next[4], nodeAddress[4])
 	.align 2
-	pqHead:			.word	-1				# index of head of priority queue
+	pqHead:			.word	0				# address of head of priority queue
 	.align 2
-	pqUsed:			.word	0				# first free index in queue array
+	pqFirstFreeAddress:	.word	0				# first free address in queue array
 	.align 2
 	pqCount:		.word	0				# number of nodes currently in queue
 	
@@ -438,51 +438,42 @@ createNodeList:
 # $a0 - node address
 pushQueue:
 	lw $s7, 4($a0)					# priority
-	lw $s0, pqUsed			
-	mul $s6, $s0, BYTES_PER_PQNODE			# BYTES_PER_PQNODE * pqUsed
-	sw $s7, pqNodes($s6)				# priority
-	li $s5, -1
-	sw $s5, pqNodes+4($s6)				# next: -1
-	sw $a0, pqNodes+8($s6)				# node address
+	lw $s0, pqFirstFreeAddress	
+	sw $s7, ($s0)					# priority
+	sw $zero, 4($s0)				# next: 0
+	sw $a0, 8($s0)					# node address
 	
 	lw $s5, pqHead					# pqHead
-	beq $s5, -1, emptyHead
+	beq $s5, 0, emptyHead
 	
-		mul $s4, $s5, BYTES_PER_PQNODE		# BYTES_PER_PQNODE * pqHead
-		lw $s3, pqNodes($s4)
+		lw $s3, ($s5)
 		ble $s3, $s7, pushAfterHead
 		pushBeforeHead:
-			sw $s5, pqNodes+4($s6)
+			sw $s5, 4($s0)
 			sw $s0, pqHead
 			b endPush
 		pushAfterHead:
 			move $t8, $s5
-			lw $t9, pqNodes+4($s4)		# next node
+			lw $t9, 4($t8)			# next node
 			pushAfterHeadLoop:
-				sne $t7, $t9, -1
-				mul $s4, $t9, BYTES_PER_PQNODE
-				lw $s4, pqNodes($s4)
-				slt $t6, $s4, $s7
-				and $t6, $t7, $t6
-				beqz $t6, endPushAfterHeadLoop
+				beq $t9, 0, endPushAfterHeadLoop
+				lw $s4, ($t9)
+				bge $s4, $s7, endPushAfterHeadLoop
 				
 				move $t8, $t9		# current = next
-				mul $t9, $t9, BYTES_PER_PQNODE
-				lw $t9, pqNodes+4($t9)	# next
+				lw $t9, 4($t9)		# next
 				b pushAfterHeadLoop
 			endPushAfterHeadLoop: 		# appropriate place found
-			mul $s6, $s0, BYTES_PER_PQNODE
-			sw $t9, pqNodes+4($s6)		# new->next = next
-			mul $s6, $t8, BYTES_PER_PQNODE
-			sw $s0, pqNodes+4($s6)		# current->next = new
+			sw $t9, 4($s0)			# new->next = next
+			sw $s0, 4($t8)			# current->next = new
 			b endPush
-		emptyHead:
-			sw $s0, pqHead
-			b endPush
+	emptyHead:
+		sw $s0, pqHead
+		b endPush
 	endPush:
 	
-	add $s7, $s0, 1
-	sw $s7, pqUsed
+	add $s7, $s0, BYTES_PER_PQNODE
+	sw $s7, pqFirstFreeAddress
 	
 	lw $s7, pqCount
 	add $s7, $s7, 1
@@ -493,9 +484,8 @@ pushQueue:
 # $v0 - popped node address
 popQueue:
 	lw $s7, pqHead
-	mul $s7, $s7, BYTES_PER_PQNODE
-	lw $v0, pqNodes+8($s7)		# node index
-	lw $s6, pqNodes+4($s7)		# next
+	lw $v0, 8($s7)		# node index
+	lw $s6, 4($s7)		# next
 	sw $s6, pqHead
 	lw $s7, pqCount
 	sub $s7, $s7, 1
@@ -503,6 +493,9 @@ popQueue:
 	jr $ra
 
 buildHuffmanTree:
+	la $s7, pqNodes
+	sw $s7, pqFirstFreeAddress
+
 	lw $s7, symbolsCount
 	
 	la $t8, nodes
