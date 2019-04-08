@@ -19,7 +19,7 @@
 	.eqv FILENAME_LENGTH		256
 	.eqv FILES			2
 	
-	masks:			.byte	128, 64, 32, 16, 8, 4, 2, 1	# 10000000, 01000000, 00100000, 00010000, 00001000, 00000100, 00000010, 00000001
+	masks:			.byte	-128, 64, 32, 16, 8, 4, 2, 1	# 10000000, 01000000, 00100000, 00010000, 00001000, 00000100, 00000010, 00000001
 			
 	fileNameBuffer:		.byte	0:FILENAME_LENGTH
 	.align 2
@@ -39,11 +39,9 @@
 	codeExtended:		.byte	0:MAX_SYMBOLS			# currently processed extended code (byte = bit)
 	
 	.align 2
-	huffmanTree:		.byte	-1:MAX_HUFFMAN_TREE_NODES
+	huffmanTree:		.byte	-1:MAX_HUFFMAN_TREE_NODES	# symbol [4], left child address [4], right child address [4]
 	.align 2
-	nodeCount:		.word	1
-	.align 2
-	currentNode:		.word	0				# current node when stepping down the tree while decoding
+	currentNodeAddress:	.word	0				# current node address when adding new nodes (first free) or stepping down the tree while decoding
 	currentSymbol:		.byte	0
 
 	inputBuffer:		.byte	0:CHUNK_LENGTH			# input buffer
@@ -59,20 +57,9 @@
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
-#	symbols count [1]
+#	symbols count [2]
 #	codes list (for each symbol: symbol [1], code length [1], code [code length])
 #	encoded symbols [...]
-	
-#	LOOP TEMPLATE
-#	add $iterator, $zero, start
-#	loopLabel:
-#		bgt $iterator, end, endLoopLabel
-
-#		...
-#		add $iterator, $iterator, 1
-
-#		b loopLabel
-#	endLoopLabel:
 	
 .text
 
@@ -84,22 +71,22 @@ main:
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
 	li $v0, SYSCALL_READSTRING
-	syscall
+	syscall							# read input file name
 	
 	la $a0, fileNameBuffer
-	jal changeNewlineToZero
+	jal changeNewlineToZero					# null-terminate file name
 	
 	la $a0, fileNameBuffer
 	li $a1, 0
 	li $a2, 0
-	jal openFile
+	jal openFile						# open input file
 	
 	jal readFileSize
 	jal readSymbolsCount
-	jal buildHuffmanTree
+	jal buildHuffmanTree					# build huffman tree from code list
 	
 	li $s7, CHUNK_LENGTH
-	sw $s7, inputBufferCount
+	sw $s7, inputBufferCount				# setting it here, so it will automatically get first chunk
 	
 	la $a0, outputPrompt
 	li $v0, SYSCALL_PRINTSTRING
@@ -108,32 +95,35 @@ main:
 	la $a0, fileNameBuffer
 	li $a1, FILENAME_LENGTH
 	li $v0, SYSCALL_READSTRING
-	syscall
+	syscall							# read output file name
 	
 	la $a0, fileNameBuffer
-	jal changeNewlineToZero
+	jal changeNewlineToZero					# null-terminate file name
 	
 	la $a0, fileNameBuffer
 	li $a1, 1
 	li $a2, 1
-	jal openFile
+	jal openFile						# open output file
+	
+	la $s7, huffmanTree
+	sw $s7, currentNodeAddress				# step from root
 	
 	decodeLoop:
 		lw $s7, symbolsDecoded
 		lw $s6, fileSize
 		
-		beq $s7, $s6, endDecodeLoop
+		beq $s7, $s6, endDecodeLoop			# decode until all symbols have been decoded
 		
-		jal stepDownTheTree
+		jal stepDownTheTree				# step one level down and write symbol if reached leaf
 		
 		b decodeLoop
 	endDecodeLoop:
 	
 	li $a0, 1
-	jal closeFile
+	jal closeFile						# close output file		
 	
 	li $a0, 0
-	jal closeFile
+	jal closeFile						# close input file
 
 	j end
 	
@@ -142,10 +132,10 @@ changeNewlineToZero:
 	findNewlineLoop:
 		lbu $s7, ($a0)
 		
-		add $a0, $a0, 1
-		bne $s7, '\n', findNewlineLoop
+		addu $a0, $a0, 1
+		bne $s7, '\n', findNewlineLoop			# find newline
 		
-	sb $zero, -1($a0)	
+	sb $zero, -1($a0)					# replace it with zero
 	jr $ra
 
 # $a0 - word to print
@@ -166,35 +156,14 @@ printCharacter:
 	syscall
 	jr $ra
 
-# $v0 = $a0 % $a1
-modulo:
-	divu $a0, $a1
-	mfhi $v0
-	jr $ra
-
-# fills buffer with value (byte)
-# $a0 - buffer address, $a1 - buffer length in bytes, $a2 - value (byte)
-fill:
-	add $t9, $zero, 1
-	fillLoop: # from 1 to buffer length
-		bgt $t9, $a1, endFillLoop
-		sb $a2, ($a0)
-		add $a0, $a0, 1
-	
-		add $t9, $t9, 1
-		b fillLoop
-	endFillLoop:
-	
-	jr $ra
-	
 # $a0 - byte (value), $a1 - bit index (from left)
 # $v0 - value 
 readBit:
 	lbu $s7, masks($a1)
-	and $a0, $a0, $s7
+	and $a0, $a0, $s7					# clear everything besides wanted bit
 	li $s7, 7
 	sub $s7, $s7, $a1
-	srlv $v0, $a0, $s7
+	srlv $v0, $a0, $s7					# shift right to first position from right
 	and $v0, $v0, 1
 	jr $ra
 
@@ -235,140 +204,136 @@ closeFile:
 	jr $ra
 	
 readFileSize:
-	add $sp, $sp, -4
+	addu $sp, $sp, -4
 	sw $ra, ($sp)
 	li $a0, 0
 	la $a1, fileSize
 	li $a2, 4
 	jal readToBuffer
 	lw $ra, ($sp)
-	add $sp, $sp, 4
+	addu $sp, $sp, 4
 	
 	jr $ra
 	
 readSymbolsCount:
-	add $sp, $sp, -4
+	addu $sp, $sp, -4
 	sw $ra, ($sp)
 	li $a0, 0
 	la $a1, symbolsCount
 	li $a2, 2
 	jal readToBuffer
 	lw $ra, ($sp)
-	add $sp, $sp, 4
+	addu $sp, $sp, 4
 	
 	jr $ra
 	
 extendCode:
-	li $s7, 0		# current bit
-	la $s6, codeBuffer	# current byte address
+	addu $sp, $sp, -4
+	sw $ra, ($sp)
+	
+	li $s7, 0						# current bit
+	la $s6, codeBuffer					# current byte address
 	
 	lbu $t8, codeLength
 	sub $t8, $t8, 1
-	add $t9, $zero, 0
-	extendCodeLoop: # from 0 to (code length - 1)
+	addu $t9, $zero, 0
+	extendCodeLoop: 					# from 0 to (code length - 1)
 		bgt $t9, $t8, endExtendCodeLoop
 
 		bne $s7, 8, endNextByte
-			add $s6, $s6, 1
+			addu $s6, $s6, 1
 			li $s7, 0
 		endNextByte:	
 		
-		add $sp, $sp, -20
-		sw $s6, 16($sp)
-		sw $s7, 12($sp)
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
+		addu $sp, $sp, -16
+		sw $s6, 12($sp)
+		sw $s7, 8($sp)
+		sw $t8, 4($sp)
+		sw $t9, ($sp)
 		lbu $a0, ($s6)
 		move $a1, $s7
-		jal readBit
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		lw $s7, 12($sp)
-		lw $s6, 16($sp)
-		add $sp, $sp, 20
+		jal readBit					# read bit
+		lw $t9, ($sp)
+		lw $t8, 4($sp)
+		lw $s7, 8($sp)
+		lw $s6, 12($sp)
+		addu $sp, $sp, 16
 		
-		sb $v0, codeExtended($t9)
+		sb $v0, codeExtended($t9)			# and store it to according byte
 		
-		add $s7, $s7, 1
-		add $t9, $t9, 1
+		addu $s7, $s7, 1
+		addu $t9, $t9, 1
 
 		b extendCodeLoop
 	endExtendCodeLoop:
 	
+	lw $ra, ($sp)
+	addu $sp, $sp, 4
 	jr $ra
 	
 addLeaf:
-	li $s7, 0				# current node
+	la $s7, huffmanTree					# current node
 	
 	lbu $t8, codeLength
 	sub $t8, $t8, 1
-	add $t9, $zero, 0
-	addLeafLoop: # from 0 to (code length - 1)
+	addu $t9, $zero, 0
+	addLeafLoop: 						# from 0 to (code length - 1)
 		bgt $t9, $t8, endAddLeafLoop
 
-		lbu $s6, codeExtended($t9)	# bit
+		lbu $s6, codeExtended($t9)			# load bit
 
-		mul $s5, $s7, BYTES_PER_NODE
-		add $s5, $s5, 4
+		addu $s7, $s7, 4
 		mul $s6, $s6, 4
-		add $s5, $s5, $s6
+		addu $s7, $s7, $s6
 		
-		lw $s4, huffmanTree($s5)
+		lw $s4, ($s7)
 		
 		bne $s4, -1, endAddNewNode
-			lw $s4, nodeCount
-			sw $s4, huffmanTree($s5)
-			add $s3, $s4, 1
-			sw $s3, nodeCount
+			lw $s4, currentNodeAddress
+			sw $s4, ($s7)				# if node in that direction doesn't exist, create it
+			addu $s3, $s4, BYTES_PER_NODE
+			sw $s3, currentNodeAddress
 		endAddNewNode:
 		
 		move $s7, $s4
 
-		add $t9, $t9, 1
+		addu $t9, $t9, 1
 
 		b addLeafLoop
 	endAddLeafLoop:
 	
-	mul $s7, $s7, BYTES_PER_NODE
 	lbu $s6, currentSymbol
-	sw $s6, huffmanTree($s7)
+	sw $s6, ($s7)						# store symbol in leaf
 	
 	jr $ra
 	
 buildHuffmanTree:
+	addu $sp, $sp, -4
+	sw $ra, ($sp)
+	
+	la $s7, huffmanTree
+	add $s7, $s7, BYTES_PER_NODE
+	sw $s7, currentNodeAddress				# set current node to second one (first exists by default)
+	
 	lw $t8, symbolsCount
 	sub $t8, $t8, 1
-	add $t9, $zero, 0
-	huffmanTreeLoop: # from 0 to (symbols count - 1)
+	addu $t9, $zero, 0
+	huffmanTreeLoop: 					# from 0 to (symbols count - 1)
 		bgt $t9, $t8, endHuffmanTreeLoop
+		
+		addu $sp, $sp, -8
+		sw $t8, 4($sp)
+		sw $t9, ($sp)
 
-		add $sp, $sp, -12
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
 		li $a0, 0
 		la $a1, currentSymbol
 		li $a2, 1
-		jal readToBuffer
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		add $sp, $sp, 12
-		
-		add $sp, $sp, -12
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
+		jal readToBuffer				# read symbol
+
 		li $a0, 0
 		la $a1, codeLength
 		li $a2, 1
-		jal readToBuffer
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		add $sp, $sp, 12
+		jal readToBuffer				# read code length
 		
 		lbu $s7, codeLength
 		li $s6, 8
@@ -378,59 +343,40 @@ buildHuffmanTree:
 		mfhi $s6
 		
 		sne $s6, $s6, 0
-		add $s7, $s7, $s6		# needed bytes
+		addu $s7, $s7, $s6				# needed bytes
 		
-		add $sp, $sp, -12
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
 		li $a0, 0
 		la $a1, codeBuffer
 		move $a2, $s7
-		jal readToBuffer		# read code
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		add $sp, $sp, 12
+		jal readToBuffer				# read code
 		
-		add $sp, $sp, -12
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
 		jal extendCode
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		add $sp, $sp, 12
 		
-		add $sp, $sp, -12
-		sw $t8, 8($sp)
-		sw $t9, 4($sp)
-		sw $ra, ($sp)
 		jal addLeaf
-		lw $ra, ($sp)
-		lw $t9, 4($sp)
-		lw $t8, 8($sp)
-		add $sp, $sp, 12
+		
+		lw $t9, ($sp)
+		lw $t8, 4($sp)
+		addu $sp, $sp, 8
 
-		add $t9, $t9, 1
+		addu $t9, $t9, 1
 
 		b huffmanTreeLoop
 	endHuffmanTreeLoop:
-
+	
+	lw $ra, ($sp)
+	addu $sp, $sp, 4
 	jr $ra
 	
 stepDownTheTree:
+	addu $sp, $sp, -4
+	sw $ra, ($sp)
+	
 	lw $s7, inputBufferCount
 	bne $s7, CHUNK_LENGTH, endLoadAnotherChunk
-		add $sp, $sp, -4
-		sw $ra, ($sp)
 		li $a0, 0
 		la $a1, inputBuffer
 		li $a2, CHUNK_LENGTH
-		jal readToBuffer
-		lw $ra, ($sp)
-		add $sp, $sp, 4
+		jal readToBuffer				# load another chunk if needed
 		
 		li $s7, 0
 		sw $s7, inputBufferCount
@@ -438,58 +384,50 @@ stepDownTheTree:
 		sb $s6, inputBitAfterByteCount
 	endLoadAnotherChunk:
 	
-	add $sp, $sp, -4
-	sw $ra, ($sp)
 	lbu $a0, inputBuffer($s7)
 	lbu $a1, inputBitAfterByteCount
 	jal readBit
-	lw $ra, ($sp)
-	add $sp, $sp, 4
 	
-	move $s5, $v0				# bit
-	lbu $s6, inputBitAfterByteCount		# bit counter
-	lw $s7, inputBufferCount		# byte counter
+	move $s5, $v0						# bit
+	lbu $s6, inputBitAfterByteCount				# bit counter
+	lw $s7, inputBufferCount				# byte counter
 	
-	add $s6, $s6, 1
+	addu $s6, $s6, 1
 	
 	bne $s6, 8, endGoToTheNextByte
-		add $s7, $s7, 1
+		addu $s7, $s7, 1
 		li $s6, 0
 	endGoToTheNextByte:
 	
 	sw $s7, inputBufferCount
 	sb $s6, inputBitAfterByteCount
 	
-	lw $s7, currentNode
-	mul $s7, $s7, BYTES_PER_NODE
-	add $s7, $s7, 4
+	lw $s7, currentNodeAddress
+	addu $s7, $s7, 4
 	mul $s5, $s5, 4
-	add $s7, $s7, $s5
+	addu $s7, $s7, $s5
 	
-	lw $s7, huffmanTree($s7)
-	sw $s7, currentNode
-	mul $s7, $s7, BYTES_PER_NODE
-	lw $s7, huffmanTree($s7)		# current symbol
+	lw $s7, ($s7)
+	sw $s7, currentNodeAddress
+	lw $s7, ($s7)						# current symbol
 	sb $s7, currentSymbol
 	
 	beq $s7, -1, endLeafFound
-		add $sp, $sp, -4
-		sw $ra, ($sp)
 		li $a0, 1
 		la $a1, currentSymbol
 		li $a2, 1
-		jal writeToFile
-		lw $ra, ($sp)
-		add $sp, $sp, 4
+		jal writeToFile					# if leaf reached, write decoded symbol to file
 		
-		li $s7, 0
-		sw $s7, currentNode
+		la $s7, huffmanTree
+		sw $s7, currentNodeAddress
 		
 		lw $s7, symbolsDecoded
-		add $s7, $s7, 1
+		addu $s7, $s7, 1
 		sw $s7, symbolsDecoded		
 	endLeafFound:
 	
+	lw $ra, ($sp)
+	addu $sp, $sp, 4
 	jr $ra
 
 end:
