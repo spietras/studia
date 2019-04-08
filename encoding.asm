@@ -12,12 +12,16 @@
 	.eqv SYSCALL_CLOSEFILE		16
 
 	.eqv CHUNK_LENGTH		65536
+	.eqv CHUNK_LENGTH_IN_BITS	524288				# 8 * CHUNK_LENGTH - recalculate if something changes
 	.eqv MAX_SYMBOLS		256
-	.eqv BYTES_PER_NODE		20
-	.eqv NODES_LENGTH		10220				# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
+	.eqv BYTES_PER_FREQUENCY	8
+	.eqv FREQUENCY_LENGTH		2048				# BYTES_PER_FREQUENCY * MAX_SYBOLS - recalculate if something changes
+	.eqv BYTES_PER_NODE		24
+	.eqv NODES_LENGTH		12264				# BYTES_PER_NODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
 	.eqv BYTES_PER_PQNODE		12
 	.eqv PQNODES_LENGTH		6132				# BYTES_PER_PQNODE * (2*MAX_SYMBOLS - 1) - recalculate if something changes
-	.eqv CODES_LENGTH		66048				# MAX_SYMBOLS*(2+MAX_SYMBOLS) - recalculate if something changes
+	.eqv BYTES_PER_CODE		258
+	.eqv CODES_LENGTH		66048				# BYTES_PER_CODE * MAX_SYMBOLS - recalculate if something changes
 	.eqv FILENAME_LENGTH		256
 	.eqv FILES			2
 	
@@ -28,10 +32,10 @@
 	chunkCount:		.word	0				# how many symbols in chunk
 	
 	.align 2
-	frequencies:		.word	0:MAX_SYMBOLS			# symbol frequency list
+	frequencies:		.byte	0:FREQUENCY_LENGTH		# symbol frequency list (frequency[4], node address[4])
 	
 	.align 2
-	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree (symbol[4], frequency[4], leftChildAddress[4], rightChildAddress[4], parentAddress[4])
+	nodes:			.byte	0:NODES_LENGTH			# nodes list for Huffman Tree (symbol[4], frequency[4], leftChildAddress[4], rightChildAddress[4], parentAddress[4], code address [4])
 	.align 2
 	firstFreeNodeAddress:	.word	0				# number of nodes
 	
@@ -219,7 +223,7 @@ printFrequencies:
 		bgt $t9, $s7, endPrintFrequenciesLoop
 		lw $s5, ($s6)
 		
-		add $s6, $s6, 4	
+		add $s6, $s6, BYTES_PER_FREQUENCY
 		add $t9, $t9, 1
 		
 		beq $s5, 0, printFrequenciesLoop
@@ -317,12 +321,6 @@ printCodes:
 	endPrintCodesLoop:
 	jr $ra
 
-# $v0 = $a0 % $a1
-modulo:
-	divu $a0, $a1
-	mfhi $v0
-	jr $ra
-
 # fills buffer with value (byte)
 # $a0 - buffer address, $a1 - buffer length in bytes, $a2 - value (byte)
 fill:
@@ -398,7 +396,7 @@ countSymbolsInChunk:
 		lbu $s6, ($s7)
 		add $s7, $s7, 1
 		
-		mul $s6, $s6, 4
+		mul $s6, $s6, BYTES_PER_FREQUENCY
 		lw $s5, frequencies($s6)
 		add $s5, $s5, 1
 		sw $s5, frequencies($s6)
@@ -409,21 +407,25 @@ countSymbolsInChunk:
 
 createNodeList:
 	la $s7, nodes
+	la $t8, frequencies
 	add $t9, $zero, 0
 	li $s6, MAX_SYMBOLS
 	sub $s6, $s6, 1
 	createNodesLoop: # for each symbol
 		bgt $t9, $s6, endcreateNodesLoop
 		move $s5, $t9
+		
+		lw $s3, ($t8)
+		
 		add $t9, $t9, 1
+		add $t8, $t8, BYTES_PER_FREQUENCY
 		
-		mul $s4, $s5, 4
-		lw $s4, frequencies($s4)
-		
-		beqz $s4, createNodesLoop
+		beqz $s3, createNodesLoop
 		
 		sw $s5, ($s7) 	# symbol
-		sw $s4, 4($s7) 	# frequency
+		sw $s3, 4($s7) 	# frequency
+		
+		sw $s7, -4($t8)
 		
 		add $s7, $s7, BYTES_PER_NODE
 		lw $s4, symbolsCount
@@ -587,32 +589,27 @@ buildHuffmanTree:
 	
 	jr $ra
 
-# $a0 - bit, $a1 - code index, $a2 - bit index
+# $a0 - bit, $a1 - code address, $a2 - bit index
 writeCodeBit:
-	li $s7, MAX_SYMBOLS
-	add $s7, $s7, 2
-	mul $s7, $s7, $a1
+	add $s7, $a1, 2
 	add $s7, $s7, $a2
-	sb $a0, codes+2($s7)
+	sb $a0, ($s7)
 	jr $ra
 
-# $a0 - code index
+# $a0 - node address
 inverseCode:
-	li $t9, MAX_SYMBOLS
-	add $t9, $t9, 2
-	mul $t9, $t9, $a0
-	add $t9, $t9, 1
-	lbu $s7, codes($t9)		# code length
-	add $t9, $t9, 1			# start
+	lw $t9, 20($a0)
+	lbu $s7, 1($t9)			# code length
+	add $t9, $t9, 2			# start
 	add $t8, $t9, $s7	
 	sub $t8, $t8, 1			# end
 	inverseCodeLoop:
 		bge $t9, $t8, endInverseCodeLoop
 		
-		lbu $s7, codes($t9)
-		lbu $s6, codes($t8)
-		sb $s6, codes($t9)
-		sb $s7, codes($t8)
+		lbu $s7, ($t9)
+		lbu $s6, ($t8)
+		sb $s6, ($t9)
+		sb $s7, ($t8)
 		
 		add $t9, $t9, 1
 		sub $t8, $t8, 1
@@ -621,7 +618,7 @@ inverseCode:
 	endInverseCodeLoop:
 	jr $ra
 
-# $a0 - code index
+# $a0 - node address
 createCode:
 	lw $s7, symbolsCount
 	bne $s7, 1, moreThanOneSymbol
@@ -629,26 +626,22 @@ createCode:
 		add $sp, $sp, -8
 		sw $a0, ($sp)
 		sw $ra, 4($sp)
-		move $a1, $a0
+		lw $a1, 20($a0)
 		li $a0, 0
 		li $a2, 0
-		jal writeCodeBit	# if there is only one symbol, it's code is 0
+		jal writeCodeBit			# if there is only one symbol, it's code is 0
 		lw $ra, 4($sp)
 		lw $a0, ($sp)
 		add $sp, $sp, 8
 		
-		li $s7, MAX_SYMBOLS
-		add $s7, $s7, 2
-		mul $s7, $s7, $a0
+		lw $s7, 20($a0)
 		li $s6, 1
-		sb $s6, codes+1($s7)
+		sb $s6, 1($s7)
 		
 		jr $ra
 	moreThanOneSymbol:
 	
-	la $s7, nodes
-	mul $t9, $a0, BYTES_PER_NODE
-	add $t9, $t9, $s7				# current node address
+	move $t9, $a0
 	li $s7, 0					# current bit
 	
 	treeTraversalLoop:
@@ -667,7 +660,7 @@ createCode:
 		sw $s7, 4($sp)
 		sw $a0, 8($sp)
 		sw $ra, 12($sp)
-		move $a1, $a0
+		lw $a1, 20($a0)
 		move $a0, $s6
 		move $a2, $s7
 		jal writeCodeBit
@@ -682,10 +675,8 @@ createCode:
 		b treeTraversalLoop
 	endTreeTraversalLoop:
 	
-	li $s6, MAX_SYMBOLS
-	add $s6, $s6, 2
-	mul $s6, $s6, $a0
-	sb $s7, codes+1($s6)				# code length
+	lw $s6, 20($a0)
+	sb $s7, 1($s6)					# code length
 	
 	add $sp, $sp, -4
 	sw $ra, ($sp)
@@ -697,32 +688,34 @@ createCode:
 
 createCodeList:
 	la $t8, nodes
+	la $t7, codes
 	lw $s7, symbolsCount
 	sub $s7, $s7, 1
 	add $t9, $zero, 0
 	createCodesLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $s7, endCreateCodesLoop
 		
-		lw $s6, ($t8)			#symbol
+		lw $s6, ($t8)			# symbol
+		sb $s6, ($t7)
 		
-		li $s5, MAX_SYMBOLS
-		add $s5, $s5, 2
-		mul $s5, $s5, $t9
-		sb $s6, codes($s5)
+		sw $t7, 20($t8)
 		
-		add $sp, $sp, -16
+		add $sp, $sp, -20
+		sw $t7, 16($sp)
 		sw $t8, 12($sp)
 		sw $t9, 8($sp)
 		sw $s7, 4($sp)
 		sw $ra, ($sp)
-		move $a0, $t9
+		move $a0, $t8
 		jal createCode
 		lw $ra, ($sp)
 		lw $s7, 4($sp)
 		lw $t9, 8($sp)
 		lw $t8, 12($sp)
-		add $sp, $sp, 16
+		lw $t7, 16($sp)
+		add $sp, $sp, 20
 		
+		add $t7, $t7, BYTES_PER_CODE
 		add $t8, $t8, BYTES_PER_NODE
 		add $t9, $t9, 1
 
@@ -752,21 +745,18 @@ writeCodeListToFile:
 	lw $ra, ($sp)
 	add $sp, $sp, 4
 	
+	la $t5, codes
 	add $t9, $zero, 0
 	lw $t8, symbolsCount
 	sub $t8, $t8, 1
 	codeListToFileSymbolLoop: # from 0 to (symbolsCount - 1)
 		bgt $t9, $t8, endCodeListToFileSymbolLoop
 		
-		li $s7, MAX_SYMBOLS
-		add $s7, $s7, 2
-		mul $s7, $s7, $t9			# beginning of current code list entry
-		
-		lbu $s6, codes($s7)			# symbol
+		lbu $s6, ($t5)				# symbol
 		sb $s6, tempByte
 		
 		add $sp, $sp, -16
-		sw $s7, 12($sp)
+		sw $t5, 12($sp)
 		sw $t8, 8($sp)
 		sw $t9, 4($sp)
 		sw $ra, ($sp)
@@ -777,14 +767,14 @@ writeCodeListToFile:
 		lw $ra, ($sp)
 		lw $t9, 4($sp)
 		lw $t8, 8($sp)
-		lw $s7, 12($sp)
+		lw $t5, 12($sp)
 		add $sp, $sp, 16
 		
-		lbu $s6, codes+1($s7)
+		lbu $s6, 1($t5)
 		sb $s6, tempByte
 		
 		add $sp, $sp, -16
-		sw $s7, 12($sp)
+		sw $t5, 12($sp)
 		sw $t8, 8($sp)
 		sw $t9, 4($sp)
 		sw $ra, ($sp)
@@ -795,7 +785,7 @@ writeCodeListToFile:
 		lw $ra, ($sp)
 		lw $t9, 4($sp)
 		lw $t8, 8($sp)
-		lw $s7, 12($sp)
+		lw $t5, 12($sp)
 		add $sp, $sp, 16
 		
 		lbu $s6, tempByte			# length
@@ -803,19 +793,21 @@ writeCodeListToFile:
 		li $s5, 0				# byte to write
 		li $s4, 0				# how many bits used in byte
 		
+		add $t4, $t5, 2
+		
 		add $t7, $zero, 0
 		sub $t6, $s6, 1
 		codeListToFileCodeLoop: # from 0 to (length - 1)
 			bgt $t7, $t6, endCodeListToFileCodeLoop
 			
-			lbu $s6, codes+2($s7)		# bit of code
+			lbu $s6, ($t4)		# bit of code
 			
 			add $sp, $sp, -32
 			sw $s4, 28($sp)
 			sw $s5, 24($sp)
 			sw $t6, 20($sp)
 			sw $t7, 16($sp)
-			sw $s7, 12($sp)
+			sw $t4, 12($sp)
 			sw $t8, 8($sp)
 			sw $t9, 4($sp)
 			sw $ra, ($sp)
@@ -826,7 +818,7 @@ writeCodeListToFile:
 			lw $ra, ($sp)
 			lw $t9, 4($sp)
 			lw $t8, 8($sp)
-			lw $s7, 12($sp)
+			lw $t4, 12($sp)
 			lw $t7, 16($sp)
 			lw $t6, 20($sp)
 			lw $s5, 24($sp)
@@ -836,7 +828,7 @@ writeCodeListToFile:
 			move $s5, $v0
 			
 			add $s4, $s4, 1	
-			add $s7, $s7, 1
+			add $t4, $t4 1
 			add $t7, $t7, 1
 			
 			bne $s4, 8, codeListToFileCodeLoop
@@ -846,7 +838,7 @@ writeCodeListToFile:
 			add $sp, $sp, -24
 			sw $t6, 20($sp)
 			sw $t7, 16($sp)
-			sw $s7, 12($sp)
+			sw $t4, 12($sp)
 			sw $t8, 8($sp)
 			sw $t9, 4($sp)
 			sw $ra, ($sp)
@@ -857,7 +849,7 @@ writeCodeListToFile:
 			lw $ra, ($sp)
 			lw $t9, 4($sp)
 			lw $t8, 8($sp)
-			lw $s7, 12($sp)
+			lw $t4, 12($sp)
 			lw $t7, 16($sp)
 			lw $t6, 20($sp)
 			add $sp, $sp, 24
@@ -869,6 +861,7 @@ writeCodeListToFile:
 		endCodeListToFileCodeLoop:
 		
 		add $t9, $t9, 1
+		add $t5, $t5, BYTES_PER_CODE
 		
 		beq $s4, 0, codeListToFileSymbolLoop
 		
@@ -962,8 +955,7 @@ addToCodedData:
 	add $s6, $s6, 1
 	sw $s6, codedDataFirstFreeBit
 	
-	li $s7, CHUNK_LENGTH
-	mul $s7, $s7, 8
+	li $s7, CHUNK_LENGTH_IN_BITS
 	blt $s6, $s7, endCodedDataFilled
 	codedDataFilled:
 		add $sp, $sp, -4
@@ -994,36 +986,24 @@ writeReplacedSymbols:
 	replaceSymbolsChunkLoop: # for each byte in chunk
 		bgt $t9, $t8, endReplaceSymbolsChunkLoop
 
-		lbu $s7, chunk($t9)		# symbol
+		lbu $s7, chunk($t9)			# symbol
+		mul $s7, $s7, BYTES_PER_FREQUENCY
+		lw $s7, frequencies+4($s7)		# node address
+		lw $s7, 20($s7)				# code address
 		
-		add $sp, $sp, -12
-		sw $t9, 8($sp)
-		sw $t8, 4($sp)
-		sw $ra, ($sp)
-		move $a0, $s7
-		jal findCodeIndex
-		lw $ra, ($sp)
-		lw $t8, 4($sp)
-		lw $t9, 8($sp)
-		add $sp, $sp, 12
+		lbu $s5, 1($s7)				# code length
 		
-		move $s7, $v0			# code index
-		
-		li $s6, MAX_SYMBOLS
-		add $s6, $s6, 2
-		mul $s6, $s6, $s7		# (2 + MAX_SYMBOLS) * code index
-		
-		lbu $s5, codes+1($s6)		# code length
+		add $s7, $s7, 2
 		
 		add $t7, $zero, 0
 		sub $t6, $s5, 1
 		replaceSymbolsBitLoop: # from 0 to (code length - 1)
 			bgt $t7, $t6, endReplaceSymbolsBitLoop
 
-			add $s4, $s6, $t7
-			lbu $s4, codes+2($s4)
+			lbu $s4, ($s7)
 			
-			add $sp, $sp, -24
+			add $sp, $sp, -28
+			sw $s7, 24($sp)
 			sw $t6, 20($sp)
 			sw $t7, 16($sp)
 			sw $s6, 12($sp)
@@ -1038,8 +1018,10 @@ writeReplacedSymbols:
 			lw $s6, 12($sp)
 			lw $t7, 16($sp)
 			lw $t6, 20($sp)
-			add $sp, $sp, 24
+			lw $s7, 24($sp)
+			add $sp, $sp, 28
 			
+			add $s7, $s7, 1
 			add $t7, $t7, 1
 
 			b replaceSymbolsBitLoop

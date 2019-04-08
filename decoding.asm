@@ -39,7 +39,7 @@
 	codeExtended:		.byte	0:MAX_SYMBOLS			# currently processed extended code (byte = bit)
 	
 	.align 2
-	huffmanTree:		.byte	-1:MAX_HUFFMAN_TREE_NODES
+	huffmanTree:		.byte	-1:MAX_HUFFMAN_TREE_NODES	# symbol [4], left child [4], right child [4]
 	.align 2
 	nodeCount:		.word	1
 	.align 2
