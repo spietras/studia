@@ -69,8 +69,9 @@
 	
 	inputPrompt:		.asciiz	"\nInput file:\n"
 	outputPrompt:		.asciiz	"\nOutput file: \n"
-	freqHeading:		.asciiz "\nFrequencies:\n"
-	codesHeading:		.asciiz "\nCodes:\n"
+	statsHeading:		.asciiz "\nSymbol stats:\n"
+	freqCaption:		.asciiz ":\t\t\tfrequency:\t"
+	codeCaption:		.asciiz ",\t\t\tcode:\t"
 	
 #	ENCODED FILE STRUCTURE:
 #	file size [4]
@@ -119,13 +120,11 @@ main:
 	li $a2, 0
 	jal openFile						# and reopen it, so we can read from the beginning
 	
-	jal printFrequencies					# print frequency of each symbol
-	
 	jal createNodeList
 	jal buildHuffmanTree					# knowing frequencies, build huffman tree with symbols as leaves	
 	jal createCodeList					# assign code to each symbol based on traversing from root to leaf in huffman tree
 	
-	jal printCodes						# print code of each symbol
+	jal printStats						# print statistics of each symbol
 	
 	la $a0, outputPrompt
 	li $v0, SYSCALL_PRINTSTRING
@@ -199,122 +198,86 @@ printCharacter:
 	syscall
 	jr $ra
 	
-printFrequencies:
+printStats:
 	addu $sp, $sp, -4
 	sw $ra, ($sp)
 	
-	la $a0, freqHeading
+	la $a0, statsHeading
 	li $v0, SYSCALL_PRINTSTRING
 	syscall
 	
 	addu $t9, $zero, 1
 	li $s7, MAX_SYMBOLS
 	la $s6, frequencies
-	printFrequenciesLoop: 					# from 1 to 256
-		bgt $t9, $s7, endPrintFrequenciesLoop
-		lw $s5, ($s6)
+	printStatsLoop: 					# from 1 to 256
+		bgt $t9, $s7, endPrintStatsLoop
+		lw $s5, ($s6)					# load frequency
 		
 		addu $s6, $s6, BYTES_PER_FREQUENCY
 		addu $t9, $t9, 1
 		
-		beq $s5, 0, printFrequenciesLoop		# skip if symbol not used
+		beq $s5, 0, printStatsLoop			# skip if symbol not used
 		
-		move $a0, $t9
-		sub $a0, $a0, 2
-		li $v0, SYSCALL_PRINTCHARACTER
-		syscall						# print symbol
+		sub $a0, $t9, 2
+		jal printInt					# print symbol
 		
-		li $a0, ':'
-		li $v0, SYSCALL_PRINTCHARACTER
-		syscall						# print ':'
+		la $a0, freqCaption
+		li $v0, SYSCALL_PRINTSTRING
+		syscall
 		
 		move $a0, $s5
 		jal printInt					#print frequency
+		
+		la $a0, codeCaption
+		li $v0, SYSCALL_PRINTSTRING
+		syscall
+		
+		addu $sp, $sp, -12
+		sw $t9, ($sp)
+		sw $s7, 4($sp)
+		sw $s6, 8($sp)
+		
+		sub $s6, $s6, BYTES_PER_FREQUENCY
+		lw $s4, 4($s6)					# load node address
+		lw $s4, 20($s4)					# load code address
+		addu $s6, $s6, BYTES_PER_FREQUENCY
+		
+		addu $t8, $zero, 1
+		lbu $s5, 1($s4)
+		addu $s4, $s4, 2
+		printCodeLoop:					# for each bit in code
+			bgt $t8, $s5, endPrintCodeLoop
+
+			lbu $s3, ($s4)				# load bit
+			
+			addu $sp, $sp, -12
+			sw $s5, ($sp)
+			sw $t8, 4($sp)
+			sw $s4, 8($sp)
+			move $a0, $s3
+			jal printInt				# print bit
+			lw $s4, 8($sp)
+			lw $t8, 4($sp)
+			lw $s5, ($sp)
+			addu $sp, $sp, 12
+			
+			addu $s4, $s4, 1
+			addu $t8, $t8, 1
+
+			b printCodeLoop
+		endPrintCodeLoop:
+		
+		lw $s6, 8($sp)
+		lw $s7, 4($sp)
+		lw $t9, ($sp)
+		addu $sp, $sp, 12
 		
 		li $a0, '\n'
 		li $v0, SYSCALL_PRINTCHARACTER
 		syscall						#print new line
 		
-		b printFrequenciesLoop
-	endPrintFrequenciesLoop:
-	
-	lw $ra, ($sp)
-	addu $sp, $sp, 4
-	jr $ra
-	
-printCodes:
-	addu $sp, $sp, -4
-	sw $ra, ($sp)
-	
-	la $a0, codesHeading
-	li $v0, SYSCALL_PRINTSTRING
-	syscall
-	
-	addu $t9, $zero, 1
-	lw $s7, symbolsCount
-	la $s6, codes
-	printCodesLoop: 					# for every symbol used
-		bgt $t9, $s7, endPrintCodesLoop
-		lbu $s5, ($s6)					# symbol
-		
-		move $s3, $s6
-		
-		move $a0, $s5
-		li $v0, SYSCALL_PRINTCHARACTER
-		syscall						# print symbol
-		
-		li $a0, ':'
-		li $v0, SYSCALL_PRINTCHARACTER
-		syscall						# print ':'
-		
-		addu $s6, $s6, 1
-		lbu $s5, ($s6)					# load code length
-		addu $s6, $s6, 1
-		addu $t8, $zero, 1
-		
-		addu $sp, $sp, -12
-		sw $t9, ($sp)
-		sw $s7, 4($sp)
-		sw $s3, 8($sp)
-		
-		printSingleCodeLoop:				# for each bit in code
-			bgt $t8, $s5, endPrintSingleCodeLoop
-
-			lbu $s4, ($s6)				# load bit
-			
-			addu $sp, $sp, -12
-			sw $s5, ($sp)
-			sw $t8, 4($sp)
-			sw $s6, 8($sp)
-			move $a0, $s4
-			jal printInt				# print bit
-			lw $s6, 8($sp)
-			lw $t8, 4($sp)
-			lw $s5, ($sp)
-			addu $sp, $sp, 12
-			
-			addu $s6, $s6, 1
-			addu $t8, $t8, 1
-
-			b printSingleCodeLoop
-		endPrintSingleCodeLoop:
-		
-		lw $s3, 8($sp)
-		lw $s7, 4($sp)
-		lw $t9, ($sp)
-		addu $sp, $sp, 12
-			
-		li $a0, '\n'
-		li $v0, SYSCALL_PRINTCHARACTER
-		syscall						# print new line
-		
-		addu $s3, $s3, 2
-		addu $s3, $s3, MAX_SYMBOLS
-		move $s6, $s3					# go to the next code
-	
-		addu $t9, $t9, 1
-		b printCodesLoop
-	endPrintCodesLoop:
+		b printStatsLoop
+	endPrintStatsLoop:
 	
 	lw $ra, ($sp)
 	addu $sp, $sp, 4
