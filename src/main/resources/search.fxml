@@ -26,7 +26,7 @@
                                 onAction="#onSearchButtonClicked" text="Search" textAlignment="CENTER"/>
                     </children>
                 </HBox>
-                <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                <ScrollPane fx:id="scroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                     <VBox.margin>
                         <Insets/>
                     </VBox.margin>
