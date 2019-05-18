@@ -38,11 +38,13 @@ public class MainApp extends Application
         SearchDataModel model = new SearchDataModel(provider);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/search.fxml"));
-        loader.setController(new SearchController(model));
+        SearchController controller = new SearchController(model);
+        loader.setController(controller);
         Parent root = loader.load();
 
         primaryStage.setTitle("Picture Gallery");
         primaryStage.setScene(new Scene(root, 1280, 720));
+        primaryStage.setOnHidden(e -> controller.shutdown());
         primaryStage.show();
     }
 

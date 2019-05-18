@@ -12,6 +12,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.TilePane;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class SearchController
 {
@@ -25,6 +28,9 @@ public class SearchController
     private TilePane previewTilePane;
 
     private SearchDataModel model;
+
+    private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService multiThreadExecutor = Executors.newCachedThreadPool();
 
     public SearchController(SearchDataModel m)
     {
@@ -41,10 +47,12 @@ public class SearchController
                 {
                     for(PictureData p : change.getAddedSubList())
                     {
-                        ImageView preview = new ImageView(p.getPreviewURL());
-                        preview.setFitHeight(80);
-                        preview.setPreserveRatio(true);
-                        Platform.runLater(() -> previewTilePane.getChildren().add(preview));
+                        multiThreadExecutor.submit(() -> {
+                            ImageView preview = new ImageView(p.getPreviewURL());
+                            preview.setFitHeight(80);
+                            preview.setPreserveRatio(true);
+                            Platform.runLater(() -> previewTilePane.getChildren().add(preview));
+                        });
                     }
                 }
                 else if(change.wasRemoved())
@@ -63,10 +71,39 @@ public class SearchController
         });
     }
 
+    public void shutdown()
+    {
+        singleThreadExecutor.shutdown();
+        try
+        {
+            if(!singleThreadExecutor.awaitTermination(800, TimeUnit.MILLISECONDS))
+            {
+                singleThreadExecutor.shutdownNow();
+            }
+        }
+        catch(InterruptedException e)
+        {
+            singleThreadExecutor.shutdownNow();
+        }
+
+        multiThreadExecutor.shutdown();
+        try
+        {
+            if(!multiThreadExecutor.awaitTermination(800, TimeUnit.MILLISECONDS))
+            {
+                multiThreadExecutor.shutdownNow();
+            }
+        }
+        catch(InterruptedException e)
+        {
+            multiThreadExecutor.shutdownNow();
+        }
+    }
+
     @FXML
     void onSearchButtonClicked(ActionEvent event)
     {
-        new Thread(() -> {
+        singleThreadExecutor.execute(() -> {
             try
             {
                 model.loadPicturesChunk(inputTextField.getText());
@@ -75,6 +112,6 @@ public class SearchController
             {
                 e.printStackTrace();
             }
-        }).start();
+        });
     }
 }
