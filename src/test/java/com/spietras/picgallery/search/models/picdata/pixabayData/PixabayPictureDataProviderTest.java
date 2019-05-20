@@ -14,7 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PixabayPictureProviderTest
+class PixabayPictureDataProviderTest
 {
     @Test
     void testLoadPicturesDataSample() throws IOException
@@ -34,7 +34,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 10);
 
         assertEquals(expected, data);
@@ -59,7 +59,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         assertFalse(provider.dataEnded());
         provider.loadPicturesDataChunk(query, 10);
         assertTrue(provider.dataEnded());
@@ -83,7 +83,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
 
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 10);
         assertEquals(expected, data);
@@ -106,7 +106,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
 
         IOException e = assertThrows(IOException.class, () -> provider.loadPicturesDataChunk(query, 10));
     }
@@ -129,7 +129,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 5);
         assertNotEquals(expected, data);
         data.addAll(provider.loadPicturesDataChunk(query, 5));
@@ -154,7 +154,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 10);
         data.addAll(provider.loadPicturesDataChunk(query, 10));
 
@@ -185,7 +185,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query1, 10);
         assertEquals(cats, data);
         assertNotEquals(dogs, data);
@@ -220,7 +220,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query1, 10);
         assertEquals(cats.subList(0, 10), data);
         assertNotEquals(dogs.subList(0, 10), data);
@@ -250,7 +250,7 @@ class PixabayPictureProviderTest
         when(dummyCall.execute()).thenReturn(dummyResponse);
         when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
 
-        PixabayPictureProvider provider = new PixabayPictureProvider(service);
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 5);
 
         assertEquals(expected.subList(0, 5), data);

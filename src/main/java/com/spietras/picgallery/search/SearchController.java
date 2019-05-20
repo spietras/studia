@@ -1,8 +1,10 @@
 package com.spietras.picgallery.search;
 
+import com.spietras.picgallery.search.models.PictureTile;
 import com.spietras.picgallery.search.models.SearchDataModel;
-import com.spietras.picgallery.search.models.picdata.PictureData;
-import javafx.application.Platform;
+import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayRateLimitException;
+import com.spietras.picgallery.search.utils.ExecutorManager;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -15,7 +17,6 @@ import javafx.scene.layout.TilePane;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class SearchController
 {
@@ -34,84 +35,101 @@ public class SearchController
     private SearchDataModel model;
 
     private ExecutorService loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
-    private ExecutorService downloadPreviewMultiThreadExecutor = Executors.newCachedThreadPool();
 
-    public SearchController(SearchDataModel m)
+    private String currentQuery = null;
+
+    public SearchController(SearchDataModel model)
     {
-        model = m;
+        this.model = model;
     }
 
     @FXML
     public void initialize()
     {
-        model.getPictures().addListener((ListChangeListener<PictureData>) change -> {
-            while(change.next())
-            {
-                if(change.wasAdded())
-                {
-                    for(PictureData p : change.getAddedSubList())
-                    {
-                        downloadPreviewMultiThreadExecutor.submit(() -> {
-                            ImageView preview = new ImageView(p.getPreviewURL());
-                            preview.setFitHeight(80);
-                            preview.setPreserveRatio(true);
-                            Platform.runLater(() -> previewTilePane.getChildren().add(preview));
-                        });
-                    }
-
-                    shutdownExecutor(downloadPreviewMultiThreadExecutor, 60);
-                    downloadPreviewMultiThreadExecutor = Executors.newCachedThreadPool();
-                }
-                else if(change.wasRemoved())
-                {
-                    Platform.runLater(
-                            () -> previewTilePane.getChildren().remove(change.getFrom(), change.getRemovedSize()));
-                }
-            }
-        });
-
-        model.endOfPictures().addListener((observable, oldValue, newValue) -> {
-            if(newValue)
-            {
-                //TODO
-            }
-        });
+        model.getPictures().addListener(this::onPicturesChanged);
+        model.endOfPictures().addListener(this::onPicturesEndedChanged);
     }
 
     public void shutdown()
     {
-        shutdownExecutor(loadChunkSingleThreadExecutor, 1);
-        shutdownExecutor(downloadPreviewMultiThreadExecutor, 1);
+        ExecutorManager.shutdownExecutor(loadChunkSingleThreadExecutor, 1);
+        model.clearPictures();
     }
 
     @FXML
-    void onSearchButtonClicked(ActionEvent event)
+    synchronized void onSearchButtonClicked(ActionEvent event) throws InterruptedException
     {
-        loadChunkSingleThreadExecutor.execute(() -> {
-            try
-            {
-                model.loadPicturesChunk(inputTextField.getText());
-            }
-            catch(IOException e)
-            {
-                e.printStackTrace();
-            }
-        });
+        searchButton.setDisable(true);
+        String inputText = inputTextField.getText();
+
+        checkQueryChanged(inputText);
+
+        loadChunkSingleThreadExecutor.submit(() -> loadPictures(inputText));
     }
 
-    private void shutdownExecutor(ExecutorService serivce, long timeout)
+    private void checkQueryChanged(String newQuery) throws InterruptedException
     {
-        serivce.shutdown();
+        if(!newQuery.equalsIgnoreCase(currentQuery))
+        {
+            currentQuery = newQuery;
+            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor);
+            loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
+            model.clearPictures();
+        }
+    }
+
+    private void loadPictures(String query)
+    {
+        int CHUNK_SIZE = 10;
+
         try
         {
-            if(!serivce.awaitTermination(timeout, TimeUnit.SECONDS))
-            {
-                serivce.shutdownNow();
-            }
+            model.loadPicturesChunk(query, CHUNK_SIZE);
+            searchButton.setDisable(false);
         }
-        catch(InterruptedException e)
+        catch(PixabayRateLimitException e)
         {
-            serivce.shutdownNow();
+            //TODO: handle exceeding rate limit
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
+    {
+        while(change.next())
+        {
+            if(change.wasAdded())
+            {
+                for(PictureTile p : change.getAddedSubList())
+                { addNewTileToView(p); }
+            }
+            else if(change.wasRemoved())
+                removeTilesFromView(change.getFrom(), change.getRemovedSize());
+        }
+    }
+
+    private void addNewTileToView(PictureTile p)
+    {
+        ImageView preview = new ImageView(p.getPreviewImage());
+        preview.setFitHeight(80);
+        preview.setPreserveRatio(true);
+        previewTilePane.getChildren().add(preview);
+    }
+
+    private void removeTilesFromView(int startIndex, int size)
+    {
+        previewTilePane.getChildren().remove(startIndex, size);
+    }
+
+    private void onPicturesEndedChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+                                        Boolean newValue)
+    {
+        if(newValue)
+        {
+            //TODO
         }
     }
 }

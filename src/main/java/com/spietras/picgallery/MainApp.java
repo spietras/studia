@@ -3,7 +3,7 @@ package com.spietras.picgallery;
 import com.spietras.picgallery.search.SearchController;
 import com.spietras.picgallery.search.models.SearchDataModel;
 import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayEndpointAPI;
-import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayPictureProvider;
+import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayPictureDataProvider;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -34,7 +34,7 @@ public class MainApp extends Application
         System.setProperty("http.agent", "Chrome");
 
         Retrofit r = buildRetrofit(getApiKey());
-        PixabayPictureProvider provider = new PixabayPictureProvider(r.create(PixabayEndpointAPI.class));
+        PixabayPictureDataProvider provider = new PixabayPictureDataProvider(r.create(PixabayEndpointAPI.class));
         SearchDataModel model = new SearchDataModel(provider);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/search.fxml"));

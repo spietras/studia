@@ -1,34 +1,46 @@
 package com.spietras.picgallery.search.models;
 
 import com.spietras.picgallery.search.models.picdata.PictureData;
-import com.spietras.picgallery.search.models.picdata.PictureProvider;
+import com.spietras.picgallery.search.models.picdata.PictureDataProvider;
+import com.spietras.picgallery.search.utils.ExecutorManager;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SearchDataModel
 {
-    private ObservableList<PictureData> pictures = FXCollections.observableArrayList();
+    private ObservableList<PictureTile> pictures = FXCollections.observableArrayList();
     private BooleanProperty picturesEnded = new SimpleBooleanProperty(false);
-    private PictureProvider provider;
+    private PictureDataProvider provider;
+    private ExecutorService downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
 
-    public SearchDataModel(PictureProvider prov) { provider = prov; }
+    public SearchDataModel(PictureDataProvider provider) { this.provider = provider; }
 
-    public ObservableList<PictureData> getPictures() { return pictures; }
+    public ObservableList<PictureTile> getPictures() { return pictures; }
 
     public BooleanProperty endOfPictures() { return picturesEnded; }
 
-    public void loadPicturesChunk(String query) throws IOException
+    public void loadPicturesChunk(String query, int chunkSize) throws IOException
     {
-        int perChunk = 10;
+        for(PictureData data : provider.loadPicturesDataChunk(query, chunkSize))
+        {
+            downloadPreviewsMultiThreadExecutor.submit(() -> {
+                PictureTile tile = new PictureTile(data);
+                Platform.runLater(() -> pictures.add(tile));
 
-        if(!query.equalsIgnoreCase(provider.getCurrentQuery()))
-            clearPictures();
+                if(Thread.currentThread().isInterrupted())
+                    Platform.runLater(() -> pictures.remove(tile));
+            });
+        }
 
-        pictures.addAll(provider.loadPicturesDataChunk(query, perChunk));
+        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
+        downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
 
         if(provider.dataEnded())
             picturesEnded.setValue(true);
@@ -37,6 +49,10 @@ public class SearchDataModel
     public void clearPictures()
     {
         provider.clearCache();
-        pictures.clear();
+        Platform.runLater(() -> pictures.clear());
+        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
+        downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
     }
+
+    public String getCurrentQuery() { return provider.getCurrentQuery(); }
 }
