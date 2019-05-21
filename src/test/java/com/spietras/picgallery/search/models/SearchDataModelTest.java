@@ -2,7 +2,7 @@ package com.spietras.picgallery.search.models;
 
 import com.spietras.picgallery.search.models.picdata.PictureData;
 import com.spietras.picgallery.search.models.picdata.PictureDataProvider;
-import javafx.application.Platform;
+import com.spietras.picgallery.search.utils.ExecutorManager;
 import javafx.embed.swing.JFXPanel;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ class SearchDataModelTest
     JFXPanel panel = new JFXPanel(); //necessary to access JavaFX components
 
     @Test
-    void testLoadPicturesChunk() throws IOException
+    void testLoadPicturesChunk() throws IOException, InterruptedException
     {
         //is it returning the data i provided
 
@@ -36,12 +36,14 @@ class SearchDataModelTest
         SearchDataModel model = new SearchDataModel(provider);
         model.loadPicturesChunk(query, chunkSize);
 
+        ExecutorManager.waitForRunLater();
+
         assertEquals(chunkSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(DUMMY_PREVIEW_URL)));
     }
 
     @Test
-    void testPicturesEnded() throws IOException
+    void testPicturesEnded() throws IOException, InterruptedException
     {
         //does it set flag that pictures ended
 
@@ -59,11 +61,13 @@ class SearchDataModelTest
         SearchDataModel model = new SearchDataModel(provider);
         model.loadPicturesChunk(query, dataSize + 1);
 
+        ExecutorManager.waitForRunLater();
+
         assertTrue(model.endOfPictures().getValue());
     }
 
     @Test
-    void testLoadPicturesChunkMultiple() throws IOException
+    void testLoadPicturesChunkMultiple() throws IOException, InterruptedException
     {
         //does it loads proper data across chunks
 
@@ -88,12 +92,14 @@ class SearchDataModelTest
 
         model.loadPicturesChunk(query, dataSize - (dataSize / 2));
 
+        ExecutorManager.waitForRunLater();
+
         assertEquals(dataSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(DUMMY_PREVIEW_URL)));
     }
 
     @Test
-    void testClearPictures() throws IOException
+    void testClearPictures() throws IOException, InterruptedException
     {
         //does it properly clears data
 
@@ -111,11 +117,15 @@ class SearchDataModelTest
         SearchDataModel model = new SearchDataModel(provider);
         model.loadPicturesChunk(query, dataSize);
 
+        ExecutorManager.waitForRunLater();
+
         assertEquals(dataSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(DUMMY_PREVIEW_URL)));
 
         model.clearPictures();
 
-        Platform.runLater(() -> assertTrue(model.getPictures().isEmpty()));
+        ExecutorManager.waitForRunLater();
+
+        assertTrue(model.getPictures().isEmpty());
     }
 }

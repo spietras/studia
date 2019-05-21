@@ -4,6 +4,7 @@ import com.spietras.picgallery.search.models.PictureTile;
 import com.spietras.picgallery.search.models.SearchDataModel;
 import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayRateLimitException;
 import com.spietras.picgallery.search.utils.ExecutorManager;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
@@ -32,11 +33,11 @@ public class SearchController
     @FXML
     private ScrollPane scroll;
 
-    private SearchDataModel model;
+    private final SearchDataModel model;
 
     private ExecutorService loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
 
-    private String currentQuery = null;
+    private volatile String currentQuery = null;
 
     public SearchController(SearchDataModel model)
     {
@@ -48,6 +49,8 @@ public class SearchController
     {
         model.getPictures().addListener(this::onPicturesChanged);
         model.endOfPictures().addListener(this::onPicturesEndedChanged);
+        scroll.setVvalue(scroll.getVmax());
+        scroll.vvalueProperty().addListener(this::scrollVerticalChanged);
     }
 
     public void shutdown()
@@ -57,24 +60,29 @@ public class SearchController
     }
 
     @FXML
-    synchronized void onSearchButtonClicked(ActionEvent event) throws InterruptedException
+    void onSearchButtonClicked(ActionEvent event) throws InterruptedException
     {
-        searchButton.setDisable(true);
         String inputText = inputTextField.getText();
-
-        checkQueryChanged(inputText);
-
-        loadChunkSingleThreadExecutor.submit(() -> loadPictures(inputText));
+        searchAction(inputText);
     }
 
-    private void checkQueryChanged(String newQuery) throws InterruptedException
+    private void searchAction(String query) throws InterruptedException
+    {
+        searchButton.setDisable(true); //to prevent spamming
+
+        checkQueryChanged(query); //check if query changed
+
+        loadChunkSingleThreadExecutor.submit(() -> loadPictures(query));
+    }
+
+    private synchronized void checkQueryChanged(String newQuery) throws InterruptedException
     {
         if(!newQuery.equalsIgnoreCase(currentQuery))
         {
             currentQuery = newQuery;
-            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor);
+            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor); //abort everything related to previous query
             loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
-            model.clearPictures();
+            model.clearPictures(); //clear all previous pictures
         }
     }
 
@@ -85,7 +93,21 @@ public class SearchController
         try
         {
             model.loadPicturesChunk(query, CHUNK_SIZE);
-            searchButton.setDisable(false);
+            searchButton.setDisable(false); //unlock button after loading
+            Platform.runLater(() -> {
+                if(!model.endOfPictures().getValue() &&
+                   !contentFilledViewport()) //load pictures until viewport is filled or they ended
+                {
+                    try
+                    {
+                        searchAction(query);
+                    }
+                    catch(InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
         catch(PixabayRateLimitException e)
         {
@@ -97,17 +119,33 @@ public class SearchController
         }
     }
 
+    private boolean contentFilledViewport()
+    {
+        double contentHeight = scroll.getContent().getLayoutBounds().getHeight();
+        double viewportHeight = scroll.getViewportBounds().getHeight();
+
+        return contentHeight > viewportHeight;
+    }
+
     private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
     {
-        while(change.next())
+        try
         {
-            if(change.wasAdded())
+            while(change.next())
             {
-                for(PictureTile p : change.getAddedSubList())
-                { addNewTileToView(p); }
+                if(change.wasAdded())
+                {
+                    for(PictureTile p : change.getAddedSubList())
+                    { addNewTileToView(p); }
+                }
+                else if(change.wasRemoved())
+                    for(PictureTile p : change.getRemoved())
+                    { removeTileFromView(p); }
             }
-            else if(change.wasRemoved())
-                removeTilesFromView(change.getFrom(), change.getRemovedSize());
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
@@ -119,9 +157,9 @@ public class SearchController
         previewTilePane.getChildren().add(preview);
     }
 
-    private void removeTilesFromView(int startIndex, int size)
+    private void removeTileFromView(PictureTile p)
     {
-        previewTilePane.getChildren().remove(startIndex, size);
+        previewTilePane.getChildren().removeIf(x -> ((ImageView) x).getImage() == p.getPreviewImage());
     }
 
     private void onPicturesEndedChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue,
@@ -130,6 +168,21 @@ public class SearchController
         if(newValue)
         {
             //TODO
+        }
+    }
+
+    private void scrollVerticalChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue)
+    {
+        if(newValue.doubleValue() == scroll.getVmax()) //when scrolled to end, load new chunk
+        {
+            try
+            {
+                searchAction(currentQuery);
+            }
+            catch(InterruptedException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 }

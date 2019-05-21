@@ -5,18 +5,19 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.*;
 
 public class PixabayPictureDataProvider implements PictureDataProvider
 {
-    private Queue<PixabayPictureData> cachedData = new LinkedList<>();
+    private final Queue<PixabayPictureData> cachedData = new LinkedList<>();
     private int currentPage = 0;
     private int totalHits;
     private int currentHits = 0;
     private boolean dataEnded = false;
     private boolean firstCall = true;
     private String currentQuery = null;
-    private PixabayEndpointAPI pixabayService;
+    private final PixabayEndpointAPI pixabayService;
 
     public PixabayPictureDataProvider(PixabayEndpointAPI service)
     {
@@ -65,15 +66,28 @@ public class PixabayPictureDataProvider implements PictureDataProvider
     private List<PixabayPictureData> getChunk(String query, int chunkSize) throws IOException
     {
         List<PixabayPictureData> data = new ArrayList<>();
+        boolean wasFirstCall = firstCall;
+        String previousQuery = currentQuery;
 
-        for(int i = 0; i < chunkSize; i++) //we need to return chunkSize of elements
+        try
         {
-            if(cachedData.size() == 0 && handleEmptyQueue(query)) //cache ended
-                return data;
+            for(int i = 0; i < chunkSize; i++) //we need to return chunkSize of elements
+            {
+                if(cachedData.size() == 0 && handleEmptyQueue(query)) //cache ended
+                    return data;
 
-            PixabayPictureData polled = cachedData.poll();
-            if(polled != null) //is queue is empty, don't add nulls (useful when there is less data than chunk size)
-                data.add(polled);
+                PixabayPictureData polled = cachedData.poll();
+                if(polled != null) //is queue is empty, don't add nulls (useful when there is less data than chunk size)
+                    data.add(polled);
+            }
+        }
+        catch(InterruptedIOException e) //if loading was interrupted, try to restore state
+        {
+            e.printStackTrace();
+            firstCall = wasFirstCall;
+            currentQuery = previousQuery;
+            cachedData.addAll(data);
+            data.clear();
         }
 
         return data;
@@ -96,12 +110,24 @@ public class PixabayPictureDataProvider implements PictureDataProvider
         return false;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private List<PixabayPictureData> loadNewData(String query) throws IOException
     {
         int perPage = 50;
 
-        Call<PixabaySearchResult> call = pixabayService.searchPictures(query, ++currentPage, perPage);
-        Response<PixabaySearchResult> response = call.execute();
+        Call<PixabaySearchResult> call;
+        Response<PixabaySearchResult> response;
+
+        try
+        {
+            call = pixabayService.searchPictures(query, ++currentPage, perPage);
+            response = call.execute();
+        }
+        catch(InterruptedIOException e)
+        {
+            --currentPage;
+            throw e;
+        }
 
         checkResponse(response, query);
 
@@ -113,6 +139,7 @@ public class PixabayPictureDataProvider implements PictureDataProvider
         return response.body().getHits();
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void checkResponse(Response<PixabaySearchResult> response, String query) throws IOException
     {
         if(response.code() == 429)

@@ -4,9 +4,9 @@ import java.io.IOException;
 
 public class PixabayRateLimitException extends IOException
 {
-    private String query;
-    private int limit;
-    private int reset;
+    private final String query;
+    private final int limit;
+    private final int reset;
 
     public PixabayRateLimitException(String query, int limit, int reset)
     {

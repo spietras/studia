@@ -5,13 +5,13 @@ import javafx.scene.image.Image;
 
 public class PictureTile
 {
-    private PictureData data;
-    private Image previewImage;
+    private final PictureData data;
+    private final Image previewImage;
 
     public PictureTile(PictureData data)
     {
         this.data = data;
-        previewImage = new Image(data.getPreviewURL());
+        previewImage = new Image(data.getPreviewURL()); //download preview from url
     }
 
     public PictureData getData() { return data; }
