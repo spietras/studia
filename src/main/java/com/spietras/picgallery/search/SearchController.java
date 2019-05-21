@@ -1,9 +1,9 @@
 package com.spietras.picgallery.search;
 
+import com.spietras.picgallery.models.picdata.pixabayData.PixabayRateLimitException;
 import com.spietras.picgallery.search.models.PictureTile;
 import com.spietras.picgallery.search.models.SearchDataModel;
-import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayRateLimitException;
-import com.spietras.picgallery.search.utils.ExecutorManager;
+import com.spietras.picgallery.utils.ExecutorManager;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;

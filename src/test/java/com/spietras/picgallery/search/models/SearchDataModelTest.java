@@ -1,8 +1,8 @@
 package com.spietras.picgallery.search.models;
 
-import com.spietras.picgallery.search.models.picdata.PictureData;
-import com.spietras.picgallery.search.models.picdata.PictureDataProvider;
-import com.spietras.picgallery.search.utils.ExecutorManager;
+import com.spietras.picgallery.models.picdata.PictureData;
+import com.spietras.picgallery.models.picdata.PictureDataProvider;
+import com.spietras.picgallery.utils.ExecutorManager;
 import javafx.embed.swing.JFXPanel;
 import org.junit.jupiter.api.Test;
 

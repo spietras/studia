@@ -1,4 +1,4 @@
-package com.spietras.picgallery.search.utils;
+package com.spietras.picgallery.utils;
 
 import javafx.application.Platform;
 

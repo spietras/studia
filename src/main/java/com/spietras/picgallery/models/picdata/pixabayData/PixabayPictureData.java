@@ -1,8 +1,8 @@
-package com.spietras.picgallery.search.models.picdata.pixabayData;
+package com.spietras.picgallery.models.picdata.pixabayData;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import com.spietras.picgallery.search.models.picdata.PictureData;
+import com.spietras.picgallery.models.picdata.PictureData;
 
 public class PixabayPictureData implements PictureData
 {

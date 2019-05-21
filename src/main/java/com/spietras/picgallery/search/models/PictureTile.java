@@ -1,6 +1,6 @@
 package com.spietras.picgallery.search.models;
 
-import com.spietras.picgallery.search.models.picdata.PictureData;
+import com.spietras.picgallery.models.picdata.PictureData;
 import javafx.scene.image.Image;
 
 public class PictureTile

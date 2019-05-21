@@ -1,4 +1,4 @@
-package com.spietras.picgallery.search.models.picdata;
+package com.spietras.picgallery.models.picdata;
 
 public interface PictureData
 {

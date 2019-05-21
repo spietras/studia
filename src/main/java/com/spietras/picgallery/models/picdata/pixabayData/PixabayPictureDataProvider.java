@@ -1,6 +1,6 @@
-package com.spietras.picgallery.search.models.picdata.pixabayData;
+package com.spietras.picgallery.models.picdata.pixabayData;
 
-import com.spietras.picgallery.search.models.picdata.PictureDataProvider;
+import com.spietras.picgallery.models.picdata.PictureDataProvider;
 import retrofit2.Call;
 import retrofit2.Response;
 

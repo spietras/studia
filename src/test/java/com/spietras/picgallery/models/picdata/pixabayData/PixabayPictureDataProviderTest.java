@@ -1,4 +1,4 @@
-package com.spietras.picgallery.search.models.picdata.pixabayData;
+package com.spietras.picgallery.models.picdata.pixabayData;
 
 import com.google.gson.Gson;
 import okhttp3.MediaType;
