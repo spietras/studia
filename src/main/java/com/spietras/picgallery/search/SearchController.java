@@ -5,7 +5,6 @@ import com.spietras.picgallery.search.models.SearchDataModel;
 import com.spietras.picgallery.search.models.picdata.pixabayData.PixabayRateLimitException;
 import com.spietras.picgallery.search.utils.ExecutorManager;
 import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,20 +20,15 @@ import java.util.concurrent.Executors;
 
 public class SearchController
 {
+    private final SearchDataModel model;
     @FXML
     private Button searchButton;
-
     @FXML
     private TextField inputTextField;
-
     @FXML
     private TilePane previewTilePane;
-
     @FXML
     private ScrollPane scroll;
-
-    private final SearchDataModel model;
-
     private ExecutorService loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
 
     private volatile String currentQuery = null;
@@ -47,10 +41,14 @@ public class SearchController
     @FXML
     public void initialize()
     {
+        previewTilePane.setPrefRows(1);
         model.getPictures().addListener(this::onPicturesChanged);
-        model.endOfPictures().addListener(this::onPicturesEndedChanged);
+        model.endOfPictures().addListener(
+                (observable1, oldValue1, newValue1) -> onPicturesEndedChanged(newValue1));
         scroll.setVvalue(scroll.getVmax());
-        scroll.vvalueProperty().addListener(this::scrollVerticalChanged);
+        scroll.vvalueProperty().addListener(
+                (observable, oldValue, newValue) -> scrollVerticalChanged(newValue));
+        scroll.layoutBoundsProperty().addListener((observableValue, bounds, t1) -> areaResized());
     }
 
     public void shutdown()
@@ -60,22 +58,25 @@ public class SearchController
     }
 
     @FXML
-    void onSearchButtonClicked(ActionEvent event) throws InterruptedException
+    void onSearchButtonClicked(ActionEvent event)
     {
         String inputText = inputTextField.getText();
-        searchAction(inputText);
+        searchAction(inputText, false);
     }
 
-    private void searchAction(String query) throws InterruptedException
+    private void searchAction(String query, boolean unfilledOnly)
     {
+        if(query == null || query.isEmpty())
+            return;
+
         searchButton.setDisable(true); //to prevent spamming
 
         checkQueryChanged(query); //check if query changed
 
-        loadChunkSingleThreadExecutor.submit(() -> loadPictures(query));
+        loadChunkSingleThreadExecutor.submit(() -> loadPictures(query, unfilledOnly));
     }
 
-    private synchronized void checkQueryChanged(String newQuery) throws InterruptedException
+    private synchronized void checkQueryChanged(String newQuery)
     {
         if(!newQuery.equalsIgnoreCase(currentQuery))
         {
@@ -86,27 +87,20 @@ public class SearchController
         }
     }
 
-    private void loadPictures(String query)
+    private void loadPictures(String query, boolean unfilledOnly)
     {
         int CHUNK_SIZE = 10;
+
+        if(unfilledOnly && contentFilledViewport())
+            return;
 
         try
         {
             model.loadPicturesChunk(query, CHUNK_SIZE);
             searchButton.setDisable(false); //unlock button after loading
             Platform.runLater(() -> {
-                if(!model.endOfPictures().getValue() &&
-                   !contentFilledViewport()) //load pictures until viewport is filled or they ended
-                {
-                    try
-                    {
-                        searchAction(query);
-                    }
-                    catch(InterruptedException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
+                if(!model.endOfPictures().getValue())
+                    searchAction(query, true);
             });
         }
         catch(PixabayRateLimitException e)
@@ -121,10 +115,12 @@ public class SearchController
 
     private boolean contentFilledViewport()
     {
-        double contentHeight = scroll.getContent().getLayoutBounds().getHeight();
-        double viewportHeight = scroll.getViewportBounds().getHeight();
+        double contentWidth = previewTilePane.getWidth();
+        int tilesInRow = (int) (contentWidth / (previewTilePane.getTileWidth() + previewTilePane.getHgap()));
+        int rows = (int) Math.ceil((double) previewTilePane.getChildren().size() / tilesInRow);
+        double contentHeight = rows * (previewTilePane.getTileHeight() + previewTilePane.getVgap());
 
-        return contentHeight > viewportHeight;
+        return contentHeight > scroll.getHeight();
     }
 
     private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
@@ -162,8 +158,7 @@ public class SearchController
         previewTilePane.getChildren().removeIf(x -> ((ImageView) x).getImage() == p.getPreviewImage());
     }
 
-    private void onPicturesEndedChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue,
-                                        Boolean newValue)
+    private void onPicturesEndedChanged(Boolean newValue)
     {
         if(newValue)
         {
@@ -171,18 +166,14 @@ public class SearchController
         }
     }
 
-    private void scrollVerticalChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue)
+    private void scrollVerticalChanged(Number newValue)
     {
         if(newValue.doubleValue() == scroll.getVmax()) //when scrolled to end, load new chunk
-        {
-            try
-            {
-                searchAction(currentQuery);
-            }
-            catch(InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-        }
+            searchAction(currentQuery, false);
+    }
+
+    private void areaResized()
+    {
+        Platform.runLater(() -> searchAction(currentQuery, true));
     }
 }

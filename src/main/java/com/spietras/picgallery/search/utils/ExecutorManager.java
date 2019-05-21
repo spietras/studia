@@ -34,15 +34,21 @@ public class ExecutorManager
     /**
      * End ExecutorService abruptly
      * @param service service to end
-     * @throws InterruptedException when waiting was interrupted
      * @throws IllegalThreadStateException when waiting timed out, which means some threads are still running
      */
-    public static void abortExecutor(ExecutorService service) throws InterruptedException, IllegalThreadStateException
+    public static void abortExecutor(ExecutorService service) throws IllegalThreadStateException
     {
         service.shutdownNow();
-        if(!service.awaitTermination(60L,
-                                     TimeUnit.SECONDS)) //wait for all threads to terminate, if timeout throw exception
-            throw new IllegalThreadStateException("Some thread(s) still running");
+        try
+        {
+            if(!service.awaitTermination(60L,
+                                         TimeUnit.SECONDS)) //wait for all threads to terminate, if timeout throw exception
+                throw new IllegalThreadStateException("Some thread(s) still running");
+        }
+        catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     /**
