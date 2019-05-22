@@ -1,6 +1,9 @@
 package com.spietras.picgallery.search;
 
+import com.spietras.picgallery.models.picdata.PictureData;
 import com.spietras.picgallery.models.picdata.pixabayData.PixabayRateLimitException;
+import com.spietras.picgallery.picdetails.PicDetailsController;
+import com.spietras.picgallery.picdetails.models.PicDetailsModel;
 import com.spietras.picgallery.search.models.PictureTile;
 import com.spietras.picgallery.search.models.SearchDataModel;
 import com.spietras.picgallery.utils.ExecutorManager;
@@ -8,11 +11,15 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +27,7 @@ import java.util.concurrent.Executors;
 
 public class SearchController
 {
+    private final Stage stage;
     private final SearchDataModel model;
     @FXML
     private Button searchButton;
@@ -33,15 +41,18 @@ public class SearchController
 
     private volatile String currentQuery = null;
 
-    public SearchController(SearchDataModel model)
+    private PicDetailsController currentDetailsController = null;
+    private Parent searchParent = null;
+
+    public SearchController(Stage stage, SearchDataModel model)
     {
+        this.stage = stage;
         this.model = model;
     }
 
     @FXML
     public void initialize()
     {
-        previewTilePane.setPrefRows(1);
         model.getPictures().addListener(this::onPicturesChanged);
         model.endOfPictures().addListener(
                 (observable1, oldValue1, newValue1) -> onPicturesEndedChanged(newValue1));
@@ -51,10 +62,17 @@ public class SearchController
         scroll.layoutBoundsProperty().addListener((observableValue, bounds, t1) -> areaResized());
     }
 
+    public void fetchParent()
+    {
+        searchParent = stage.getScene().getRoot();
+    }
+
     public void shutdown()
     {
-        ExecutorManager.shutdownExecutor(loadChunkSingleThreadExecutor, 1);
-        model.clearPictures();
+        if(currentDetailsController != null)
+            currentDetailsController.shutdown();
+        model.shutdown();
+        ExecutorManager.shutdownExecutor(loadChunkSingleThreadExecutor, 60);
     }
 
     @FXML
@@ -91,13 +109,12 @@ public class SearchController
     {
         int CHUNK_SIZE = 10;
 
-        if(unfilledOnly && contentFilledViewport())
-            return;
-
         try
         {
+            if(unfilledOnly && contentFilledViewport())
+                return;
+
             model.loadPicturesChunk(query, CHUNK_SIZE);
-            searchButton.setDisable(false); //unlock button after loading
             Platform.runLater(() -> {
                 if(!model.endOfPictures().getValue())
                     searchAction(query, true);
@@ -105,12 +122,19 @@ public class SearchController
         }
         catch(PixabayRateLimitException e)
         {
+            e.printStackTrace();
             //TODO: handle exceeding rate limit
         }
         catch(IOException e)
         {
             e.printStackTrace();
+            //TODO: handle other exceptions
         }
+        finally
+        {
+            searchButton.setDisable(false); //unlock button after loading
+        }
+
     }
 
     private boolean contentFilledViewport()
@@ -150,6 +174,8 @@ public class SearchController
         ImageView preview = new ImageView(p.getPreviewImage());
         preview.setFitHeight(80);
         preview.setPreserveRatio(true);
+        preview.addEventHandler(MouseEvent.MOUSE_CLICKED,
+                                event -> showDetails(p.getData()));
         previewTilePane.getChildren().add(preview);
     }
 
@@ -175,5 +201,37 @@ public class SearchController
     private void areaResized()
     {
         Platform.runLater(() -> searchAction(currentQuery, true));
+    }
+
+    private void showDetails(PictureData data)
+    {
+        PicDetailsModel model = new PicDetailsModel(data);
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/picdetails.fxml"));
+        PicDetailsController controller = new PicDetailsController(this, model);
+        loader.setController(controller);
+        Parent root;
+        try
+        {
+            root = loader.load(); //load details scene
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+            return;
+        }
+
+        stage.getScene().setRoot(root); //show details scene
+        currentDetailsController = controller;
+    }
+
+    public void resumeScene() throws IllegalStateException
+    {
+        if(searchParent == null)
+            throw new IllegalStateException("Can't resume scene when parent is not set");
+
+        stage.getScene().setRoot(searchParent);
+        currentDetailsController.shutdown(); //clean everything in previous scene
+        currentDetailsController = null;
     }
 }

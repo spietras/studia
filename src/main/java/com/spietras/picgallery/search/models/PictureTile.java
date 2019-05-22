@@ -8,10 +8,10 @@ public class PictureTile
     private final PictureData data;
     private final Image previewImage;
 
-    public PictureTile(PictureData data)
+    public PictureTile(PictureData data, Image previewImage)
     {
         this.data = data;
-        previewImage = new Image(data.getPreviewURL()); //download preview from url
+        this.previewImage = previewImage;
     }
 
     public PictureData getData() { return data; }

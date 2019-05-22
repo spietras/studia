@@ -8,6 +8,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +40,8 @@ public class SearchDataModel
                                                               chunkSize)) //creating new tiles takes some time, so run it in separate threads
         {
             downloadPreviewsMultiThreadExecutor.submit(() -> {
-                PictureTile tile = new PictureTile(data);
+                Image previewImage = new Image(data.getPreviewURL()); //download preview from url
+                PictureTile tile = new PictureTile(data, previewImage);
                 Platform.runLater(() -> pictures.add(tile)); //update list on UI thread
 
                 if(Thread.currentThread().isInterrupted())
@@ -69,4 +71,9 @@ public class SearchDataModel
     }
 
     public String getCurrentQuery() { return provider.getCurrentQuery(); }
+
+    public void shutdown()
+    {
+        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
+    }
 }

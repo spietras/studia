@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--suppress XmlHighlighting -->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
@@ -7,38 +8,30 @@
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
             minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8">
-    <children>
-        <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
-              AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="10.0">
-            <children>
-                <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="580.0" spacing="10.0">
-                    <VBox.margin>
-                        <Insets/>
-                    </VBox.margin>
-                    <children>
-                        <TextField fx:id="inputTextField" alignment="BASELINE_LEFT" promptText="Input keyword"
-                                   HBox.hgrow="ALWAYS">
-                            <HBox.margin>
-                                <Insets/>
-                            </HBox.margin>
-                        </TextField>
-                        <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false"
-                                onAction="#onSearchButtonClicked" text="Search" textAlignment="CENTER"/>
-                    </children>
-                </HBox>
-                <ScrollPane fx:id="scroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
-                    <VBox.margin>
-                        <Insets/>
-                    </VBox.margin>
-                    <content>
-                        <TilePane fx:id="previewTilePane" hgap="10.0" vgap="10.0">
-                            <padding>
-                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                            </padding>
-                        </TilePane>
-                    </content>
-                </ScrollPane>
-            </children>
-        </VBox>
-    </children>
+    <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
+          AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="10.0">
+        <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="580.0" spacing="10.0">
+            <VBox.margin>
+                <Insets/>
+            </VBox.margin>
+            <TextField fx:id="inputTextField" alignment="BASELINE_LEFT" promptText="Input keyword"
+                       HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                    <Insets/>
+                </HBox.margin>
+            </TextField>
+            <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false"
+                    onAction="#onSearchButtonClicked" text="Search" textAlignment="CENTER"/>
+        </HBox>
+        <ScrollPane fx:id="scroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+            <VBox.margin>
+                <Insets/>
+            </VBox.margin>
+            <TilePane fx:id="previewTilePane" hgap="10.0" vgap="10.0">
+                <padding>
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                </padding>
+            </TilePane>
+        </ScrollPane>
+    </VBox>
 </AnchorPane>
