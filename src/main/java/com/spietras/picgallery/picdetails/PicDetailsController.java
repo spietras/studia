@@ -2,6 +2,7 @@ package com.spietras.picgallery.picdetails;
 
 import com.spietras.picgallery.picdetails.models.PicDetailsModel;
 import com.spietras.picgallery.search.SearchController;
+import com.spietras.picgallery.utils.DownloadHelper;
 import com.spietras.picgallery.utils.ExecutorManager;
 import com.spietras.picgallery.utils.ZoomHelper;
 import javafx.application.Platform;
@@ -15,6 +16,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,21 +46,28 @@ public class PicDetailsController
     public void initialize()
     {
         downloadImageSingleThreadExecutor.submit(() -> {
-            Image fullImage = model.getFullImage();
-            Platform.runLater(() -> {
-                fullImageView.setFitHeight(fullImage.getHeight());
-                fullImageView.setFitWidth(fullImage.getWidth());
-                fullImageView.setImage(fullImage);
+            try
+            {
+                Image fullImage = DownloadHelper.downloadImage(model.getData().getLargeImageURL());
+                Platform.runLater(() -> {
+                    fullImageView.setFitHeight(fullImage.getHeight());
+                    fullImageView.setFitWidth(fullImage.getWidth());
+                    fullImageView.setImage(fullImage);
 
-                originalWidth = fullImage.getWidth();
-                stackPane.setOnScroll(this::onScroll);
-            });
+                    originalWidth = fullImage.getWidth();
+                    stackPane.setOnScroll(this::onScroll);
+                });
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
         });
     }
 
-    public void shutdown()
+    public void shutdown(long timeout) throws IllegalThreadStateException
     {
-        ExecutorManager.shutdownExecutor(downloadImageSingleThreadExecutor, 60);
+        ExecutorManager.abortExecutor(downloadImageSingleThreadExecutor, timeout);
     }
 
     @FXML

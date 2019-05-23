@@ -2,6 +2,7 @@ package com.spietras.picgallery.search.models;
 
 import com.spietras.picgallery.models.picdata.PictureData;
 import com.spietras.picgallery.models.picdata.PictureDataProvider;
+import com.spietras.picgallery.utils.DownloadHelper;
 import com.spietras.picgallery.utils.ExecutorManager;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -40,7 +41,16 @@ public class SearchDataModel
                                                               chunkSize)) //creating new tiles takes some time, so run it in separate threads
         {
             downloadPreviewsMultiThreadExecutor.submit(() -> {
-                Image previewImage = new Image(data.getPreviewURL()); //download preview from url
+                Image previewImage; //download preview from url
+                try
+                {
+                    previewImage = DownloadHelper.downloadImage(data.getPreviewURL());
+                }
+                catch(IOException e)
+                {
+                    e.printStackTrace();
+                    return;
+                }
                 PictureTile tile = new PictureTile(data, previewImage);
                 Platform.runLater(() -> pictures.add(tile)); //update list on UI thread
 
@@ -72,8 +82,8 @@ public class SearchDataModel
 
     public String getCurrentQuery() { return provider.getCurrentQuery(); }
 
-    public void shutdown()
+    public void shutdown(long timeout) throws IllegalThreadStateException
     {
-        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
+        ExecutorManager.abortExecutor(downloadPreviewsMultiThreadExecutor, timeout);
     }
 }

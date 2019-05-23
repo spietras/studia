@@ -71,10 +71,12 @@ public class SearchController
 
     public void shutdown()
     {
+        long timeout = 60;
+
         if(currentDetailsController != null)
-            currentDetailsController.shutdown();
-        model.shutdown();
-        ExecutorManager.shutdownExecutor(loadChunkSingleThreadExecutor, 60);
+            currentDetailsController.shutdown(timeout);
+        model.shutdown(timeout);
+        ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor, timeout);
     }
 
     @FXML
@@ -98,10 +100,13 @@ public class SearchController
 
     private synchronized void checkQueryChanged(String newQuery)
     {
+        long timeout = 1;
+
         if(!newQuery.equalsIgnoreCase(currentQuery))
         {
             currentQuery = newQuery;
-            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor); //abort everything related to previous query
+            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor,
+                                          timeout); //abort everything related to previous query
             loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
             model.clearPictures(); //clear all previous pictures
         }
@@ -251,11 +256,13 @@ public class SearchController
 
     public void resumeScene() throws IllegalStateException
     {
+        long timeout = 60;
+
         if(searchParent == null)
             throw new IllegalStateException("Can't resume scene when parent is not set");
 
         stage.getScene().setRoot(searchParent);
-        currentDetailsController.shutdown(); //clean everything in previous scene
+        currentDetailsController.shutdown(timeout); //clean everything in previous scene
         currentDetailsController = null;
     }
 }
