@@ -12,10 +12,12 @@ import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
@@ -142,9 +144,10 @@ public class SearchController
         double contentWidth = previewTilePane.getWidth();
         int tilesInRow = (int) (contentWidth / (previewTilePane.getTileWidth() + previewTilePane.getHgap()));
         int rows = (int) Math.ceil((double) previewTilePane.getChildren().size() / tilesInRow);
-        double contentHeight = rows * (previewTilePane.getTileHeight() + previewTilePane.getVgap());
+        double singleRowSize = previewTilePane.getTileHeight() + previewTilePane.getVgap();
+        double contentHeight = rows * singleRowSize;
 
-        return contentHeight > scroll.getHeight();
+        return contentHeight > scroll.getHeight() + singleRowSize;
     }
 
     private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
@@ -171,12 +174,27 @@ public class SearchController
 
     private void addNewTileToView(PictureTile p)
     {
+        double tileHeight = 80.0;
+        previewTilePane.getChildren().add(createTilePreview(p, tileHeight));
+    }
+
+    private ImageView createTilePreview(PictureTile p, double tileHeight)
+    {
         ImageView preview = new ImageView(p.getPreviewImage());
-        preview.setFitHeight(80);
+        preview.setFitHeight(tileHeight);
         preview.setPreserveRatio(true);
+        preview.setViewport(createTileViewport(preview.getImage()));
         preview.addEventHandler(MouseEvent.MOUSE_CLICKED,
                                 event -> showDetails(p.getData()));
-        previewTilePane.getChildren().add(preview);
+        return preview;
+    }
+
+    private Rectangle2D createTileViewport(Image previewImage)
+    {
+        double smallerDimension = Math.min(previewImage.getWidth(), previewImage.getHeight());
+        double viewportStartX = (previewImage.getWidth() - smallerDimension) / 2;
+        double viewportStartY = (previewImage.getHeight() - smallerDimension) / 2;
+        return new Rectangle2D(viewportStartX, viewportStartY, smallerDimension, smallerDimension);
     }
 
     private void removeTileFromView(PictureTile p)
@@ -194,13 +212,19 @@ public class SearchController
 
     private void scrollVerticalChanged(Number newValue)
     {
-        if(newValue.doubleValue() == scroll.getVmax()) //when scrolled to end, load new chunk
+        double scrollThreshold = 0.75;
+
+        if(newValue.doubleValue() >= scrollThreshold * scroll.getVmax()) //when scrolled to end, load new chunk
             searchAction(currentQuery, false);
     }
 
     private void areaResized()
     {
-        Platform.runLater(() -> searchAction(currentQuery, true));
+        Platform.runLater(() -> {
+            if(contentFilledViewport())
+                return;
+            searchAction(currentQuery, true);
+        });
     }
 
     private void showDetails(PictureData data)
