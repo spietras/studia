@@ -35,6 +35,12 @@ public class PicDetailsController
     private StackPane stackPane;
     @FXML
     private ImageView fullImageView;
+    @FXML
+    private Text statsText;
+    @FXML
+    private Text authorText;
+    @FXML
+    private Text tagsText;
 
     private double originalWidth;
 
@@ -47,6 +53,9 @@ public class PicDetailsController
     @FXML
     public void initialize()
     {
+        statsText.setText("");
+        authorText.setText("");
+        tagsText.setText("");
         downloadAndSetPicture();
     }
 
@@ -56,7 +65,10 @@ public class PicDetailsController
             try
             {
                 Image fullImage = model.getFullImage();
-                Platform.runLater(() -> setupImageView(fullImage));
+                Platform.runLater(() -> {
+                    setupImageView(fullImage);
+                    setupTexts();
+                });
             }
             catch(IOException e)
             {
@@ -73,6 +85,15 @@ public class PicDetailsController
 
         originalWidth = image.getWidth();
         stackPane.setOnScroll(this::onScroll);
+    }
+
+    private void setupTexts()
+    {
+        statsText.setText(
+                "Likes: " + model.getData().getLikes() + ", views: " + model.getData().getViews() + ", downloads: " +
+                model.getData().getDownloads());
+        authorText.setText("Author: " + model.getData().getUser());
+        tagsText.setText("Tags: " + model.getData().getTags());
     }
 
     private void handleImageLoadingException(IOException e)
