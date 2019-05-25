@@ -4,6 +4,7 @@ import com.spietras.picgallery.picdetails.models.PicDetailsModel;
 import com.spietras.picgallery.search.SearchController;
 import com.spietras.picgallery.utils.ExecutorHelper;
 import com.spietras.picgallery.utils.FXHelper;
+import com.spietras.picgallery.utils.ImageSaveHelper;
 import com.spietras.picgallery.utils.ZoomHelper;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -18,6 +19,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,6 +31,8 @@ public class PicDetailsController
     private final ExecutorService downloadImageSingleThreadExecutor = Executors.newSingleThreadExecutor();
     @FXML
     private Button backButton;
+    @FXML
+    private Button saveButton;
     @FXML
     private ScrollPane scrollPane;
     @FXML
@@ -68,6 +72,7 @@ public class PicDetailsController
                 Platform.runLater(() -> {
                     setupImageView(fullImage);
                     setupTexts();
+                    saveButton.setDisable(false);
                 });
             }
             catch(IOException e)
@@ -144,5 +149,36 @@ public class PicDetailsController
 
             e.consume(); //consume event so that scrollpane can't treat it as scroll
         }
+    }
+
+    @FXML
+    void saveButtonClicked(ActionEvent event)
+    {
+        saveImage();
+    }
+
+    private void saveImage()
+    {
+        String fileFormat = "png";
+
+        File selectedFile = ImageSaveHelper.chooseFile(fileFormat);
+        if(selectedFile == null)
+            return;
+
+        new Thread(() -> {
+            try
+            {
+                ImageSaveHelper.saveImage(model.getFullImage(), selectedFile, fileFormat);
+                Platform.runLater(() -> FXHelper.showInfoNotification("Success",
+                                                                      "Successfully saved file to:\n" +
+                                                                      selectedFile.getAbsolutePath(),
+                                                                      5000));
+            }
+            catch(IOException e)
+            {
+                Platform.runLater(
+                        () -> FXHelper.showErrorNotification("Error", "Couldn't save file\n" + e.getMessage(), 5000));
+            }
+        }).start();
     }
 }

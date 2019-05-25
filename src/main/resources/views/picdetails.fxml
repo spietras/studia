@@ -30,6 +30,8 @@
             </padding>
             <Button fx:id="backButton" alignment="CENTER" mnemonicParsing="false" onAction="#goBack"
                     text="Go back"/>
+            <Button fx:id="saveButton" alignment="CENTER" disable="true" mnemonicParsing="false"
+                    onAction="#saveButtonClicked" text="Save" textAlignment="CENTER"/>
             <VBox alignment="CENTER_RIGHT" fillWidth="false" HBox.hgrow="ALWAYS">
                 <Text fx:id="statsText" strokeType="OUTSIDE" strokeWidth="0.0" text="Stats"
                       textAlignment="CENTER"/>
