@@ -6,7 +6,10 @@ import com.spietras.picgallery.picdetails.PicDetailsController;
 import com.spietras.picgallery.picdetails.models.PicDetailsModel;
 import com.spietras.picgallery.search.models.PictureTile;
 import com.spietras.picgallery.search.models.SearchDataModel;
-import com.spietras.picgallery.utils.ExecutorManager;
+import com.spietras.picgallery.utils.ConnectionManager;
+import com.spietras.picgallery.utils.DownloadManager;
+import com.spietras.picgallery.utils.ExecutorHelper;
+import com.spietras.picgallery.utils.FXHelper;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
@@ -19,13 +22,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 public class SearchController
 {
@@ -39,7 +42,9 @@ public class SearchController
     private TilePane previewTilePane;
     @FXML
     private ScrollPane scroll;
-    private ExecutorService loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService loadChunkSingleThreadExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
+    private ExecutorService scrollSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
+    private ExecutorService resizeSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
 
     private volatile String currentQuery = null;
 
@@ -76,17 +81,19 @@ public class SearchController
         if(currentDetailsController != null)
             currentDetailsController.shutdown(timeout);
         model.shutdown(timeout);
-        ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor, timeout);
+        ExecutorHelper.abortExecutor(loadChunkSingleThreadExecutor, timeout);
+        ExecutorHelper.abortExecutor(scrollSingleExecutor, timeout);
+        ExecutorHelper.abortExecutor(resizeSingleExecutor, timeout);
     }
 
     @FXML
     void onSearchButtonClicked(ActionEvent event)
     {
         String inputText = inputTextField.getText();
-        searchAction(inputText, false);
+        searchAction(inputText);
     }
 
-    private void searchAction(String query, boolean unfilledOnly)
+    private void searchAction(String query)
     {
         if(query == null || query.isEmpty())
             return;
@@ -95,7 +102,7 @@ public class SearchController
 
         checkQueryChanged(query); //check if query changed
 
-        loadChunkSingleThreadExecutor.submit(() -> loadPictures(query, unfilledOnly));
+        loadChunkSingleThreadExecutor.submit(() -> loadPictures(query));
     }
 
     private synchronized void checkQueryChanged(String newQuery)
@@ -105,54 +112,91 @@ public class SearchController
         if(!newQuery.equalsIgnoreCase(currentQuery))
         {
             currentQuery = newQuery;
-            ExecutorManager.abortExecutor(loadChunkSingleThreadExecutor,
-                                          timeout); //abort everything related to previous query
-            loadChunkSingleThreadExecutor = Executors.newSingleThreadExecutor();
+            try
+            {
+                ExecutorHelper.abortExecutor(loadChunkSingleThreadExecutor,
+                                             timeout); //abort everything related to previous query
+            }
+            catch(IllegalThreadStateException e) { e.printStackTrace(); }
+            try
+            {
+                ExecutorHelper.abortExecutor(scrollSingleExecutor,
+                                             timeout); //abort everything related to previous query
+            }
+            catch(IllegalThreadStateException e) { e.printStackTrace(); }
+            try
+            {
+                ExecutorHelper.abortExecutor(resizeSingleExecutor,
+                                             timeout); //abort everything related to previous query
+            }
+            catch(IllegalThreadStateException e) { e.printStackTrace(); }
+
+            loadChunkSingleThreadExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
+            scrollSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
+            resizeSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
             model.clearPictures(); //clear all previous pictures
         }
     }
 
-    private void loadPictures(String query, boolean unfilledOnly)
+    private void loadPictures(String query)
     {
         int CHUNK_SIZE = 10;
 
         try
         {
-            if(unfilledOnly && contentFilledViewport())
-                return;
-
             model.loadPicturesChunk(query, CHUNK_SIZE);
-            Platform.runLater(() -> {
-                if(!model.endOfPictures().getValue())
-                    searchAction(query, true);
-            });
+
+            final FutureTask<Boolean> getEndOfPicturesTask = new FutureTask<>(() -> model.endOfPictures().getValue());
+            Platform.runLater(getEndOfPicturesTask); //get endOfPictures value on UI thread
+            if(!getEndOfPicturesTask.get() && !contentFilledViewport())
+                loadPictures(query);
         }
         catch(PixabayRateLimitException e)
         {
-            e.printStackTrace();
-            //TODO: handle exceeding rate limit
+            handleRateLimitException(e);
         }
         catch(IOException e)
         {
+            handleLoadException(e);
+        }
+        catch(InterruptedException | ExecutionException e)
+        {
             e.printStackTrace();
-            //TODO: handle other exceptions
         }
         finally
         {
             searchButton.setDisable(false); //unlock button after loading
         }
-
     }
 
-    private boolean contentFilledViewport()
+    private void handleRateLimitException(PixabayRateLimitException e)
     {
-        double contentWidth = previewTilePane.getWidth();
-        int tilesInRow = (int) (contentWidth / (previewTilePane.getTileWidth() + previewTilePane.getHgap()));
-        int rows = (int) Math.ceil((double) previewTilePane.getChildren().size() / tilesInRow);
-        double singleRowSize = previewTilePane.getTileHeight() + previewTilePane.getVgap();
-        double contentHeight = rows * singleRowSize;
+        Platform.runLater(() -> FXHelper.showErrorDialog("Error",
+                                                         "Can't load pictures.\n" +
+                                                         "Rate limit exceeded for query: " + e.getQuery() +
+                                                         ", limit: " + e.getLimit() + "\n" +
+                                                         "Reset time: " + e.getReset() + " seconds"));
+    }
 
-        return contentHeight > scroll.getHeight() + singleRowSize;
+    private void handleLoadException(IOException e)
+    {
+        Platform.runLater(
+                () -> FXHelper.showErrorNotification("Error", "Can't load pictures.\n" + e.getMessage(), 5000));
+    }
+
+    private boolean contentFilledViewport() throws ExecutionException, InterruptedException
+    {
+        final FutureTask<Boolean> getContentFilled = new FutureTask<>(() -> {
+            double contentWidth = previewTilePane.getWidth();
+            int tilesInRow = (int) (contentWidth / (previewTilePane.getTileWidth() + previewTilePane.getHgap()));
+            int rows = (int) Math.ceil((double) previewTilePane.getChildren().size() / tilesInRow);
+            double singleRowSize = previewTilePane.getTileHeight() + previewTilePane.getVgap();
+            double contentHeight = rows * singleRowSize;
+
+            return contentHeight > scroll.getHeight() + singleRowSize;
+        });
+        Platform.runLater(getContentFilled);
+        return getContentFilled.get();
     }
 
     private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
@@ -189,8 +233,7 @@ public class SearchController
         preview.setFitHeight(tileHeight);
         preview.setPreserveRatio(true);
         preview.setViewport(createTileViewport(preview.getImage()));
-        preview.addEventHandler(MouseEvent.MOUSE_CLICKED,
-                                event -> showDetails(p.getData()));
+        preview.setOnMouseClicked(e -> showDetails(p.getData()));
         return preview;
     }
 
@@ -210,9 +253,7 @@ public class SearchController
     private void onPicturesEndedChanged(Boolean newValue)
     {
         if(newValue)
-        {
-            //TODO
-        }
+            FXHelper.showInfoNotification("", "No more pictures", 2000);
     }
 
     private void scrollVerticalChanged(Number newValue)
@@ -220,21 +261,47 @@ public class SearchController
         double scrollThreshold = 0.75;
 
         if(newValue.doubleValue() >= scrollThreshold * scroll.getVmax()) //when scrolled to end, load new chunk
-            searchAction(currentQuery, false);
+        {
+            scrollSingleExecutor.submit(() -> {
+                searchAction(currentQuery);
+                try
+                {
+                    Thread.sleep(500);
+                }
+                catch(InterruptedException ignored) { }
+            });
+        }
     }
 
     private void areaResized()
     {
-        Platform.runLater(() -> {
-            if(contentFilledViewport())
-                return;
-            searchAction(currentQuery, true);
+        resizeSingleExecutor.submit(() -> {
+            try
+            {
+                if(currentQuery == null || contentFilledViewport())
+                    return;
+
+                if(Thread.currentThread().isInterrupted())
+                    return;
+
+                searchAction(currentQuery);
+            }
+            catch(ExecutionException | InterruptedException e) { e.printStackTrace(); }
+            finally
+            {
+                try
+                {
+                    Thread.sleep(500);
+                }
+                catch(InterruptedException ignored) { }
+            }
         });
     }
 
     private void showDetails(PictureData data)
     {
-        PicDetailsModel model = new PicDetailsModel(data);
+        DownloadManager dm = new DownloadManager(new ConnectionManager(5000));
+        PicDetailsModel model = new PicDetailsModel(data, dm);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/picdetails.fxml"));
         PicDetailsController controller = new PicDetailsController(this, model);
@@ -256,13 +323,17 @@ public class SearchController
 
     public void resumeScene() throws IllegalStateException
     {
-        long timeout = 60;
+        long timeout = 1;
 
         if(searchParent == null)
             throw new IllegalStateException("Can't resume scene when parent is not set");
 
         stage.getScene().setRoot(searchParent);
-        currentDetailsController.shutdown(timeout); //clean everything in previous scene
+        try
+        {
+            currentDetailsController.shutdown(timeout); //clean everything in previous scene
+        }
+        catch(IllegalThreadStateException ignored) { }
         currentDetailsController = null;
     }
 }

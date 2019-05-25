@@ -2,19 +2,21 @@ package com.spietras.picgallery.picdetails;
 
 import com.spietras.picgallery.picdetails.models.PicDetailsModel;
 import com.spietras.picgallery.search.SearchController;
-import com.spietras.picgallery.utils.DownloadHelper;
-import com.spietras.picgallery.utils.ExecutorManager;
+import com.spietras.picgallery.utils.ExecutorHelper;
+import com.spietras.picgallery.utils.FXHelper;
 import com.spietras.picgallery.utils.ZoomHelper;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -45,29 +47,53 @@ public class PicDetailsController
     @FXML
     public void initialize()
     {
+        downloadAndSetPicture();
+    }
+
+    private void downloadAndSetPicture()
+    {
         downloadImageSingleThreadExecutor.submit(() -> {
             try
             {
-                Image fullImage = DownloadHelper.downloadImage(model.getData().getLargeImageURL());
-                Platform.runLater(() -> {
-                    fullImageView.setFitHeight(fullImage.getHeight());
-                    fullImageView.setFitWidth(fullImage.getWidth());
-                    fullImageView.setImage(fullImage);
-
-                    originalWidth = fullImage.getWidth();
-                    stackPane.setOnScroll(this::onScroll);
-                });
+                Image fullImage = model.getFullImage();
+                Platform.runLater(() -> setupImageView(fullImage));
             }
             catch(IOException e)
             {
-                e.printStackTrace();
+                Platform.runLater(() -> handleImageLoadingException(e));
             }
         });
     }
 
+    private void setupImageView(Image image)
+    {
+        fullImageView.setFitHeight(image.getHeight());
+        fullImageView.setFitWidth(image.getWidth());
+        fullImageView.setImage(image);
+
+        originalWidth = image.getWidth();
+        stackPane.setOnScroll(this::onScroll);
+    }
+
+    private void handleImageLoadingException(IOException e)
+    {
+        fullImageView.setDisable(true); //disable imageview so we can't display text instead
+        Text loadText = new Text("Couldn't load picture.\nClick here to load again");
+        stackPane.getChildren().add(loadText);
+        stackPane.setOnMouseClicked(event -> loadAgain(loadText));
+        FXHelper.showErrorNotification("Error", "Couldn't load picture.\n" + e.getMessage(), 2000);
+    }
+
+    private void loadAgain(Node loadNode)
+    {
+        stackPane.getChildren().remove(loadNode);
+        fullImageView.setDisable(false);
+        downloadAndSetPicture();
+    }
+
     public void shutdown(long timeout) throws IllegalThreadStateException
     {
-        ExecutorManager.abortExecutor(downloadImageSingleThreadExecutor, timeout);
+        ExecutorHelper.abortExecutor(downloadImageSingleThreadExecutor, timeout);
     }
 
     @FXML
@@ -79,7 +105,7 @@ public class PicDetailsController
         }
         catch(IllegalStateException e)
         {
-            e.printStackTrace();
+            FXHelper.showErrorNotification("Error", "Can't go back.\n" + e.getMessage(), 2000);
         }
     }
 

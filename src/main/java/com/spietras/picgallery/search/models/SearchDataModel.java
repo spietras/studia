@@ -2,8 +2,8 @@ package com.spietras.picgallery.search.models;
 
 import com.spietras.picgallery.models.picdata.PictureData;
 import com.spietras.picgallery.models.picdata.PictureDataProvider;
-import com.spietras.picgallery.utils.DownloadHelper;
-import com.spietras.picgallery.utils.ExecutorManager;
+import com.spietras.picgallery.utils.DownloadManager;
+import com.spietras.picgallery.utils.ExecutorHelper;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -21,8 +21,13 @@ public class SearchDataModel
     private final BooleanProperty picturesEnded = new SimpleBooleanProperty(false);
     private final PictureDataProvider provider;
     private ExecutorService downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
+    private final DownloadManager downloadManager;
 
-    public SearchDataModel(PictureDataProvider provider) { this.provider = provider; }
+    public SearchDataModel(PictureDataProvider provider, DownloadManager downloadManager)
+    {
+        this.provider = provider;
+        this.downloadManager = downloadManager;
+    }
 
     public ObservableList<PictureTile> getPictures() { return pictures; }
 
@@ -44,11 +49,10 @@ public class SearchDataModel
                 Image previewImage; //download preview from url
                 try
                 {
-                    previewImage = DownloadHelper.downloadImage(data.getPreviewURL());
+                    previewImage = downloadManager.downloadImage(data.getPreviewURL());
                 }
                 catch(IOException e)
                 {
-                    e.printStackTrace();
                     return;
                 }
                 PictureTile tile = new PictureTile(data, previewImage);
@@ -59,7 +63,7 @@ public class SearchDataModel
             });
         }
 
-        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60); //wait for threads to finish
+        ExecutorHelper.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60); //wait for threads to finish
         downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
 
         if(provider.dataEnded())
@@ -76,7 +80,7 @@ public class SearchDataModel
             pictures.clear();
             picturesEnded.setValue(false);
         });
-        ExecutorManager.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
+        ExecutorHelper.shutdownExecutor(downloadPreviewsMultiThreadExecutor, 60);
         downloadPreviewsMultiThreadExecutor = Executors.newCachedThreadPool();
     }
 
@@ -84,6 +88,6 @@ public class SearchDataModel
 
     public void shutdown(long timeout) throws IllegalThreadStateException
     {
-        ExecutorManager.abortExecutor(downloadPreviewsMultiThreadExecutor, timeout);
+        ExecutorHelper.abortExecutor(downloadPreviewsMultiThreadExecutor, timeout);
     }
 }

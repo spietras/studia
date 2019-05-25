@@ -16,26 +16,19 @@ import static org.mockito.Mockito.*;
 
 class PixabayPictureDataProviderTest
 {
+    private final String dummyQuery = "flowers";
+
     @Test
     void testLoadPicturesDataSample() throws IOException
     {
         //is it returning the data i provided
 
-        String query = "flowers";
         List<PixabayPictureData> expected = Collections.nCopies(10, new PixabayPictureData());
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotalHits()).thenReturn(10);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 10);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
-        List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 10);
+        List<PixabayPictureData> data = provider.loadPicturesDataChunk(dummyQuery, 10);
 
         assertEquals(expected, data);
         assertTrue(provider.dataEnded());
@@ -46,22 +39,13 @@ class PixabayPictureDataProviderTest
     {
         //does it load all data and sets ended flag
 
-        String query = "flowers";
         List<PixabayPictureData> expected = Collections.nCopies(1, new PixabayPictureData());
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotal()).thenReturn(1);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 1);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
         assertFalse(provider.dataEnded());
-        provider.loadPicturesDataChunk(query, 10);
+        provider.loadPicturesDataChunk(dummyQuery, 10);
         assertTrue(provider.dataEnded());
     }
 
@@ -73,15 +57,7 @@ class PixabayPictureDataProviderTest
         String query = "pictures of me being happy";
         List<PixabayPictureData> expected = Collections.emptyList();
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotal()).thenReturn(0);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 0);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
 
@@ -116,23 +92,14 @@ class PixabayPictureDataProviderTest
     {
         //does it return proper data across chunks
 
-        String query = "flowers";
         List<PixabayPictureData> expected = Collections.nCopies(10, new PixabayPictureData());
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotalHits()).thenReturn(10);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 10);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
-        List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 5);
+        List<PixabayPictureData> data = provider.loadPicturesDataChunk(dummyQuery, 5);
         assertNotEquals(expected, data);
-        data.addAll(provider.loadPicturesDataChunk(query, 5));
+        data.addAll(provider.loadPicturesDataChunk(dummyQuery, 5));
         assertEquals(expected, data);
     }
 
@@ -141,22 +108,13 @@ class PixabayPictureDataProviderTest
     {
         //does it return proper data when data quantity is less than sum of chunk sizes
 
-        String query = "flowers";
         List<PixabayPictureData> expected = Collections.nCopies(17, new PixabayPictureData());
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotalHits()).thenReturn(17);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 17);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
-        List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 10);
-        data.addAll(provider.loadPicturesDataChunk(query, 10));
+        List<PixabayPictureData> data = provider.loadPicturesDataChunk(dummyQuery, 10);
+        data.addAll(provider.loadPicturesDataChunk(dummyQuery, 10));
 
         assertEquals(expected, data);
         assertTrue(provider.dataEnded());
@@ -237,30 +195,37 @@ class PixabayPictureDataProviderTest
     {
         //is it returning the data i provided
 
-        String query = "flowers";
         List<PixabayPictureData> expected = Collections.nCopies(10, new PixabayPictureData());
 
-        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
-        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
-                Call.class);
-        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
-        when(dummyResults.getHits()).thenReturn(expected);
-        when(dummyResults.getTotalHits()).thenReturn(10);
-        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
-        when(dummyCall.execute()).thenReturn(dummyResponse);
-        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        PixabayEndpointAPI service = mockPixabayService(expected, 10);
 
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(service);
-        List<PixabayPictureData> data = provider.loadPicturesDataChunk(query, 5);
+        List<PixabayPictureData> data = provider.loadPicturesDataChunk(dummyQuery, 5);
 
         assertEquals(expected.subList(0, 5), data);
         assertFalse(provider.dataEnded());
 
         provider.clearCache();
 
-        data = provider.loadPicturesDataChunk(query, 5);
+        data = provider.loadPicturesDataChunk(dummyQuery, 5);
 
         assertEquals(expected.subList(0, 5), data);
         assertFalse(provider.dataEnded());
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private PixabayEndpointAPI mockPixabayService(List<PixabayPictureData> data, int dataCount) throws IOException
+    {
+        PixabayEndpointAPI service = mock(PixabayEndpointAPI.class);
+        @SuppressWarnings("unchecked") Call<PixabaySearchResult> dummyCall = (Call<PixabaySearchResult>) mock(
+                Call.class);
+        PixabaySearchResult dummyResults = mock(PixabaySearchResult.class);
+        doReturn(data).when(dummyResults).getHits();
+        doReturn(dataCount).when(dummyResults).getTotalHits();
+        Response<PixabaySearchResult> dummyResponse = Response.success(dummyResults);
+        when(dummyCall.execute()).thenReturn(dummyResponse);
+        doReturn(dummyResponse).when(dummyCall).execute();
+        when(service.searchPictures(anyString(), anyInt(), anyInt())).thenReturn(dummyCall);
+        return service;
     }
 }

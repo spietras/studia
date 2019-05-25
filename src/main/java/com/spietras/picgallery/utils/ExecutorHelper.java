@@ -2,11 +2,9 @@ package com.spietras.picgallery.utils;
 
 import javafx.application.Platform;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-public class ExecutorManager
+public class ExecutorHelper
 {
     /**
      * End ExecutorService peacefully
@@ -48,7 +46,7 @@ public class ExecutorManager
         }
         catch(InterruptedException e)
         {
-            e.printStackTrace();
+            throw new IllegalThreadStateException("Some thread(s) still running");
         }
     }
 
@@ -60,5 +58,11 @@ public class ExecutorManager
         Semaphore semaphore = new Semaphore(0);
         Platform.runLater(semaphore::release);
         semaphore.acquire();
+    }
+
+    public static ExecutorService newRejectingSingleThreadExecutor()
+    {
+        return new ThreadPoolExecutor(1, 1, 1L, TimeUnit.SECONDS, new SynchronousQueue<>(),
+                                      new ThreadPoolExecutor.DiscardPolicy());
     }
 }

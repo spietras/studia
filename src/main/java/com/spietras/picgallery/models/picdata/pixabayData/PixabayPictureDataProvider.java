@@ -11,13 +11,13 @@ import java.util.*;
 public class PixabayPictureDataProvider implements PictureDataProvider
 {
     private final Queue<PixabayPictureData> cachedData = new LinkedList<>();
+    private final PixabayEndpointAPI pixabayService;
     private int currentPage = 0;
     private int totalHits;
     private int currentHits = 0;
     private boolean dataEnded = false;
     private boolean firstCall = true;
     private String currentQuery = null;
-    private final PixabayEndpointAPI pixabayService;
 
     public PixabayPictureDataProvider(PixabayEndpointAPI service)
     {
@@ -71,26 +71,38 @@ public class PixabayPictureDataProvider implements PictureDataProvider
 
         try
         {
-            for(int i = 0; i < chunkSize; i++) //we need to return chunkSize of elements
-            {
-                if(cachedData.size() == 0 && handleEmptyQueue(query)) //cache ended
-                    return data;
-
-                PixabayPictureData polled = cachedData.poll();
-                if(polled != null) //is queue is empty, don't add nulls (useful when there is less data than chunk size)
-                    data.add(polled);
-            }
+            if(pollData(data, query, chunkSize))
+                return data;
         }
         catch(InterruptedIOException e) //if loading was interrupted, try to restore state
         {
-            e.printStackTrace();
-            firstCall = wasFirstCall;
-            currentQuery = previousQuery;
-            cachedData.addAll(data);
-            data.clear();
+            handleInterrupt(data, wasFirstCall, previousQuery);
         }
 
         return data;
+    }
+
+    private boolean pollData(List<PixabayPictureData> results, String query, int chunkSize) throws IOException
+    {
+        for(int i = 0; i < chunkSize; i++) //we need to return chunkSize of elements
+        {
+            if(cachedData.size() == 0 && handleEmptyQueue(query)) //cache ended
+                return true;
+
+            PixabayPictureData polled = cachedData.poll();
+            if(polled != null) //is queue is empty, don't add nulls (useful when there is less data than chunk size)
+                results.add(polled);
+        }
+
+        return false;
+    }
+
+    private void handleInterrupt(List<PixabayPictureData> gatheredData, boolean wasFirstCall, String previousQuery)
+    {
+        firstCall = wasFirstCall;
+        currentQuery = previousQuery;
+        cachedData.addAll(gatheredData);
+        gatheredData.clear();
     }
 
     /**
@@ -115,26 +127,12 @@ public class PixabayPictureDataProvider implements PictureDataProvider
     {
         int perPage = 50;
 
-        Call<PixabaySearchResult> call;
-        Response<PixabaySearchResult> response;
-
-        try
-        {
-            call = pixabayService.searchPictures(query, ++currentPage, perPage);
-            response = call.execute();
-        }
-        catch(InterruptedIOException e)
-        {
-            --currentPage;
-            throw e;
-        }
+        Call<PixabaySearchResult> call = pixabayService.searchPictures(query, currentPage + 1, perPage);
+        Response<PixabaySearchResult> response = call.execute();
 
         checkResponse(response, query);
 
-        if(firstCall)
-            totalHits = response.body().getTotalHits();
-
-        currentHits += response.body().getHits().size();
+        updateStats(response);
 
         return response.body().getHits();
     }
@@ -149,5 +147,16 @@ public class PixabayPictureDataProvider implements PictureDataProvider
             throw new IOException("Unsuccessful response from Pixabay server: " + response.errorBody().string());
         else if(response.body() == null)
             throw new IOException("Response is successful but the body is null for some reason idk ;(");
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private void updateStats(Response<PixabaySearchResult> response)
+    {
+        currentPage++;
+
+        if(firstCall)
+            totalHits = response.body().getTotalHits();
+
+        currentHits += response.body().getHits().size();
     }
 }
