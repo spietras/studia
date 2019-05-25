@@ -11,6 +11,7 @@ import com.spietras.picgallery.utils.DownloadManager;
 import com.spietras.picgallery.utils.ExecutorHelper;
 import com.spietras.picgallery.utils.FXHelper;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -65,6 +66,8 @@ public class SearchController
         scroll.vvalueProperty().addListener(
                 (observable, oldValue, newValue) -> scrollVerticalChanged(newValue));
         scroll.layoutBoundsProperty().addListener((observableValue, bounds, t1) -> areaResized());
+        inputTextField.textProperty().addListener(this::inputTextChanged);
+        searchButton.setDisable(true);
     }
 
     /**
@@ -129,6 +132,7 @@ public class SearchController
             return;
 
         searchButton.setDisable(true); //to prevent spamming
+        inputTextField.setEditable(false);
 
         checkQueryChanged(query); //check if query changed
 
@@ -167,8 +171,10 @@ public class SearchController
                 return;
 
             if(!FXHelper.runOnUIAndWait(() -> model.endOfPictures().getValue()))
+            {
                 if(isScrollOnEnd() || !contentFilledViewport())
                     loadPictures(query);
+            }
         }
         catch(PixabayRateLimitException e)
         {
@@ -184,7 +190,16 @@ public class SearchController
         }
         finally
         {
-            searchButton.setDisable(false); //unlock button after loading
+            try
+            {
+                if(FXHelper.runOnUIAndWait(() -> model.endOfPictures().getValue()))
+                    searchButton.setDisable(true);
+                else
+                    searchButton.setDisable(false);
+
+                inputTextField.setEditable(true);
+            }
+            catch(ExecutionException | InterruptedException ignored) { }
         }
     }
 
@@ -328,6 +343,16 @@ public class SearchController
                 catch(InterruptedException ignored) { }
             }
         });
+    }
+
+    private void inputTextChanged(ObservableValue<? extends String> observable, String oldValue, String newValue)
+    {
+        if(newValue == null || newValue.isEmpty())
+            searchButton.setDisable(true);
+        else if(model.endOfPictures().getValue() && newValue.equals(currentQuery))
+            searchButton.setDisable(true);
+        else
+            searchButton.setDisable(false);
     }
 
     /**
