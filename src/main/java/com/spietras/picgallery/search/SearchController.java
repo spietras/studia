@@ -28,7 +28,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
 
 public class SearchController
 {
@@ -63,27 +62,58 @@ public class SearchController
         model.getPictures().addListener(this::onPicturesChanged);
         model.endOfPictures().addListener(
                 (observable1, oldValue1, newValue1) -> onPicturesEndedChanged(newValue1));
-        scroll.setVvalue(scroll.getVmax());
         scroll.vvalueProperty().addListener(
                 (observable, oldValue, newValue) -> scrollVerticalChanged(newValue));
         scroll.layoutBoundsProperty().addListener((observableValue, bounds, t1) -> areaResized());
     }
 
+    /**
+     * Fetches Parent from scene (because parent is set after scene is passed to constructor)
+     */
     public void fetchParent()
     {
         searchParent = stage.getScene().getRoot();
     }
 
+    /**
+     * Shuts down and cleans everything (particularly background threads)
+     */
     public void shutdown()
     {
-        long timeout = 60;
+        long timeout = 10;
 
-        if(currentDetailsController != null)
-            currentDetailsController.shutdown(timeout);
-        model.shutdown(timeout);
-        ExecutorHelper.abortExecutor(loadChunkSingleThreadExecutor, timeout);
-        ExecutorHelper.abortExecutor(scrollSingleExecutor, timeout);
-        ExecutorHelper.abortExecutor(resizeSingleExecutor, timeout);
+        try
+        {
+            if(currentDetailsController != null)
+                currentDetailsController.shutdown(timeout);
+            model.shutdown(timeout);
+        }
+        catch(IllegalThreadStateException ignored) { }
+        abortExecutors(timeout);
+    }
+
+    /**
+     * Aborts all executors
+     *
+     * @param timeout how many seconds to wait on each executor to shut down
+     */
+    private void abortExecutors(long timeout)
+    {
+        try
+        {
+            ExecutorHelper.abortExecutor(loadChunkSingleThreadExecutor, timeout);
+        }
+        catch(IllegalThreadStateException ignored) { }
+        try
+        {
+            ExecutorHelper.abortExecutor(scrollSingleExecutor, timeout);
+        }
+        catch(IllegalThreadStateException ignored) { }
+        try
+        {
+            ExecutorHelper.abortExecutor(resizeSingleExecutor, timeout);
+        }
+        catch(IllegalThreadStateException ignored) { }
     }
 
     @FXML
@@ -105,6 +135,9 @@ public class SearchController
         loadChunkSingleThreadExecutor.submit(() -> loadPictures(query));
     }
 
+    /**
+     * Checks if query is different from previous one and if it is cleans everything up, so we have fresh start for new query
+     */
     private synchronized void checkQueryChanged(String newQuery)
     {
         long timeout = 1;
@@ -112,32 +145,17 @@ public class SearchController
         if(!newQuery.equalsIgnoreCase(currentQuery))
         {
             currentQuery = newQuery;
-            try
-            {
-                ExecutorHelper.abortExecutor(loadChunkSingleThreadExecutor,
-                                             timeout); //abort everything related to previous query
-            }
-            catch(IllegalThreadStateException e) { e.printStackTrace(); }
-            try
-            {
-                ExecutorHelper.abortExecutor(scrollSingleExecutor,
-                                             timeout); //abort everything related to previous query
-            }
-            catch(IllegalThreadStateException e) { e.printStackTrace(); }
-            try
-            {
-                ExecutorHelper.abortExecutor(resizeSingleExecutor,
-                                             timeout); //abort everything related to previous query
-            }
-            catch(IllegalThreadStateException e) { e.printStackTrace(); }
-
+            abortExecutors(timeout);
             loadChunkSingleThreadExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
             scrollSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
             resizeSingleExecutor = ExecutorHelper.newRejectingSingleThreadExecutor();
-            model.clearPictures(); //clear all previous pictures
+            Platform.runLater(model::clearPictures); //clear all previous pictures
         }
     }
 
+    /**
+     * Loads pictures until they filled viewport and we don't scroll to the end
+     */
     private void loadPictures(String query)
     {
         int CHUNK_SIZE = 10;
@@ -145,11 +163,12 @@ public class SearchController
         try
         {
             model.loadPicturesChunk(query, CHUNK_SIZE);
+            if(Thread.currentThread().isInterrupted())
+                return;
 
-            final FutureTask<Boolean> getEndOfPicturesTask = new FutureTask<>(() -> model.endOfPictures().getValue());
-            Platform.runLater(getEndOfPicturesTask); //get endOfPictures value on UI thread
-            if(!getEndOfPicturesTask.get() && !contentFilledViewport())
-                loadPictures(query);
+            if(!FXHelper.runOnUIAndWait(() -> model.endOfPictures().getValue()))
+                if(isScrollOnEnd() || !contentFilledViewport())
+                    loadPictures(query);
         }
         catch(PixabayRateLimitException e)
         {
@@ -161,7 +180,7 @@ public class SearchController
         }
         catch(InterruptedException | ExecutionException e)
         {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
         finally
         {
@@ -184,9 +203,22 @@ public class SearchController
                 () -> FXHelper.showErrorNotification("Error", "Can't load pictures.\n" + e.getMessage(), 5000));
     }
 
+    /**
+     * Checks if scroll position is near the end
+     */
+    private boolean isScrollOnEnd() throws ExecutionException, InterruptedException
+    {
+        double threshold = 0.8;
+
+        return FXHelper.runOnUIAndWait(() -> scroll.getVvalue() >= threshold * scroll.getVmax());
+    }
+
+    /**
+     * Checks if content filled viewport so there are no empty spaces
+     */
     private boolean contentFilledViewport() throws ExecutionException, InterruptedException
     {
-        final FutureTask<Boolean> getContentFilled = new FutureTask<>(() -> {
+        return FXHelper.runOnUIAndWait(() -> {
             double contentWidth = previewTilePane.getWidth();
             int tilesInRow = (int) (contentWidth / (previewTilePane.getTileWidth() + previewTilePane.getHgap()));
             int rows = (int) Math.ceil((double) previewTilePane.getChildren().size() / tilesInRow);
@@ -195,8 +227,6 @@ public class SearchController
 
             return contentHeight > scroll.getHeight() + singleRowSize;
         });
-        Platform.runLater(getContentFilled);
-        return getContentFilled.get();
     }
 
     private void onPicturesChanged(ListChangeListener.Change<? extends PictureTile> change)
@@ -258,19 +288,21 @@ public class SearchController
 
     private void scrollVerticalChanged(Number newValue)
     {
-        double scrollThreshold = 0.75;
+        scrollSingleExecutor.submit(() -> {
+            try
+            {
+                if(!isScrollOnEnd())
+                    return;
+            }
+            catch(ExecutionException | InterruptedException e) { return; }
 
-        if(newValue.doubleValue() >= scrollThreshold * scroll.getVmax()) //when scrolled to end, load new chunk
-        {
-            scrollSingleExecutor.submit(() -> {
-                searchAction(currentQuery);
-                try
-                {
-                    Thread.sleep(500);
-                }
-                catch(InterruptedException ignored) { }
-            });
-        }
+            searchAction(currentQuery);
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch(InterruptedException ignored) { }
+        });
     }
 
     private void areaResized()
@@ -286,7 +318,7 @@ public class SearchController
 
                 searchAction(currentQuery);
             }
-            catch(ExecutionException | InterruptedException e) { e.printStackTrace(); }
+            catch(InterruptedException | ExecutionException ignored) { }
             finally
             {
                 try
@@ -298,6 +330,9 @@ public class SearchController
         });
     }
 
+    /**
+     * Switches scene to show details of chosen picture
+     */
     private void showDetails(PictureData data)
     {
         DownloadManager dm = new DownloadManager(new ConnectionManager(5000));
@@ -321,6 +356,9 @@ public class SearchController
         currentDetailsController = controller;
     }
 
+    /**
+     * Switches back to search scene
+     */
     public void resumeScene() throws IllegalStateException
     {
         long timeout = 1;

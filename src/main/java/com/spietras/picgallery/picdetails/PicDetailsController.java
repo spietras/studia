@@ -77,7 +77,7 @@ public class PicDetailsController
 
     private void handleImageLoadingException(IOException e)
     {
-        fullImageView.setDisable(true); //disable imageview so we can't display text instead
+        fullImageView.setDisable(true); //disable imageview so we can display text instead
         Text loadText = new Text("Couldn't load picture.\nClick here to load again");
         stackPane.getChildren().add(loadText);
         stackPane.setOnMouseClicked(event -> loadAgain(loadText));
