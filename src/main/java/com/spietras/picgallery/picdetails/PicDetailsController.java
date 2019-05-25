@@ -80,7 +80,7 @@ public class PicDetailsController
         fullImageView.setDisable(true); //disable imageview so we can display text instead
         Text loadText = new Text("Couldn't load picture.\nClick here to load again");
         stackPane.getChildren().add(loadText);
-        stackPane.setOnMouseClicked(event -> loadAgain(loadText));
+        loadText.setOnMouseClicked(mouseEvent -> loadAgain(loadText));
         FXHelper.showErrorNotification("Error", "Couldn't load picture.\n" + e.getMessage(), 2000);
     }
 
