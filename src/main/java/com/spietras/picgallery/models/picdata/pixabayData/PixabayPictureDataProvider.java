@@ -128,12 +128,12 @@ public class PixabayPictureDataProvider implements PictureDataProvider
         int perPage = 50;
 
         Call<PixabaySearchResult> call = pixabayService.searchPictures(query, currentPage + 1, perPage);
+
         Response<PixabaySearchResult> response = call.execute();
 
         checkResponse(response, query);
 
         updateStats(response);
-
         return response.body().getHits();
     }
 

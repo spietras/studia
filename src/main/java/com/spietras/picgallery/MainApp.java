@@ -20,6 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class MainApp extends Application
 {
@@ -34,7 +35,8 @@ public class MainApp extends Application
     {
         System.setProperty("http.agent", "Chrome");
 
-        Retrofit r = buildRetrofit(getApiKey());
+        OkHttpClient httpClient = buildHttpClient(getApiKey());
+        Retrofit r = buildRetrofit(httpClient);
         PixabayPictureDataProvider provider = new PixabayPictureDataProvider(r.create(PixabayEndpointAPI.class));
         DownloadManager dm = new DownloadManager(new ConnectionManager(1000));
         SearchDataModel model = new SearchDataModel(provider, dm);
@@ -47,7 +49,11 @@ public class MainApp extends Application
         primaryStage.setTitle("Picture Gallery");
         primaryStage.setScene(new Scene(root, 1280, 720));
         primaryStage.setOnShown(e -> controller.fetchParent());
-        primaryStage.setOnHidden(e -> controller.shutdown());
+        primaryStage.setOnHidden(e -> {
+            controller.shutdown();
+            httpClient.connectionPool().evictAll();
+            httpClient.dispatcher().executorService().shutdownNow();
+        });
         primaryStage.show();
     }
 
@@ -67,8 +73,10 @@ public class MainApp extends Application
         return props.getProperty("app.pixabay.apikey");
     }
 
-    private Retrofit buildRetrofit(String apiKey)
+    private OkHttpClient buildHttpClient(String apiKey)
     {
+        long timeout = 1;
+
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.addInterceptor(chain -> {
             Request original = chain.request();
@@ -84,14 +92,20 @@ public class MainApp extends Application
             return chain.proceed(request);
         });
 
-        OkHttpClient client = httpClient.build();
+        return httpClient.connectTimeout(timeout, TimeUnit.SECONDS)
+                         .writeTimeout(timeout, TimeUnit.SECONDS)
+                         .readTimeout(timeout, TimeUnit.SECONDS)
+                         .build();
+    }
 
+    private Retrofit buildRetrofit(OkHttpClient httpClient)
+    {
         String PIXABAY_BASE_URL = "https://pixabay.com";
 
         return new Retrofit.Builder()
                 .baseUrl(PIXABAY_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
+                .client(httpClient)
                 .build();
     }
 }

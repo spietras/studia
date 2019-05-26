@@ -137,7 +137,7 @@ public class PicDetailsController
 
     private void onScroll(ScrollEvent e)
     {
-        if(e.isControlDown()) //zoom with ctrl pressed
+        if(e.isControlDown() && e.getDeltaY() != 0) //zoom with ctrl pressed
         {
             final double MIN_ZOOM = 0.2, MAX_ZOOM = 5.0;
             final double scaleFactor = 1.2;
