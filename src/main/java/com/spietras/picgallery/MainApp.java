@@ -17,10 +17,9 @@ import okhttp3.Request;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.stream.Collectors;
+import java.util.Properties;
 
 public class MainApp extends Application
 {
@@ -52,17 +51,20 @@ public class MainApp extends Application
         primaryStage.show();
     }
 
-    private String getApiKey()
+    private String getApiKey() throws IOException
     {
-        String API_KEY_PATH = "PixabayAPI_KEY.txt";
+        String CONF_PATH = "app.conf";
 
-        InputStream is = ClassLoader.getSystemResourceAsStream(API_KEY_PATH);
-        if(is != null)
+        Properties props = new Properties();
+        try(InputStream is = ClassLoader.getSystemResourceAsStream(CONF_PATH))
         {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+            if(is == null)
+                throw new IOException("Can't open configuration file: " + CONF_PATH);
+
+            props.load(is);
         }
-        return null;
+
+        return props.getProperty("app.pixabay.apikey");
     }
 
     private Retrofit buildRetrofit(String apiKey)
