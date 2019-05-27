@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.beryx.runtime' version '1.1.6'
 }
 
 group 'com.spietras.picgallery'
@@ -44,4 +45,10 @@ jar {
 javafx {
     version = "12.0.1"
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.swing']
+}
+
+runtime {
+    addOptions '--strip-debug', '--no-header-files', '--no-man-pages'
+    targetPlatform('linux-x64', '/usr/lib/jvm/openjdk-11_linux-x64')
+    targetPlatform('windows-x64', '/usr/lib/jvm/openjdk-11_windows-x64')
 }
