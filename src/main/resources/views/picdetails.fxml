@@ -9,9 +9,9 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8">
-    <VBox alignment="CENTER" spacing="10.0">
+    <VBox alignment="CENTER">
         <StackPane.margin>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
         </StackPane.margin>
         <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true"
                     vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
@@ -23,11 +23,8 @@
         </ScrollPane>
         <HBox alignment="CENTER" fillHeight="false" spacing="50.0">
             <VBox.margin>
-                <Insets/>
-            </VBox.margin>
-            <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
+            </VBox.margin>
             <Button fx:id="backButton" alignment="CENTER" mnemonicParsing="false" onAction="#goBack"
                     text="Go back"/>
             <Button fx:id="saveButton" alignment="CENTER" disable="true" mnemonicParsing="false"
@@ -38,6 +35,8 @@
                 <Text fx:id="authorText" strokeType="OUTSIDE" strokeWidth="0.0" text="Author"
                       textAlignment="CENTER"/>
                 <Text fx:id="tagsText" strokeType="OUTSIDE" strokeWidth="0.0" text="Tags"
+                      textAlignment="CENTER"/>
+                <Text fx:id="sourceText" strokeType="OUTSIDE" strokeWidth="0.0" text="Source"
                       textAlignment="CENTER"/>
             </VBox>
         </HBox>

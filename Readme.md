@@ -6,7 +6,7 @@ Picture gallery app that searches images by query and displays them in tiles
 
 In order to run this app you have to install **Java 11**, which you can get from [**here**](https://www.oracle.com/technetwork/java/javase/downloads/index.html "Oracle") or [**here**](https://openjdk.java.net/projects/jdk/ "OpenJDK").
 
-You can download the latest release of the app from [**here**](https://github.com/spietras/PicGallery/releases/tag/v1.0).
+You can download the latest release of the app from [**here**](https://github.com/spietras/PicGallery/releases/latest).
 
 ---
 

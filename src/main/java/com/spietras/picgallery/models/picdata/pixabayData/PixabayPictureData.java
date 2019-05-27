@@ -27,6 +27,9 @@ public class PixabayPictureData implements PictureData
     @SerializedName("user")
     @Expose
     private String user;
+    @SerializedName("pageURL")
+    @Expose
+    private String pageURL;
 
     @Override
     public String getTags()
@@ -68,5 +71,11 @@ public class PixabayPictureData implements PictureData
     public String getUser()
     {
         return user;
+    }
+
+    @Override
+    public String getSourceURL()
+    {
+        return pageURL;
     }
 }

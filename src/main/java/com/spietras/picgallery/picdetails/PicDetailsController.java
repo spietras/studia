@@ -45,6 +45,8 @@ public class PicDetailsController
     private Text authorText;
     @FXML
     private Text tagsText;
+    @FXML
+    private Text sourceText;
 
     private double originalWidth;
 
@@ -60,6 +62,7 @@ public class PicDetailsController
         statsText.setText("");
         authorText.setText("");
         tagsText.setText("");
+        sourceText.setText("");
         downloadAndSetPicture();
     }
 
@@ -99,6 +102,7 @@ public class PicDetailsController
                 model.getData().getDownloads());
         authorText.setText("Author: " + model.getData().getUser());
         tagsText.setText("Tags: " + model.getData().getTags());
+        sourceText.setText("Source: " + model.getData().getSourceURL());
     }
 
     private void handleImageLoadingException(IOException e)

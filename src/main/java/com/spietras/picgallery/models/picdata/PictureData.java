@@ -15,4 +15,6 @@ public interface PictureData
     int getLikes();
 
     String getUser();
+
+    String getSourceURL();
 }
