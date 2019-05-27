@@ -49,6 +49,6 @@ javafx {
 
 runtime {
     addOptions '--strip-debug', '--no-header-files', '--no-man-pages'
-    targetPlatform('linux-x64', '/usr/lib/jvm/openjdk-11_linux-x64')
-    targetPlatform('windows-x64', '/usr/lib/jvm/openjdk-11_windows-x64')
+    targetPlatform('linux-x64', '/usr/lib/jvm/jdk_linux-x64')
+    targetPlatform('windows-x64', '/usr/lib/jvm/jdk_windows-x64')
 }
