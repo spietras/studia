@@ -6,11 +6,15 @@ import retrofit2.Response;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class PixabayPictureDataProvider implements PictureDataProvider
 {
-    private final Queue<PixabayPictureData> cachedData = new LinkedList<>();
+    private BlockingQueue<PixabayPictureData> cachedData = new LinkedBlockingQueue<>();
     private final PixabayEndpointAPI pixabayService;
     private int currentPage = 0;
     private int totalHits;
@@ -25,7 +29,7 @@ public class PixabayPictureDataProvider implements PictureDataProvider
     }
 
     @Override
-    public List<PixabayPictureData> loadPicturesDataChunk(String query, int chunkSize) throws IOException
+    public synchronized List<PixabayPictureData> loadPicturesDataChunk(String query, int chunkSize) throws IOException
     {
         if(!query.equalsIgnoreCase(currentQuery)) //another query, clean everything
             clearCache();
@@ -125,7 +129,7 @@ public class PixabayPictureDataProvider implements PictureDataProvider
     @SuppressWarnings("ConstantConditions")
     private List<PixabayPictureData> loadNewData(String query) throws IOException
     {
-        int perPage = 50;
+        int perPage = 200;
 
         Call<PixabaySearchResult> call = pixabayService.searchPictures(query, currentPage + 1, perPage);
 

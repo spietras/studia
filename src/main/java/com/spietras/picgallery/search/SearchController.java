@@ -192,7 +192,8 @@ public class SearchController
         {
             try
             {
-                if(FXHelper.runOnUIAndWait(() -> model.endOfPictures().getValue()))
+                if(FXHelper.runOnUIAndWait(() -> model.endOfPictures().getValue()) &&
+                   inputTextField.getText().equals(currentQuery))
                     searchButton.setDisable(true);
                 else
                     searchButton.setDisable(false);

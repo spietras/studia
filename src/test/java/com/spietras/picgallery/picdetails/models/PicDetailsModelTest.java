@@ -21,13 +21,14 @@ class PicDetailsModelTest
         //is it returning proper image
 
         Image expected = mock(Image.class);
-
         PictureData dummyData = mock(PictureData.class);
         doReturn(dummyUrl).when(dummyData).getLargeImageURL();
         DownloadManager dummyDownloadManager = mock(DownloadManager.class);
         doReturn(expected).when(dummyDownloadManager).downloadImage(anyString());
 
+
         PicDetailsModel model = new PicDetailsModel(dummyData, dummyDownloadManager);
+
 
         assertEquals(expected, model.getFullImage());
     }
@@ -38,13 +39,14 @@ class PicDetailsModelTest
         //is it returning the same image the second time
 
         Image expected = mock(Image.class);
-
         PictureData dummyData = mock(PictureData.class);
         doReturn(dummyUrl).when(dummyData).getLargeImageURL();
         DownloadManager dummyDownloadManager = mock(DownloadManager.class);
         doReturn(expected).when(dummyDownloadManager).downloadImage(anyString());
 
+
         PicDetailsModel model = new PicDetailsModel(dummyData, dummyDownloadManager);
+
 
         assertEquals(expected, model.getFullImage());
         assertEquals(expected, model.getFullImage());
@@ -60,7 +62,9 @@ class PicDetailsModelTest
         DownloadManager dummyDownloadManager = mock(DownloadManager.class);
         doThrow(IOException.class).when(dummyDownloadManager).downloadImage(anyString());
 
+
         PicDetailsModel model = new PicDetailsModel(dummyData, dummyDownloadManager);
+
 
         assertThrows(IOException.class, model::getFullImage);
     }

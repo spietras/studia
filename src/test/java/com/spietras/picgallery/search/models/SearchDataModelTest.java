@@ -27,16 +27,14 @@ class SearchDataModelTest
         //is it returning the data i provided
 
         int chunkSize = 10;
+        List<PictureData> dummyDataList = mockDataList(chunkSize);
+        PictureDataProvider provider = mockProvider(dummyDataList);
 
-        List<PictureData> dummyDataList = createDummyDataList(chunkSize);
-
-        PictureDataProvider provider = mock(PictureDataProvider.class);
-        doReturn(dummyDataList).when(provider).loadPicturesDataChunk(anyString(), anyInt());
 
         SearchDataModel model = new SearchDataModel(provider, mock(DownloadManager.class));
         model.loadPicturesChunk(dummyQuery, chunkSize);
-
         ExecutorHelper.waitForRunLater();
+
 
         assertEquals(chunkSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(dummyPreviewUrl)));
@@ -48,17 +46,15 @@ class SearchDataModelTest
         //does it set flag that pictures ended
 
         int dataSize = 1;
-
-        List<PictureData> dummyDataList = createDummyDataList(dataSize);
-
-        PictureDataProvider provider = mock(PictureDataProvider.class);
-        doReturn(dummyDataList).when(provider).loadPicturesDataChunk(anyString(), anyInt());
+        List<PictureData> dummyDataList = mockDataList(dataSize);
+        PictureDataProvider provider = mockProvider(dummyDataList);
         doReturn(true).when(provider).dataEnded();
+
 
         SearchDataModel model = new SearchDataModel(provider, mock(DownloadManager.class));
         model.loadPicturesChunk(dummyQuery, dataSize + 1);
-
         ExecutorHelper.waitForRunLater();
+
 
         assertTrue(model.endOfPictures().getValue());
     }
@@ -68,25 +64,24 @@ class SearchDataModelTest
     {
         //does it loads proper data across chunks
 
-        int dataSize = 10;
-
-        List<PictureData> dummyDataList = createDummyDataList(dataSize);
-
-        PictureDataProvider provider = mock(PictureDataProvider.class);
-        doReturn(dummyDataList.subList(0, dataSize / 2)).when(provider).loadPicturesDataChunk(anyString(), anyInt());
-        doReturn(dummyQuery).when(provider).getCurrentQuery();
+        int dataSize = 10, firstSize = 5;
+        List<PictureData> dummyDataList = mockDataList(dataSize);
+        PictureDataProvider provider = mockProvider(dummyDataList.subList(0, firstSize));
         doReturn(false).when(provider).dataEnded();
 
-        SearchDataModel model = new SearchDataModel(provider, mock(DownloadManager.class));
-        model.loadPicturesChunk(dummyQuery, dataSize / 2);
 
-        doReturn(dummyDataList.subList(dataSize / 2, dataSize)).when(provider)
+        SearchDataModel model = new SearchDataModel(provider, mock(DownloadManager.class));
+        model.loadPicturesChunk(dummyQuery, firstSize);
+
+
+        doReturn(dummyDataList.subList(firstSize, dataSize)).when(provider)
                                                                .loadPicturesDataChunk(anyString(), anyInt());
         doReturn(true).when(provider).dataEnded();
 
-        model.loadPicturesChunk(dummyQuery, dataSize - (dataSize / 2));
 
+        model.loadPicturesChunk(dummyQuery, dataSize - (firstSize));
         ExecutorHelper.waitForRunLater();
+
 
         assertEquals(dataSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(dummyPreviewUrl)));
@@ -98,32 +93,38 @@ class SearchDataModelTest
         //does it properly clears data
 
         int dataSize = 10;
-
-        List<PictureData> dummyDataList = createDummyDataList(dataSize);
-
-        PictureDataProvider provider = mock(PictureDataProvider.class);
-        doReturn(dummyDataList).when(provider).loadPicturesDataChunk(anyString(), anyInt());
+        List<PictureData> dummyDataList = mockDataList(dataSize);
+        PictureDataProvider provider = mockProvider(dummyDataList);
         doReturn(true).when(provider).dataEnded();
+
 
         SearchDataModel model = new SearchDataModel(provider, mock(DownloadManager.class));
         model.loadPicturesChunk(dummyQuery, dataSize);
-
         ExecutorHelper.waitForRunLater();
+
 
         assertEquals(dataSize, model.getPictures().size());
         assertTrue(model.getPictures().stream().allMatch(x -> x.getData().getPreviewURL().equals(dummyPreviewUrl)));
 
-        model.clearPictures();
 
+        model.clearPictures();
         ExecutorHelper.waitForRunLater();
+
 
         assertTrue(model.getPictures().isEmpty());
     }
 
-    private List<PictureData> createDummyDataList(int dataSize)
+    private List<PictureData> mockDataList(int dataSize)
     {
         PictureData dummyData = mock(PictureData.class);
         doReturn(dummyPreviewUrl).when(dummyData).getPreviewURL();
         return Collections.nCopies(dataSize, dummyData);
+    }
+
+    private PictureDataProvider mockProvider(List<PictureData> dummyDataList) throws IOException
+    {
+        PictureDataProvider provider = mock(PictureDataProvider.class);
+        doReturn(dummyDataList).when(provider).loadPicturesDataChunk(anyString(), anyInt());
+        return provider;
     }
 }
