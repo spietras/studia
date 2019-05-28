@@ -3,7 +3,7 @@ TARGET   = Huffman
 
 CC       = gcc
 # c compiling flags here
-CFLAGS   = 
+CFLAGS   = -Wall
 
 ASM		 = nasm
 # asm compiling flags here
@@ -11,7 +11,7 @@ ASMFLAGS = -felf64
 
 LINKER   = gcc
 # linking flags here
-LFLAGS   = 
+LFLAGS   = -Wall
 
 # change these to proper directories where each file should be
 SRCDIR   = src
