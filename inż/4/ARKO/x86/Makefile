@@ -1,7 +1,7 @@
 # project name (generate executable with this name)
 TARGET   = Huffman
 
-CC       = g++
+CC       = gcc
 # c compiling flags here
 CFLAGS   = 
 
@@ -9,7 +9,7 @@ ASM		 = nasm
 # asm compiling flags here
 ASMFLAGS = -felf64
 
-LINKER   = g++
+LINKER   = gcc
 # linking flags here
 LFLAGS   = 
 
@@ -18,18 +18,18 @@ SRCDIR   = src
 OBJDIR   = obj
 BINDIR   = bin
 
-CPPSOURCES  := $(wildcard $(SRCDIR)/*.cpp)
+CSOURCES  := $(wildcard $(SRCDIR)/*.c)
 ASMSOURCES  := $(wildcard $(SRCDIR)/*.asm)
-CPPOBJECTS  := $(CPPSOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+COBJECTS  := $(CSOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 ASMBOJECTS	:= $(ASMSOURCES:$(SRCDIR)/%.asm=$(OBJDIR)/%.o)
 rm       = rm -rf
 
-$(BINDIR)/$(TARGET): $(CPPOBJECTS) $(ASMBOJECTS)
+$(BINDIR)/$(TARGET): $(COBJECTS) $(ASMBOJECTS)
 	@mkdir -p $(@D)
-	@$(LINKER) $(CPPOBJECTS) $(ASMBOJECTS) $(LFLAGS) -o $@
+	@$(LINKER) $(COBJECTS) $(ASMBOJECTS) $(LFLAGS) -o $@
 	@echo "Linking complete!"
 
-$(CPPOBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+$(COBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
