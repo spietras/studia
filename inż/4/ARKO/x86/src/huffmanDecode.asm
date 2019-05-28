@@ -1,11 +1,11 @@
-global func
+global huffmanDecode
 
 section .bss
 	var:			resb 1
 
 section .text
 
-func:
-    mov BYTE[var], 64
+huffmanDecode:
+    mov BYTE[var], 2
     movzx EAX, BYTE[var]
     ret

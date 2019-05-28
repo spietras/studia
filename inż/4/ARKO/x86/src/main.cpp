@@ -1,11 +1,15 @@
 #include <iostream>
 
 extern "C" {
-    int func();
+    int huffmanEncode();
+}
+
+extern "C" {
+    int huffmanDecode();
 }
  
 int main()
 {
-  std::cout << func() << std::endl;
+  std::cout << huffmanEncode() << " " << huffmanDecode() << std::endl;
   return 0;
 }
