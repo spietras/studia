@@ -2,6 +2,7 @@
 #define DECODE_H
 
 #include <stdio.h>
+#include <string.h>
 #include "fileHelpers.h"
 #include "global.h"
 

@@ -10,7 +10,7 @@ void printBuffer(const char* const buffer, const long size)
 
 long getEncodeOutputBufferMaxSize(long inputSize)
 {
-    return HEADERSIZE + inputSize;
+    return MAXHEADERSIZE + inputSize;
 }
 
 int encodeMode(char* inputFilePath, char* outputFilePath)
@@ -46,7 +46,9 @@ int encodeMode(char* inputFilePath, char* outputFilePath)
     }
 
     //long actualOutputSize = huffmanEncode(content, inputFileSize, output, maxOutputSize);
-    long actualOutputSize = 0;
+    printf("%ld", huffmanEncode(content, inputFileSize, output, maxOutputSize));
+    long actualOutputSize = inputFileSize;
+    strncpy(output, content, inputFileSize);
 
     free(content);
 

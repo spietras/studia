@@ -40,7 +40,8 @@ int decodeMode(char* inputFilePath, char* outputFilePath)
     }
 
     //long actualOutputSize = huffmanDecode(content, inputFileSize, output, inputFileSize);
-    long actualOutputSize = 0;
+    long actualOutputSize = inputFileSize;
+    strncpy(output, content, inputFileSize);
 
     free(content);
 
