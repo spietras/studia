@@ -7,7 +7,7 @@ CFLAGS   = -Wall
 
 ASM		 = nasm
 # asm compiling flags here
-ASMFLAGS = -felf64
+ASMFLAGS = -felf64 -s -Wall
 
 LINKER   = gcc
 # linking flags here
