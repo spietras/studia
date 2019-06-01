@@ -3,11 +3,11 @@ TARGET   = Huffman
 
 CC       = gcc
 # c compiling flags here
-CFLAGS   = -Wall
+CFLAGS   = -Wall -g
 
 ASM		 = nasm
 # asm compiling flags here
-ASMFLAGS = -felf64 -s -Wall
+ASMFLAGS = -f elf64 -g -F dwarf -s -Wall
 
 LINKER   = gcc
 # linking flags here
