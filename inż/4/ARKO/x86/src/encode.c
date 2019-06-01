@@ -1,4 +1,11 @@
 #include "encode.h"
+/*
+*   ENCODED FILE STRUCTURE:
+*   original file size (8 bytes)
+*   symbols count (1 byte)
+*   symbol-frequency table: <symbol (1 byte), frequency (8 bytes)> for each symbol
+*   encoded data (x bits)
+*/
 
 long huffmanEncode(char* input, long intpuSize, char* output, long maxOutputSize); //from asm, returns actual size of output buffer
 
@@ -47,8 +54,6 @@ int encodeMode(char* inputFilePath, char* outputFilePath)
 
     long actualOutputSize = huffmanEncode(content, inputFileSize, output, maxOutputSize);
     printf("%ld", actualOutputSize);
-    //actualOutputSize = inputFileSize;
-    //strncpy(output, content, inputFileSize);
 
     free(content);
 
@@ -59,7 +64,13 @@ int encodeMode(char* inputFilePath, char* outputFilePath)
         return 1;
     }
 
-    if(writeToFile(outputFile, output, actualOutputSize))
+    if(writeToFile(outputFile, &inputFileSize, sizeof(long))) //write original file size
+    {
+        printf("Can't write to output file\n");
+        return 1;
+    }
+
+    if(writeToFile(outputFile, output, actualOutputSize)) //write content
     {
         printf("Can't write to output file\n");
         return 1;
