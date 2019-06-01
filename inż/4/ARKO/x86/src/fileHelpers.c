@@ -18,9 +18,9 @@ long getFileSize(FILE* const file)
     return size;
 }
 
-char* getContentOfFile(FILE* const file, const long fileSize)
+void* getContentOfFile(FILE* const file, const long fileSize)
 {
-    char* buffer = malloc(fileSize);
+    void* buffer = malloc(fileSize);
     if(buffer == NULL)
         return NULL;
 
@@ -34,7 +34,7 @@ char* getContentOfFile(FILE* const file, const long fileSize)
     return buffer;
 }
 
-int writeToFile(FILE* const file, const char* const buffer, const long bufferSize)
+int writeToFile(FILE* const file, const void* const buffer, const long bufferSize)
 {
     size_t written = fwrite(buffer, 1, bufferSize, file);
 
