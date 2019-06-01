@@ -38,17 +38,17 @@ int encodeMode(char* inputFilePath, char* outputFilePath)
     closeFile(inputFile);
 
     long maxOutputSize = getEncodeOutputBufferMaxSize(inputFileSize);
-    char* output = malloc(maxOutputSize);
+    char* output = calloc(maxOutputSize, sizeof(char));
     if(output == NULL)
     {
         printf("Can't allocate output buffer\n");
         return 1;
     }
 
-    //long actualOutputSize = huffmanEncode(content, inputFileSize, output, maxOutputSize);
-    printf("%ld", huffmanEncode(content, inputFileSize, output, maxOutputSize));
-    long actualOutputSize = inputFileSize;
-    strncpy(output, content, inputFileSize);
+    long actualOutputSize = huffmanEncode(content, inputFileSize, output, maxOutputSize);
+    printf("%ld", actualOutputSize);
+    //actualOutputSize = inputFileSize;
+    //strncpy(output, content, inputFileSize);
 
     free(content);
 
