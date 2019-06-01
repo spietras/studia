@@ -31,6 +31,8 @@ section .bss
 
     codes:                  resb    CODES_SIZE
 
+    currentOutPos           resq    1
+
 section .text
 
 huffmanEncode:
@@ -165,7 +167,7 @@ endBuildTreeLoop:
     movzx rcx, byte[treenodesLeaves]
     mov r13, treenodes
 createCodeLoop:
-    mov r9b, byte[r13]                                                                       ; symbol
+    mov r9b, byte[r13]                                                                      ; symbol
     mov r15, CODE_ENTRY_SIZE
     movzx rax, r9b
     mul r15
@@ -194,7 +196,29 @@ endNextBitLoop:
     add r13, TREENODE_SIZE
     loop createCodeLoop
 
-    movzx rax, byte[treenodesNodes]
+    mov r8, qword[output]
+    mov qword[currentOutPos], r8
+
+    movzx rcx, byte[treenodesLeaves]
+    mov r11, qword[currentOutPos]
+    mov r8, treenodes
+writeHeaderLoop:
+    mov r9b, byte[r8]                                                                       ; load symbol
+    movzx rax, r9b
+    mov r15, FREQUENCY_SIZE
+    mul r15
+    mov r10, qword[frequencies + rax]                                                       ; load frequency   
+    mov byte[r11], r9b                                                                      ; save symbol
+    mov qword[r11 + BYTE_SIZE], r10                                                         ; save frequency
+    add r11, BYTE_SIZE + QWORD_SIZE
+    add r8, TREENODE_SIZE                                       
+    loop writeHeaderLoop
+
+    mov qword[currentOutPos], r11
+
+    mov rax, qword[currentOutPos]
+    mov r9, qword[output]
+    sub rax, r9
 
     pop r15
     pop r14
