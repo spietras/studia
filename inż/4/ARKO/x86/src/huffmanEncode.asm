@@ -15,6 +15,9 @@ MAX_TREE_NODES              equ     2*SYMBOLS-1
 
 TREENODES_SIZE              equ     TREENODE_SIZE*MAX_TREE_NODES
 
+CODE_ENTRY_SIZE             equ     BYTE_SIZE + SYMBOLS*BYTE_SIZE                           ; code length + byte for each bit
+CODES_SIZE                  equ     SYMBOLS*CODE_ENTRY_SIZE
+
 section .bss
 	input:			        resq    1                                                       ; char*
     inputSize:              resq    1                                                       ; long
@@ -25,6 +28,8 @@ section .bss
     treenodes:              resb    TREENODES_SIZE
     treenodesLeaves:        resb    1
     treenodesNodes:         resw    1
+
+    codes:                  resb    CODES_SIZE
 
 section .text
 
@@ -156,6 +161,38 @@ afterSetChildren:
     jmp buildTreeLoop                                                                       ; increase nodes and loop
 
 endBuildTreeLoop:
+
+    movzx rcx, byte[treenodesLeaves]
+    mov r13, treenodes
+createCodeLoop:
+    mov r9b, byte[r13]                                                                       ; symbol
+    mov r15, CODE_ENTRY_SIZE
+    movzx rax, r9b
+    mul r15
+    add rax, codes                                                                          ; codes table offset for current symbol
+
+    mov r15, rax
+    add r15, BYTE_SIZE
+    mov r14b, 0
+    mov r8, r13
+nextBitLoop:
+    mov r10, qword[r8 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE*2]                        ; parent
+    cmp r10, 0
+    je endNextBitLoop                                                                       ; if parent == 0, we hit root node, end
+    mov r11, qword[r10 + SYMBOL_SIZE + FREQUENCY_SIZE]                                      ; parent's left child
+    cmp r8, r11
+    setne r12b                                                                              ; 0 = left child, 1 = right child
+
+    mov byte[r15], r12b                                                                     ; set bit
+
+    mov r8, r10                                                                             ; current = parent
+    inc r14b
+    add r15, BYTE_SIZE
+    jmp nextBitLoop
+endNextBitLoop:
+    mov byte[rax], r14b                                                                     ; save code length
+    add r13, TREENODE_SIZE
+    loop createCodeLoop
 
     movzx rax, byte[treenodesNodes]
 
