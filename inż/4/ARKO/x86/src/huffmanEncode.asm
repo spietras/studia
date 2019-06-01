@@ -6,22 +6,25 @@ DWORD_SIZE                  equ     4
 QWORD_SIZE                  equ     8
 
 SYMBOLS                     equ     256
-SIZE_OF_FILE_LENGTH         equ     4
-SIZE_OF_SYMBOL              equ     1
-SIZE_OF_SYMBOL_FREQUENCY    equ     4
+FILE_LENGTH_SIZE            equ     DWORD_SIZE
+SYMBOL_SIZE                 equ     BYTE_SIZE
+FREQUENCY_SIZE              equ     QWORD_SIZE
 
-SIZE_OF_TREENODE            equ     8*5                 ; 1 for symbol, 8 for: frequency, left child address, right child address, parent address
+TREENODE_SIZE               equ     SYMBOL_SIZE + FREQUENCY_SIZE + 3*QWORD_SIZE + BYTE_SIZE ; 1 for symbol, 8 for: frequency, left child address, right child address, parent address, 1 for flag
 MAX_TREE_NODES              equ     2*SYMBOLS-1
 
+TREENODES_SIZE              equ     TREENODE_SIZE*MAX_TREE_NODES
+
 section .bss
-	input:			        resq    1                   ; char*
-    inputSize:              resq    1                   ; long
-    output:                 resq    1                   ; char*
-    maxOutputSize:          resq    1                   ; long
+	input:			        resq    1                                                       ; char*
+    inputSize:              resq    1                                                       ; long
+    output:                 resq    1                                                       ; char*
+    maxOutputSize:          resq    1                                                       ; long
 
     frequencies:            resq    SYMBOLS
-    treenodes:              resb    SIZE_OF_TREENODE*MAX_TREE_NODES
+    treenodes:              resb    TREENODES_SIZE
     treenodesLeaves:        resb    1
+    treenodesNodes:         resw    1
 
 section .text
 
@@ -33,46 +36,133 @@ huffmanEncode:
     push r9
     push r10
     push r11
+    push r12
+    push r13
+    push r14
+    push r15
 
     mov [input], rdi
     mov [inputSize], rsi
     mov [output], rdx
     mov [maxOutputSize], rcx
 
-    mov rcx, [inputSize]                                ; counter for loop
-    mov r8, [input]                                     ; start of input
-countFrequenciesLoop:
-    movzx r9, byte[r8]                                  ; load character from input
-    inc qword[r9*QWORD_SIZE + frequencies]              ; increase its frequency
-    inc r8                                              ; go to the next character
-    loop countFrequenciesLoop
+    mov rcx, [inputSize]                                                                    ; counter for loop
+    mov r8, [input]                                                                         ; start of input
+countFrequenciesLoop:                                   
+    movzx r9, byte[r8]                                                                      ; load character from input
+    inc qword[r9*QWORD_SIZE + frequencies]                                                  ; increase its frequency
+    inc r8                                                                                  ; go to the next character
+    loop countFrequenciesLoop                                   
 
-    mov rcx, SYMBOLS                                    ; counter for lopp
-    mov r8, frequencies                                 ; start of frequencies
-    mov r10, treenodes                                  ; start of treenodes
-pushLeavesLoop:
-    mov r9, qword[r8]                                   ; load frequency
-    cmp r9, 0
-    je continuePushLeavesLoop
+    mov rcx, SYMBOLS                                                                        ; counter for lopp
+    mov r8, frequencies                                                                     ; start of frequencies
+    mov r10, treenodes                                                                      ; start of treenodes
+pushLeavesLoop:                                 
+    mov r9, qword[r8]                                                                       ; load frequency
+    cmp r9, 0                                   
+    je continuePushLeavesLoop                                   
 
-    mov r11, r8                                         ; current freq position
-    sub r11, frequencies                                ; difference/current freq = index*qword
-    shr r11, 3                                          ; index = symbol
-    mov byte[r10], r11b                                 ; save symbol
-    mov qword[r10 + BYTE_SIZE], r9                      ; save frequency
-    mov qword[r10 + BYTE_SIZE + QWORD_SIZE], 0          ; save left child = null
-    mov qword[r10 + BYTE_SIZE + QWORD_SIZE*2], 0        ; save right child = null
-    mov qword[r10 + BYTE_SIZE + QWORD_SIZE*3], 0        ; save parent = null
-
-    add r10, BYTE_SIZE + 4*QWORD_SIZE                   ; next tree node
-    inc byte[treenodesLeaves]                           ; count how many nodes there are
-
-continuePushLeavesLoop:
-    add r8, QWORD_SIZE                                  ; go to the next frequency
+    mov r11, r8                                                                             ; current freq position
+    sub r11, frequencies                                                                    ; difference/current freq = index*qword
+    shr r11, 3                                                                              ; index = symbol
+    mov byte[r10], r11b                                                                     ; save symbol
+    mov qword[r10 + SYMBOL_SIZE], r9                                                        ; save frequency
+                
+    add r10, TREENODE_SIZE                                                                  ; next tree node
+    inc byte[treenodesLeaves]                                                               ; count how many nodes there are
+                
+continuePushLeavesLoop:             
+    add r8, QWORD_SIZE                                                                      ; go to the next frequency
     loop pushLeavesLoop
 
-    movzx rax, byte[treenodes]
+    movzx r8w, byte[treenodesLeaves]
+    mov word[treenodesNodes], r8w
 
+    mov r13, r10                                                                            ; end of treenodes - add new nodes here
+buildTreeLoop:
+    mov rcx, treenodes
+    mov r8, 0                                                                               ; first node found
+    mov r9, 0                                                                               ; second node found
+    mov r12w, 0                                                                             ; node counter
+    mov r11, 0xFFFFFFFF                                                                     ; smallest found ("infinity" at first)
+findTwoNodesLoop:
+
+    cmp r12w, word[treenodesNodes]
+    jge endFindTwoNodesLoop                                                                 ; if all nodes searched, end
+
+    mov r10b, byte[rcx + SYMBOL_SIZE + FREQUENCY_SIZE + 3*QWORD_SIZE]                       ; used flag
+    cmp r10b, 1
+    je repeatTwoNodesLoop                                                                   ; if used, continue
+
+    cmp r8, 0
+    je afterFreqCheck                                                                       ; if two nodes not found yet, ignore frequency check
+
+    mov r10, qword[rcx + SYMBOL_SIZE]                                                       ; frequency
+    cmp r10, r11
+    jg repeatTwoNodesLoop                                                                   ; if frequenct greater than the smallest frequency, continue
+
+afterFreqCheck:
+    jmp nodeFound
+repeatTwoNodesLoop:
+    add rcx, TREENODE_SIZE
+    inc r12w
+    jmp findTwoNodesLoop                                                                    ; go to next node and loop
+nodeFound:
+
+    mov r8, r9                                                                              ; shift previous node
+    mov r9, rcx                                                                             ; save new node
+
+    cmp r8, 0
+    je afterSetSmallest                                                                     ; don't set smallest until two nodes found
+setSmallest:
+    mov r11, qword[rcx + SYMBOL_SIZE]
+afterSetSmallest:
+    inc r12w
+
+    add rcx, TREENODE_SIZE
+    jmp findTwoNodesLoop                                                                    ; go to next node and loop
+endFindTwoNodesLoop:
+
+    cmp r8, 0
+    je endBuildTreeLoop                                                                     ; if end and only one node found, tree is complete
+
+    mov r14, qword[r8 + SYMBOL_SIZE]
+    mov r15, qword[r9 + SYMBOL_SIZE]
+    add r14, r15
+    mov qword[r13 + SYMBOL_SIZE], r14                                                       ; set new node frequency to sum of found nodes' frequencies
+
+    mov r14, qword[r8 + SYMBOL_SIZE]
+    cmp r14, r15
+    jg firstNodeGreater
+    jmp secondNodeGreater
+
+firstNodeGreater:
+    mov qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE], r9                                       ; set left child
+    mov qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE], r8                          ; set right child
+    jmp afterSetChildren
+secondNodeGreater:
+    mov qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE], r8                                       ; set left child
+    mov qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE], r9                          ; set right child
+    jmp afterSetChildren
+
+afterSetChildren:
+    mov qword[r8 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE*2], r13                        ; set parent in first found
+    mov byte[r8 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE*3], 1                           ; set used in first found
+    mov qword[r9 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE*2], r13                        ; set parent in second found
+    mov byte[r9 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE*3], 1                           ; set used in second found
+
+    inc word[treenodesNodes]
+    add r13, TREENODE_SIZE
+    jmp buildTreeLoop                                                                       ; increase nodes and loop
+
+endBuildTreeLoop:
+
+    movzx rax, byte[treenodesNodes]
+
+    pop r15
+    pop r14
+    pop r13
+    pop r12
     pop r11
     pop r10
     pop r9
