@@ -1,14 +1,22 @@
 global huffmanEncode
 
+BITS_IN_BYTE                equ     8
+
 BYTE_SIZE                   equ     1
 WORD_SIZE                   equ     2
 DWORD_SIZE                  equ     4
 QWORD_SIZE                  equ     8
 
+BYTE_SIZE_POWER             equ     0
+WORD_SIZE_POWER             equ     1
+DWORD_SIZE_POWER            equ     2
+QWORD_SIZE_POWER            equ     3
+
 SYMBOLS                     equ     256
 FILE_LENGTH_SIZE            equ     DWORD_SIZE
 SYMBOL_SIZE                 equ     BYTE_SIZE
 FREQUENCY_SIZE              equ     QWORD_SIZE
+FREQUENCY_SIZE_POWER        equ     QWORD_SIZE_POWER
 
 TREENODE_SIZE               equ     SYMBOL_SIZE + FREQUENCY_SIZE + 3*QWORD_SIZE + BYTE_SIZE ; 1 for symbol, 8 for: frequency, left child address, right child address, parent address, 1 for flag
 MAX_TREE_NODES              equ     2*SYMBOLS-1
@@ -71,7 +79,7 @@ pushLeavesLoop:
 
     mov r11, r8                                                                             ; current freq position
     sub r11, frequencies                                                                    ; difference/current freq = index*qword
-    shr r11, 3                                                                              ; index = symbol
+    shr r11, FREQUENCY_SIZE_POWER                                                           ; index = symbol
     mov byte[r10], r11b                                                                     ; save symbol
     mov qword[r10 + SYMBOL_SIZE], r9                                                        ; save frequency
                 
@@ -197,6 +205,9 @@ endNextBitLoop:
     loop createCodeLoop
 
     mov r8, qword[output]
+    mov r9b, byte[treenodesLeaves]                                                          ; save how many symbols were in input
+    mov byte[r8], r9b
+    inc r8
     mov qword[currentOutPos], r8
 
     movzx rcx, byte[treenodesLeaves]
@@ -205,8 +216,7 @@ endNextBitLoop:
 writeHeaderLoop:
     mov r9b, byte[r8]                                                                       ; load symbol
     movzx rax, r9b
-    mov r15, FREQUENCY_SIZE
-    mul r15
+    shl rax, FREQUENCY_SIZE_POWER
     mov r10, qword[frequencies + rax]                                                       ; load frequency   
     mov byte[r11], r9b                                                                      ; save symbol
     mov qword[r11 + BYTE_SIZE], r10                                                         ; save frequency
@@ -215,6 +225,50 @@ writeHeaderLoop:
     loop writeHeaderLoop
 
     mov qword[currentOutPos], r11
+
+    mov rcx, qword[inputSize]                                                               ; input size as loop counter
+    mov r8, qword[input]
+    mov r15, qword[currentOutPos]
+    mov r14b, 0                                                                             ; bit counter
+encodeLoop:
+    mov r9b, byte[r8]                                                                       ; load symbol
+    movzx rax, r9b
+    mov r9, CODE_ENTRY_SIZE
+    mul r9
+    movzx r9, byte[codes + rax]                                                             ; load code length
+
+    push rcx                                                                                ; save rcx, because it will be used in another loop
+    mov rcx, r9
+    add rax, r9                                                                             ; read codes from end
+writeCodeLoop:
+    push rcx
+    mov cl, r14b
+    mov r10b, byte[codes + rax]                                                             ; bit
+    shl r10b, cl                                                                            ; shift to correct position
+    pop rcx
+
+    or byte[r15], r10b                                                                      ; add to existing content
+    inc r14b
+
+    mov r10b, BITS_IN_BYTE
+    dec r10b
+    and r14b, r10b                                                                          ; current bit % 8
+
+    cmp r14b, 0
+    sete r10b
+    movzx r10, r10b                                                                         
+    add r15, r10                                                                            ; if bit counter overflew, increase byte counter
+
+    dec rax
+    loop writeCodeLoop
+
+    pop rcx                                                                                 ; restore rcx
+
+    inc r8
+
+    loop encodeLoop
+
+    mov qword[currentOutPos], r15
 
     mov rax, qword[currentOutPos]
     mov r9, qword[output]
