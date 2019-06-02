@@ -34,7 +34,7 @@ section .bss
 
     frequencies:            resq    SYMBOLS
     treenodes:              resb    TREENODES_SIZE
-    treenodesLeaves:        resb    1
+    treenodesLeaves:        resw    1
     treenodesNodes:         resw    1
 
     codes:                  resb    CODES_SIZE
@@ -84,13 +84,13 @@ pushLeavesLoop:
     mov qword[r10 + SYMBOL_SIZE], r9                                                        ; save frequency
                 
     add r10, TREENODE_SIZE                                                                  ; next tree node
-    inc byte[treenodesLeaves]                                                               ; count how many nodes there are
+    inc word[treenodesLeaves]                                                               ; count how many nodes there are
                 
 continuePushLeavesLoop:             
     add r8, QWORD_SIZE                                                                      ; go to the next frequency
     loop pushLeavesLoop
 
-    movzx r8w, byte[treenodesLeaves]
+    mov r8w, word[treenodesLeaves]
     mov word[treenodesNodes], r8w
 
     mov r13, r10                                                                            ; end of treenodes - add new nodes here
@@ -124,13 +124,37 @@ repeatTwoNodesLoop:
     jmp findTwoNodesLoop                                                                    ; go to next node and loop
 nodeFound:
 
-    mov r8, r9                                                                              ; shift previous node
-    mov r9, rcx                                                                             ; save new node
+    cmp r8, 0
+    je checkSecondEmpty
+    jmp bothUsed
+checkSecondEmpty:
+    cmp r9, 0
+    je bothEmpty
+    jmp oneEmpty
+
+bothEmpty:
+    mov r9, rcx                                                                             ; if no nodes foud before, set found to r9
+    jmp afterSort
+oneEmpty:
+    mov r14, qword[r9 + SYMBOL_SIZE]
+    cmp r10, r14
+    jl shiftWhenOneEmpty
+    mov r8, rcx                                                                             ; if one node found before but it's weight is bigger than found, set found to r8
+    jmp afterSort
+shiftWhenOneEmpty:
+    mov r8, r9                                                                              ; if weight is smaller, shift r9 to r8 and set found to r9
+    mov r9, rcx
+    jmp afterSort
+bothUsed:
+    mov r8, r9                                                                              ; if both used, they are sorted, so shift r9 to r8 and set found to r8
+    mov r9, rcx
+    jmp afterSort
+afterSort:
 
     cmp r8, 0
     je afterSetSmallest                                                                     ; don't set smallest until two nodes found
 setSmallest:
-    mov r11, qword[rcx + SYMBOL_SIZE]
+    mov r11, qword[r8 + SYMBOL_SIZE]
 afterSetSmallest:
     inc r12w
 
@@ -172,7 +196,7 @@ afterSetChildren:
 
 endBuildTreeLoop:
 
-    movzx rcx, byte[treenodesLeaves]
+    movzx rcx, word[treenodesLeaves]
     mov r13, treenodes
 createCodeLoop:
     mov r9b, byte[r13]                                                                      ; symbol
@@ -205,12 +229,12 @@ endNextBitLoop:
     loop createCodeLoop
 
     mov r8, qword[output]
-    mov r9b, byte[treenodesLeaves]                                                          ; save how many symbols were in input
-    mov byte[r8], r9b
-    inc r8
+    mov r9w, word[treenodesLeaves]                                                          ; save how many symbols were in input
+    mov word[r8], r9w
+    add r8, WORD_SIZE
     mov qword[currentOutPos], r8
 
-    movzx rcx, byte[treenodesLeaves]
+    movzx rcx, word[treenodesLeaves]
     mov r11, qword[currentOutPos]
     mov r8, treenodes
 writeHeaderLoop:
@@ -267,6 +291,9 @@ writeCodeLoop:
     inc r8
 
     loop encodeLoop
+
+    xor r10, 1                                                                              ; inverse overflow bit
+    add r15, r10                                                                            ; ceil size
 
     mov qword[currentOutPos], r15
 
