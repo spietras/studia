@@ -39,7 +39,7 @@ section .bss
 
     codes:                  resb    CODES_SIZE
 
-    currentOutPos           resq    1
+    currentOutPos:          resq    1
 
 section .text
 
