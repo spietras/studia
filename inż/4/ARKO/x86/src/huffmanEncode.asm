@@ -1,4 +1,5 @@
 global huffmanEncode
+extern printf
 
 BITS_IN_BYTE                equ     8
 
@@ -40,6 +41,12 @@ section .bss
 
     currentOutPos:          resq    1
 
+    codeOutBuffer:          resb    SYMBOL_SIZE+1
+
+section .rodata
+    infoHeader              db      `Symbol frequencies and codes:\n`, 0
+    infoText                db      `%c(%hhu):\t%lu\t%s\n`, 0
+
 section .text
 
 huffmanEncode:
@@ -54,6 +61,10 @@ huffmanEncode:
     push r13
     push r14
     push r15
+
+    push rcx
+    push rsi
+    push rdi
 
     mov [input], rdi
     mov [inputSize], rsi
@@ -201,7 +212,7 @@ createCodeLoop:
     mov r15, CODE_ENTRY_SIZE
     movzx rax, r9b
     mul r15
-    add rax, codes                                                                          ; codes table offset for current symbol
+    add rax, codes                                                                          ; address of code entry for current symbol
 
     mov r15, rax
     add r15, BYTE_SIZE
@@ -295,9 +306,55 @@ writeCodeLoop:
 
     mov qword[currentOutPos], r15
 
+    push rax                                                                                ; allign stack to 16-byte
+    mov al, 0                                                                               ; 0 args in vector registers
+    mov rdi, infoHeader
+    call printf
+    pop rax
+
+    movzx rcx, word[treenodesLeaves]
+    mov r13, treenodes
+printLoop:
+    mov r9b, byte[r13]                                                                      ; symbol
+    mov r10, qword[r13 + SYMBOL_SIZE]                                                       ; frequency
+    mov r15, CODE_ENTRY_SIZE
+    movzx rax, r9b
+    mul r15
+    add rax, codes                                                                          ; address of code entry for current symbol
+    
+    push rcx
+    mov rdx, codeOutBuffer                                                                  ; buffer with code
+    movzx rcx, byte[rax]                                                                    ; code length
+    add rax, rcx                                                                            ; start with end
+createOutputCode:
+    mov r11b, byte[rax]
+    add r11, '0'                                                                            ; convert bit to character
+    mov byte[rdx], r11b
+    add rdx, BYTE_SIZE
+    sub rax, BYTE_SIZE
+    loop createOutputCode
+
+    mov byte[rdx], 0                                                                        ; null-terminate
+
+    mov al, 0                                                                               ; 0 args in vector registers
+    mov rdi, infoText
+    movzx rsi, r9b
+    movzx rdx, r9b
+    mov rcx, r10
+    mov r8, codeOutBuffer
+    call printf
+    
+    pop rcx
+    add r13, TREENODE_SIZE
+    loop printLoop
+
     mov rax, qword[currentOutPos]
     mov r9, qword[output]
     sub rax, r9
+
+    pop rdi
+    pop rsi
+    pop rcx
 
     pop r15
     pop r14
