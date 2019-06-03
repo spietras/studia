@@ -30,7 +30,6 @@ section .bss
 	input:			        resq    1                                                       ; char*
     inputSize:              resq    1                                                       ; long
     output:                 resq    1                                                       ; char*
-    maxOutputSize:          resq    1                                                       ; long
 
     frequencies:            resq    SYMBOLS
     treenodes:              resb    TREENODES_SIZE
@@ -59,7 +58,6 @@ huffmanEncode:
     mov [input], rdi
     mov [inputSize], rsi
     mov [output], rdx
-    mov [maxOutputSize], rcx
 
     mov rcx, [inputSize]                                                                    ; counter for loop
     mov r8, [input]                                                                         ; start of input

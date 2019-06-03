@@ -7,7 +7,7 @@
 *   encoded data (x bits)
 */
 
-long huffmanEncode(char* input, long intpuSize, char* output, long maxOutputSize); //from asm, returns actual size of output buffer
+long huffmanEncode(char* input, long intpuSize, char* output); //from asm, returns actual size of output buffer
 
 void printBuffer(const char* const buffer, const long size)
 {
@@ -52,8 +52,7 @@ int encodeMode(char* inputFilePath, char* outputFilePath)
         return 1;
     }
 
-    long actualOutputSize = huffmanEncode(content, inputFileSize, output, maxOutputSize);
-    printf("%ld", actualOutputSize);
+    long actualOutputSize = huffmanEncode(content, inputFileSize, output);
 
     free(content);
 
