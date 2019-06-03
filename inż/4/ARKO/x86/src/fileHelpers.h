@@ -9,5 +9,7 @@ void closeFile(FILE* const file);
 long getFileSize(FILE* const file);
 void* getContentOfFile(FILE* const file, const long fileSize);
 int writeToFile(FILE* const file, const void* const buffer, const long bufferSize);
+int readFromFile(FILE* const file, void* const buffer, const long readSize);
+void rewindFile(FILE* const file);
 
 #endif

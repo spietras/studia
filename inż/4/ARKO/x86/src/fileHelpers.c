@@ -43,3 +43,18 @@ int writeToFile(FILE* const file, const void* const buffer, const long bufferSiz
 
     return 0;
 }
+
+int readFromFile(FILE* const file, void* const buffer, const long readSize)
+{
+    size_t read = fread(buffer, 1, readSize, file);
+
+    if(read != readSize)
+        return -1;
+
+    return 0;
+}
+
+void rewindFile(FILE* const file)
+{
+    fseek(file, 0, SEEK_SET);
+}
