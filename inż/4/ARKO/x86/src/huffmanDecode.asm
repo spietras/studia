@@ -25,15 +25,14 @@ TREENODES_SIZE              equ     TREENODE_SIZE*MAX_TREE_NODES
 
 section .bss
 	input:			        resq    1                                                       ; char*
-    inputSize:              resq    1                                                       ; long
     output:                 resq    1                                                       ; char*
-    maxOutputSize:          resq    1                                                       ; long
 
     originalSize:           resq    1
 
     treenodes:              resb    TREENODES_SIZE
     treenodesLeaves:        resw    1
     treenodesNodes:         resw    1
+    rootNode:               resq    1
 
     currentInputPos:        resq    1
 
@@ -52,10 +51,10 @@ huffmanDecode:
     push r14
     push r15
 
+    push rdi
+
     mov [input], rdi
-    mov [inputSize], rsi
     mov [output], rdx
-    mov [maxOutputSize], rcx
 
     mov r8, qword[rdi]
     mov qword[originalSize], r8                                                             ; load original file size
@@ -186,7 +185,62 @@ afterSetChildren:
 
 endBuildTreeLoop:
 
-    mov rax, 0
+    sub r13, TREENODE_SIZE
+    mov qword[rootNode], r13
+
+    mov rcx, qword[originalSize]
+    mov r9b, 0                                                                              ; bit counter
+decodeLoop:
+    mov r13, qword[rootNode]
+readBitsLoop:
+    mov r10b, 1                                                                             ; bit mask
+    push rcx
+    mov cl, r9b
+    shl r10b, cl                                                                            ; shift bit mask to correct position
+
+    and r10b, byte[rdi]
+    shr r10b, cl                                                                            ; input bit
+
+    pop rcx
+
+    inc r9b
+
+    mov r8b, BITS_IN_BYTE
+    dec r8b
+    and r9b, r8b                                                                            ; current bit % 8
+
+    cmp r9b, 0
+    sete r8b
+    movzx r8, r8b                                                                         
+    add rdi, r8                                                                             ; if bit counter overflew, increase byte counter
+
+    cmp r10b, 0
+    je goLeft
+    jmp goRight
+goLeft:
+    mov r13, qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE]                                      ; left child
+    jmp afterGo
+goRight:
+    mov r13, qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE]                         ; right child
+    jmp afterGo
+afterGo:
+    mov r8b, byte[r13]                                                                      ; symbol
+    cmp qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE], 0
+    sete r14b
+    cmp qword[r13 + SYMBOL_SIZE + FREQUENCY_SIZE + QWORD_SIZE], 0
+    sete r15b
+    and r14b, r15b                                                                          ; if both children are null, symbol found
+    cmp r14b, 1
+    je symbolFound
+    
+    jmp readBitsLoop
+
+symbolFound:
+    mov byte[rdx], r8b                                                                      ; write symbol to output
+    inc rdx
+    loop decodeLoop
+
+    pop rdi
 
     pop r15
     pop r14

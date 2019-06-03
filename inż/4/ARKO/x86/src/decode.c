@@ -1,11 +1,13 @@
 #include "decode.h"
+/*
+*   ENCODED FILE STRUCTURE:
+*   original file size (8 bytes)
+*   symbols count (1 byte)
+*   symbol-frequency table: <symbol (1 byte), frequency (8 bytes)> for each symbol
+*   encoded data (x bits)
+*/
 
-long huffmanDecode(char* input, long intpuSize, char* output, long outputSize); //from asm, returns actual output size
-
-long getDecodeOutputBufferMaxSize(long inputSize)
-{
-    return inputSize;
-}
+void huffmanDecode(char* input, char* output); //from asm
 
 int decodeMode(char* inputFilePath, char* outputFilePath)
 {
@@ -22,6 +24,15 @@ int decodeMode(char* inputFilePath, char* outputFilePath)
         printf("Can't read file size\n");
         return 1;
     }
+
+    long originalSize = 0;
+    if(readFromFile(inputFile, &originalSize, sizeof(long)))
+    {
+        printf("Can't get original file size\n");
+        return 1;
+    }
+    rewindFile(inputFile);
+
     char* content = getContentOfFile(inputFile, inputFileSize);
     if(content == NULL)
     {
@@ -31,17 +42,14 @@ int decodeMode(char* inputFilePath, char* outputFilePath)
 
     closeFile(inputFile);
 
-    long maxOutputSize = getDecodeOutputBufferMaxSize(inputFileSize);
-    char* output = malloc(maxOutputSize);
+    char* output = malloc(originalSize);
     if(output == NULL)
     {
         printf("Can't allocate output buffer\n");
         return 1;
     }
 
-    /*long actualOutputSize = */huffmanDecode(content, inputFileSize, output, inputFileSize);
-    long actualOutputSize = inputFileSize;
-    strncpy(output, content, inputFileSize);
+    huffmanDecode(content, output);
 
     free(content);
 
@@ -52,7 +60,7 @@ int decodeMode(char* inputFilePath, char* outputFilePath)
         return 1;
     }
 
-    if(writeToFile(outputFile, output, actualOutputSize))
+    if(writeToFile(outputFile, output, originalSize))
     {
         printf("Can't write to output file\n");
         return 1;
