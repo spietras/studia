@@ -37,7 +37,8 @@ def get_subtree_parts(graph, start_node):
             if neighbour in this_color:
                 return False, color_a, color_b
             
-            other_color.add(neighbour)
-            queue.append(neighbour)
+            if neighbour not in other_color:
+                other_color.add(neighbour)
+                queue.append(neighbour)
                 
     return True, color_a, color_b
