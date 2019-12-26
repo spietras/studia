@@ -1,6 +1,7 @@
 # all source files (like .c or .h) should be in SRCDIR
 # all object files will be in OBJDIR
 # executable will be in BINDIR
+# static libraries (lib<name>.a files should be in LIBDIR)
 
 # project name (generate executable with this name)
 TARGET   = Wiatrak
@@ -17,7 +18,13 @@ CFLAGS   = -Wall -g
 
 LINKER   = g++
 # linking flags here
-LFLAGS   = -Wall -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lpthread -lGLEW
+# needed libraries:
+# SOIL - static
+# glfw3 - static
+# glfw3 dependecies: X11, Xrandr, Xinerama, Xi, Xxf86vm, Xcursor, pthread - dynamic
+# GLEW - static
+# GL - dynamic
+LFLAGS   = -Wall -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lpthread -lGLEW -lGL
 
 # resursive wildcard function, thanks to: https://stackoverflow.com/a/12959764
 rwildcard=$(wildcard $1/$2) $(foreach d,$(wildcard $1/*),$(call rwildcard,$d,$2))
