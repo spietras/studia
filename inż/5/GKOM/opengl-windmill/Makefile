@@ -7,10 +7,11 @@
 TARGET   = Wiatrak
 
 # change these to proper directories where each file should be
-SRCDIR   = src
-OBJDIR   = obj
-BINDIR   = bin
-LIBDIR	 = lib/Linux
+SRCDIR     = src
+OBJDIR     = obj
+BINDIR     = bin
+LIBDIR	   = lib/Linux
+INCLUDEDIR = include
 
 CC       = g++
 # c compiling flags here
@@ -24,7 +25,7 @@ LINKER   = g++
 # glfw3 dependecies: X11, Xrandr, Xinerama, Xi, Xxf86vm, Xcursor, pthread - dynamic
 # GLEW - static
 # GL - dynamic
-LFLAGS   = -Wall -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lpthread -lGLEW -lGL
+LFLAGS   = -Wall -I$(INCLUDEDIR) -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lpthread -lGLEW -lGL
 
 # resursive wildcard function, thanks to: https://stackoverflow.com/a/12959764
 rwildcard=$(wildcard $1/$2) $(foreach d,$(wildcard $1/*),$(call rwildcard,$d,$2))
