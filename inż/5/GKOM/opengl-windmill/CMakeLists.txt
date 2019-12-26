@@ -14,8 +14,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${BINDIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/${INCLUDEDIR})
 
-add_executable(${TARGET}
-               ${SRCDIR}/main.cpp)
+add_executable( ${TARGET}
+                ${SRCDIR}/main.cpp
+                ${SRCDIR}/Renderer.cpp
+                ${SRCDIR}/utils/Window.cpp
+                ${SRCDIR}/utils/Window.h
+                ${SRCDIR}/utils/Color.h)
 
 target_link_libraries(${TARGET}
         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
