@@ -2,3 +2,7 @@
 bin/
 
 obj/
+
+.idea/
+
+cmake-build-debug/
