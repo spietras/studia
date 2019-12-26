@@ -3,7 +3,13 @@
 # executable will be in BINDIR
 
 # project name (generate executable with this name)
-TARGET   = ProjectName
+TARGET   = Wiatrak
+
+# change these to proper directories where each file should be
+SRCDIR   = src
+OBJDIR   = obj
+BINDIR   = bin
+LIBDIR	 = lib/Linux
 
 CC       = g++
 # c compiling flags here
@@ -11,12 +17,7 @@ CFLAGS   = -Wall -g
 
 LINKER   = g++
 # linking flags here
-LFLAGS   = -Wall -L/usr/local/lib -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lGLEW -lSOIL
-
-# change these to proper directories where each file should be
-SRCDIR   = src
-OBJDIR   = obj
-BINDIR   = bin
+LFLAGS   = -Wall -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lpthread -lGLEW
 
 # resursive wildcard function, thanks to: https://stackoverflow.com/a/12959764
 rwildcard=$(wildcard $1/$2) $(foreach d,$(wildcard $1/*),$(call rwildcard,$d,$2))
