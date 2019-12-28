@@ -34,8 +34,6 @@ public:
     bool shouldClose() const;
 
     void draw(const Renderer &renderer, const Scene &scene, const ShaderProgram &shaderProgram) const;
-
-    void cleanUp() const;
 };
 
 
