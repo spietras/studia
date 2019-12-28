@@ -2,14 +2,20 @@
 
 Window::Window(int width, int height, const std::string &title) : width(width), height(height), title(title)
 {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GLFW_VERSION.MAJOR);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLFW_VERSION.MINOR);
+
     this->handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
-    glViewport(0, 0, width, height);
-}
-
-void Window::setActive() const
-{
     glfwMakeContextCurrent(this->handle);
+
+    glewExperimental = GL_TRUE;
+    glewInit();
+
+    glViewport(0, 0, width, height);
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Window::resize(int newWidth, int newHeight)
@@ -24,8 +30,14 @@ bool Window::shouldClose() const
     return glfwWindowShouldClose(this->handle);
 }
 
-void Window::draw() const
+void Window::draw(const Renderer &renderer, const Scene &scene, const ShaderProgram &shaderProgram) const
 {
-    glfwSwapBuffers(this->handle);
-    glfwPollEvents();
+    renderer.render(scene, shaderProgram);
+    glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
+    glfwPollEvents(); //process all events on windows in this frame
+}
+
+void Window::cleanUp() const
+{
+    glfwTerminate();
 }

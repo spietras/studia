@@ -2,11 +2,18 @@
 #define WIATRAK_WINDOW_H
 
 #include <string>
+#include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "Renderer.h"
 
 class Window
 {
-private:
+    const struct
+    {
+        int MAJOR;
+        int MINOR;
+    } GLFW_VERSION = {3, 3};
+
     int width;
     int height;
     std::string title;
@@ -21,13 +28,13 @@ public:
     int getHeight() const
     { return height; }
 
-    void setActive() const;
-
     void resize(int newWidth, int newHeight);
 
     bool shouldClose() const;
 
-    void draw() const;
+    void draw(const Renderer &renderer, const Scene &scene, const ShaderProgram &shaderProgram) const;
+
+    void cleanUp() const;
 };
 
 
