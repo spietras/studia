@@ -63,7 +63,6 @@ int main()
 
         w.draw(r, s, sp);
     }
-
-    w.cleanUp();
+    
     return 0;
 }

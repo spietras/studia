@@ -18,6 +18,11 @@ Window::Window(int width, int height, const std::string &title) : width(width), 
     glEnable(GL_DEPTH_TEST);
 }
 
+Window::~Window()
+{
+    glfwTerminate();
+}
+
 void Window::resize(int newWidth, int newHeight)
 {
     this->width = newWidth;
@@ -35,9 +40,4 @@ void Window::draw(const Renderer &renderer, const Scene &scene, const ShaderProg
     renderer.render(scene, shaderProgram);
     glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
     glfwPollEvents(); //process all events on windows in this frame
-}
-
-void Window::cleanUp() const
-{
-    glfwTerminate();
 }

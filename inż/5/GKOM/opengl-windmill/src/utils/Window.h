@@ -21,6 +21,7 @@ class Window
 
 public:
     Window(int width, int height, const std::string &title);
+    ~Window();
 
     int getWidth() const
     { return width; }
