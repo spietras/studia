@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set(TARGET "Wiatrak")
 
-set (CMAKE_CXX_FLAGS "-O0")
+set (CMAKE_CXX_FLAGS "-O0 -no-pie")
 
 # change these to proper directories where each file should be
 set(SRCDIR "src")

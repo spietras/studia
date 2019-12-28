@@ -15,17 +15,17 @@ INCLUDEDIR = include
 
 CC       = g++
 # c compiling flags here
-CFLAGS   = -Wall -g
+CFLAGS   = -Wall -g -I$(INCLUDEDIR)
 
 LINKER   = g++
 # linking flags here
 # needed libraries:
 # SOIL - static
+# GLEW - static
 # glfw3 - static
 # glfw3 dependecies: X11, Xrandr, Xinerama, Xi, Xxf86vm, Xcursor, pthread - dynamic
-# GLEW - static
 # GL - dynamic
-LFLAGS   = -Wall -I$(INCLUDEDIR) -L$(LIBDIR) -lSOIL -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lpthread -lGLEW -lGL
+LFLAGS   = -Wall -no-pie -L$(LIBDIR) -Wl,-Bstatic -lSOIL -lGLEW -lglfw3 -Wl,-Bdynamic -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lpthread -lGL -Wl,--as-needed
 
 # resursive wildcard function, thanks to: https://stackoverflow.com/a/12959764
 rwildcard=$(wildcard $1/$2) $(foreach d,$(wildcard $1/*),$(call rwildcard,$d,$2))
