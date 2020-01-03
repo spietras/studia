@@ -67,11 +67,11 @@ if __name__ == '__main__':
         return args
 
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Generate test data for substance displacement problem")
 
     subparsers = parser.add_subparsers()
-    solvable_parser = subparsers.add_parser('solvable')
-    unsolvable_parser = subparsers.add_parser('unsolvable')
+    solvable_parser = subparsers.add_parser('solvable', help="generate solvable problem", description="Generate test data for solvable substance displacement problem")
+    unsolvable_parser = subparsers.add_parser('unsolvable', help="generate unsolvable problem", description="Generate test data for unsolvable substance displacement problem")
 
     solvable_parser.set_defaults(mode='solvable')
     unsolvable_parser.set_defaults(mode='unsolvable')
