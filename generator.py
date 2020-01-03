@@ -69,12 +69,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Generate test data for substance displacement problem")
 
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest="mode")
     solvable_parser = subparsers.add_parser('solvable', help="generate solvable problem", description="Generate test data for solvable substance displacement problem")
     unsolvable_parser = subparsers.add_parser('unsolvable', help="generate unsolvable problem", description="Generate test data for unsolvable substance displacement problem")
-
-    solvable_parser.set_defaults(mode='solvable')
-    unsolvable_parser.set_defaults(mode='unsolvable')
 
     for p in [solvable_parser, unsolvable_parser]:
         p.add_argument("n", type=int, help="number of substances")
@@ -83,10 +80,6 @@ if __name__ == '__main__':
     solvable_parser.add_argument("-f", type=int, help="number of substances in the first magazine")
 
     args = parser.parse_args()
-
-    if len(sys.argv) == 1:
-        parser.print_usage()
-        parser.exit()
 
     if args.mode == 'solvable':
         parse_args_solvable(parser, args)
