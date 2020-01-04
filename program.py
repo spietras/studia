@@ -13,13 +13,21 @@ def generate_and_solve(solvable, n, first_n, density):
     return algorithm.solve(n, generator.generate(solvable, n, first_n, density))
 
 
-def measure(start_n, iterations, step, density, instances, repeats_per_instance=10):
+def measure(start_n, iterations, step, density, instances, repeats_per_instance=10, verbosity=0):
+    if verbosity >= 1:
+        print("Measuring for density {}, starting with n = {}, with step {}, {} iterations, {} instances per iterations and {} repeats per instance".format(density, start_n, step, iterations, instances, repeats_per_instance))
+
     points = [n for n in range(start_n, start_n + iterations * step, step)]
     times = []
-    for n in points:
+    for i, n in enumerate(points):
         def algorithm_fun(edges, v=n): algorithm.solve(v, edges)
         def generator_fun(v=n, d=density): return generator.generate(True, v, int(v / 2), d)
         times.append(measuring.measure_generated(algorithm_fun, generator_fun, instances, repeats_per_instance))
+        if verbosity >= 2:
+            print("Measured for n = {} ({}/{})".format(n, i, iterations))
+
+    if verbosity >= 1:
+        print("Measured all")
 
     return list(zip(points, times))
 
