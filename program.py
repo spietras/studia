@@ -1,5 +1,4 @@
 import argparse
-import fileinput
 import sys
 import generator
 
@@ -24,8 +23,19 @@ def parse_args_m1(parser, args):
     with open(args.i, 'r') if args.i is not None else sys.stdin as f:
         for line in f:
             substances_string_list = line.split()
+
+            try:
+                substances_string_int = [int(x) for x in substances_string_list]
+                if len(substances_string_int) != 2:
+                    raise ValueError("Restriction {} is not a pair".format(substances_string_int))
+                for x in substances_string_int:
+                    if not (1 <= x <= args.n):
+                        raise ValueError("'{}' is outside of range".format(x))
+            except ValueError as ex:
+                parser.error("Restriction {} should be a pair of integers from 1 to n splitted by space. {}".format(substances_string_list, ex))
+
             if substances_string_list:
-                restrictions.append(tuple(int(x) for x in substances_string_list)) #TODO: handle bad input
+                restrictions.append(tuple(substances_string_int))
 
     args.i = restrictions
 
@@ -69,7 +79,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.mode == 'm1':
-        args = parse_args_m1(parser, args)
+        args = parse_args_m1(m1_parser, args)
 
         solve_given(args.n, args.i)
     elif args.mode == 'm2':
@@ -85,7 +95,7 @@ if __name__ == '__main__':
             m2_parser.print_usage()
             parser.exit()
     elif args.mode == 'm3':
-        args = parse_args_m3(parser, args)
+        args = parse_args_m3(m3_parser, args)
 
         measure(args.n, args.iterations, args.step, args.density, args.instances)
     else:
