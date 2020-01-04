@@ -1,7 +1,6 @@
 import argparse
 import random
 import itertools
-import sys
 
 
 def generate(bipartite, n, first_n, density):
@@ -45,48 +44,53 @@ def generate_non_bipartite(n, density):
     return picked_edges
 
 
-if __name__ == '__main__':
-    def parse_args_solvable(parser, args):
+def parse_args_solvable(parser, args):
+    if not args.n >= 1:
+        parser.error("Minimum card number is 1")
+    if args.d is not None and not (0.0 <= args.d <= 1.0):
+        parser.error("Restrictions density has to be between 0.0 and 1.0")
+    if args.f is not None and not (0 <= args.f <= args.n):
+        parser.error("Numer of substances in the first magazine has to be between 0 and number of all substances")
 
-        if not args.n >= 1:
-            parser.error("Minimum card number is 1")
-        if args.d is not None and not (0.0 <= args.d <= 1.0):
-            parser.error("Restrictions density has to be between 0.0 and 1.0")
-        if args.f is not None and not (0 <= args.f <= args.n):
-            parser.error("Numer of substances in the first magazine has to be between 0 and number of all substances")
-
-        return args
-
-    def parse_args_unsolvable(parser, args):
-
-        if not args.n >= 1:
-            parser.error("Minimum card number is 1")
-        if args.d is not None and not (0.0 <= args.d <= 1.0):
-            parser.error("Restrictions density has to be between 0.0 and 1.0")
-
-        return args
+    return args
 
 
+def parse_args_unsolvable(parser, args):
+    if not args.n >= 1:
+        parser.error("Minimum card number is 1")
+    if args.d is not None and not (0.0 <= args.d <= 1.0):
+        parser.error("Restrictions density has to be between 0.0 and 1.0")
+
+    return args
+
+
+def create_parser():
     parser = argparse.ArgumentParser(description="Generate test data for substance displacement problem")
 
-    subparsers = parser.add_subparsers(dest="mode")
-    solvable_parser = subparsers.add_parser('solvable', help="generate solvable problem", description="Generate test data for solvable substance displacement problem")
-    unsolvable_parser = subparsers.add_parser('unsolvable', help="generate unsolvable problem", description="Generate test data for unsolvable substance displacement problem")
+    subparsers = parser.add_subparsers(dest="type")
+    solvable_parser = subparsers.add_parser('solvable', help="generate solvable problem",
+                                            description="Generate test data for solvable substance displacement problem")
+    unsolvable_parser = subparsers.add_parser('unsolvable', help="generate unsolvable problem",
+                                              description="Generate test data for unsolvable substance displacement problem")
 
     for p in [solvable_parser, unsolvable_parser]:
         p.add_argument("n", type=int, help="number of substances")
         p.add_argument("-d", type=float, help="density of restrictions (0.0 - no restrictions, 1.0 - max restrictions)")
 
     solvable_parser.add_argument("-f", type=int, help="number of substances in the first magazine")
+    return parser, {'solvable': solvable_parser, 'unsolvable': unsolvable_parser}
 
+
+if __name__ == '__main__':
+    parser, subparsers = create_parser()
     args = parser.parse_args()
 
-    if args.mode == 'solvable':
-        parse_args_solvable(parser, args)
+    if args.type == 'solvable':
+        args = parse_args_solvable(subparsers['solvable'], args)
 
         generated = generate(True, args.n, args.f, args.d)
-    elif args.mode == 'unsolvable':
-        parse_args_unsolvable(parser, args)
+    elif args.type == 'unsolvable':
+        args = parse_args_unsolvable(subparsers['unsolvable'], args)
 
         generated = generate(False, args.n, None, args.d)
     else:

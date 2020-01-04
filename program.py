@@ -1,0 +1,93 @@
+import argparse
+import fileinput
+import sys
+import generator
+
+
+def solve_given(n, restrictions):
+    return None
+
+
+def generate_and_solve(solvable, n, first_n, density):
+    return None
+
+
+def measure(start_n, iterations, step, density, instances):
+    return None
+
+
+def parse_args_m1(parser, args):
+    if not args.n >= 1:
+        parser.error("Minimum substance number is 1")
+
+    restrictions = []
+    with open(args.i, 'r') if args.i is not None else sys.stdin as f:
+        for line in f:
+            substances_string_list = line.split()
+            if substances_string_list:
+                restrictions.append(tuple(int(x) for x in substances_string_list)) #TODO: handle bad input
+
+    args.i = restrictions
+
+    return args
+
+
+def parse_args_m3(parser, args):
+    if not args.n >= 1:
+        parser.error("Minimum card number is 1")
+    if not args.iterations >= 1:
+        parser.error("Minimum iterations number is 1")
+    if not args.step >= 1:
+        parser.error("Increment has to be a positive integer")
+    if not (0.0 <= args.density <= 1.0):
+        parser.error("Restrictions density has to be between 0.0 and 1.0")
+    if args.instances is not None and not args.instances >= 1:
+        parser.error("Minimum instances number is 1")
+
+    return args
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Substance displacement problem")
+
+    generator_parser, generator_subparsers = generator.create_parser()
+
+    subparsers = parser.add_subparsers(dest="mode")
+    m1_parser = subparsers.add_parser('m1', help="solve given data", description="Solve substance displacement problem with given data")
+    m2_parser = subparsers.add_parser('m2', help="generate and solve", description="Generate test data for substance displacement problem and solve it", parents=[generator_parser], add_help=False)
+    m3_parser = subparsers.add_parser('m3', help="measure time", description="Generate substance displacement problems with growing sizes and measure solving time")
+
+    m1_parser.add_argument('n', type=int, help="number of substances")
+    m1_parser.add_argument('i', nargs='?', type=argparse.FileType('r'), help="input stream with restrictions")
+
+    m3_parser.add_argument('n', type=int, help="starting number of substances")
+    m3_parser.add_argument('iterations', type=int, help="number of iterations")
+    m3_parser.add_argument('step', type=int, help="increment of substances in each iteration")
+    m3_parser.add_argument('density', type=float, help="density of restrictions (0.0 - no restrictions, 1.0 - max restrictions)")
+    m3_parser.add_argument('-instances', type=int, help="number of generated problem in each iteration", default=10)
+
+    args = parser.parse_args()
+
+    if args.mode == 'm1':
+        args = parse_args_m1(parser, args)
+
+        solve_given(args.n, args.i)
+    elif args.mode == 'm2':
+        if args.type == 'solvable':
+            args = generator.parse_args_solvable(m2_parser, args)
+
+            generate_and_solve(True, args.n, args.f, args.d)
+        elif args.type == 'unsolvable':
+            args = generator.parse_args_unsolvable(m2_parser, args)
+
+            generate_and_solve(False, args.n, None, args.d)
+        else:
+            m2_parser.print_usage()
+            parser.exit()
+    elif args.mode == 'm3':
+        args = parse_args_m3(parser, args)
+
+        measure(args.n, args.iterations, args.step, args.density, args.instances)
+    else:
+        parser.print_usage()
+        parser.exit()
