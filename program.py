@@ -84,19 +84,20 @@ def parse_args_m1(parser, args):
         for line in f:
             substances_string_list = line.split()
 
-            try:
-                substances_string_int = [int(x) for x in substances_string_list]
-                if len(substances_string_int) != 2:
-                    raise ValueError("Restriction {} is not a pair".format(substances_string_int))
-                for x in substances_string_int:
-                    if not (1 <= x <= args.n):
-                        raise ValueError("'{}' is outside of range".format(x))
-            except ValueError as ex:
-                parser.error("Restriction {} should be a pair of integers from 1 to n splitted by space. {}".format(
-                    substances_string_list, ex))
-
             if substances_string_list:
-                restrictions.append(tuple(substances_string_int))
+                try:
+                    substances_string_int = [int(x) for x in substances_string_list]
+                    if len(substances_string_int) != 2:
+                        raise ValueError("Restriction {} is not a pair".format(substances_string_int))
+                    for x in substances_string_int:
+                        if not (1 <= x <= args.n):
+                            raise ValueError("'{}' is outside of range".format(x))
+                except ValueError as ex:
+                    parser.error("Restriction {} should be a pair of integers from 1 to n splitted by space. {}".format(
+                        substances_string_list, ex))
+
+                if substances_string_list:
+                    restrictions.append(tuple(substances_string_int))
 
     args.i = restrictions
 
