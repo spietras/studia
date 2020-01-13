@@ -25,7 +25,7 @@ Jedno z poprawnych rozwiązań:
 4 5
 ```
 
-##Uruchomienie
+## Uruchomienie
 
 Istnieją trzy tryby wykonania:
 
