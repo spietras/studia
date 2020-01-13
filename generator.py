@@ -1,9 +1,25 @@
+"""
+Module with generator of substance displacement problems
+
+Author: Sebastian Pietras
+Project: Chemikalia
+"""
+
 import argparse
 import itertools
 import random
 
 
 def generate(bipartite, n, first_n, density):
+    """
+    Generate edges of graph
+
+    Parameters:
+        bipartite - should graph be bipartite (True/False)
+        n - number of vertices
+        first_n - number of vertices in one part (ignored if bipartite == False)
+        density - density of edges (0.0 to 1.0)
+    """
     if density is None:
         density = random.random()
 
@@ -17,6 +33,14 @@ def generate(bipartite, n, first_n, density):
 
 
 def generate_bipartite(n, first_n, density):
+    """
+    Generate edges of bipartite graph
+
+    Parameters:
+        n - number of vertices
+        first_n - number of vertices in one part
+        density - density of edges (0.0 to 1.0)
+    """
     vertices = [i + 1 for i in range(n)]
 
     x = random.sample(vertices, n)
@@ -32,6 +56,13 @@ def generate_bipartite(n, first_n, density):
 
 
 def generate_non_bipartite(n, density):
+    """
+    Generate edges of non-bipartite graph
+
+    Parameters:
+        n - number of vertices
+        density - density of edges (0.0 to 1.0)
+    """
     vertices = [i + 1 for i in range(n)]
 
     bad_vertices = random.sample(vertices, 3)

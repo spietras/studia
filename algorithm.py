@@ -1,9 +1,23 @@
+"""
+Module with algorithm solving substance displacement problem
+
+Author: Sebastian Pietras
+Project: Chemikalia
+"""
+
 from collections import deque
 
 from graph import Graph
 
 
 def T(n, density):
+    """
+    Get theoretical complexity
+
+    Parameters:
+        n - input size (substances number)
+        density - density of restrictions
+    """
     possible_edges = int(n / 2) * (n - int(n / 2))
     e = int(density * possible_edges)
 
@@ -11,11 +25,19 @@ def T(n, density):
 
 
 def solve(v, edges):  # O(v + e) average
+    """
+    Solve substance displacement problem
+
+    Parameters:
+        v - number of substances
+        edges - restrictions
+    """
     graph = Graph(v, edges)  # O(v + e) average
     return get_graph_parts(graph)  # O(v + e) average
 
 
 def get_graph_parts(graph):  # O(v + e) average
+    """Get two-coloring of whole graph"""
     nodes = graph.get_nodes()  # O(v)
     set1 = set()  # O(1)
     set2 = set()  # O(1)
@@ -47,6 +69,13 @@ def get_graph_parts(graph):  # O(v + e) average
 
 
 def get_subtree_parts(graph, start_node):
+    """
+    Get two-coloring of subtree
+
+    Parameters:
+        graph - graph object
+        start_node - node the subtree contains
+    """
     color_a = {start_node}  # O(1)
     color_b = set()  # O(1)
 

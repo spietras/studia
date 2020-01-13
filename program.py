@@ -1,3 +1,10 @@
+"""
+Main project script
+
+Author: Sebastian Pietras
+Project: Chemikalia
+"""
+
 import argparse
 import statistics
 import sys
@@ -8,14 +15,42 @@ import measuring
 
 
 def solve_given(n, restrictions):
+    """
+    Solve problem given restrictions
+
+    Parameters:
+        n - number of substances
+        restrictions - list of restrictions
+    """
     return algorithm.solve(n, restrictions)
 
 
 def generate_and_solve(solvable, n, first_n, density):
+    """
+    Generate problem and solve it
+
+    Parameters:
+        solvable - should generated problem be solvable
+        n - number of substances
+        first_n - number of substances in one of the magazines (ignored if unsolvable)
+        density - density of restrictions
+    """
     return algorithm.solve(n, generator.generate(solvable, n, first_n, density))
 
 
 def measure(start_n, iterations, step, density, instances, repeats_per_instance=5, verbosity=0):
+    """
+    Measure solving time of problems with different sizes
+
+    Parameters:
+        start_n - starting number of substances
+        iterations - number of times to increase problem size
+        step - how much to increase number of substances in each iteration
+        density - density of restrictions
+        instances - how many problems to generate in each iteration
+        repeats_per_instance - how many times to repeat each problem
+        verbosity - 0 prints nothing, 1 prints header with basic info, 2 prints info after each iteration
+    """
     if verbosity >= 1:
         print(
             "Measuring for density {}, starting with n = {}, with step {}, {} iterations, {} instances per iterations and {} repeats per instance".format(
