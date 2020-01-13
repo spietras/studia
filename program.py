@@ -199,7 +199,7 @@ if __name__ == '__main__':
         elif args.type == 'unsolvable':
             args = generator.parse_args_unsolvable(m2_parser, args)
 
-            print_results(generate_and_solve(False, args.n, None, args.d))
+            print_results(generate_and_solve(False, args.n, None, args.density))
         else:
             m2_parser.print_usage()
             parser.exit()
