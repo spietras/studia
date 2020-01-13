@@ -139,17 +139,17 @@ def print_results(results):
     return
 
 
-def print_table(results):
+def print_table(results, density):
     points, times = map(list, zip(*results))
     median_point = statistics.median(points)
     median_time = statistics.median(times)
     qs = list()
 
     for point, time in results:
-        q = (time * algorithm.T(median_point, args.density)) / (algorithm.T(point, args.density) * median_time)
+        q = (time * algorithm.T(median_point, density)) / (algorithm.T(point, density) * median_time)
         qs.append(q)
 
-    print("\nAlgorytm z asymptotą O(n + m) dla m = {} * n^2 / 4\n".format(args.density))
+    print("\nAlgorytm z asymptotą O(n + m) dla m = {} * n^2 / 4\n".format(density))
     print('{:<10s}\t{:<10s}\t{:<10s}'.format("n", "t(n)[ms]", "q(n)"))
     print('\n'.join(
         '{:<10d}\t{:<10.5f}\t{:<10.5f}'.format(point, time, q) for point, time, q in zip(points, times, qs)))
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
         results = measure(args.n, args.iterations, args.step, args.density, args.instances, args.repeats, args.verbose)
 
-        print_table(results)
+        print_table(results, args.density)
     else:
         parser.print_usage()
         parser.exit()
