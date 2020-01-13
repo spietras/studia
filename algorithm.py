@@ -21,7 +21,7 @@ def T(n, density):
     possible_edges = int(n / 2) * (n - int(n / 2))
     e = int(density * possible_edges)
 
-    return n + e
+    return n + e  # n + n^2 / 4 for all possible edges
 
 
 def solve(v, edges):  # O(v + e) average
@@ -49,6 +49,7 @@ def get_graph_parts(graph):  # O(v + e) average
         # so after summing up the complexity of this statement for the whole loop is O(v + e) average
         bad_edge, subset1, subset2 = get_subtree_parts(graph, nodes.pop())
 
+        # add found subsets to whole set
         # complexity depends of subset size
         # adding n elements to set of size m is O(m+n)
         # after summing up subsets should contain every node
@@ -59,6 +60,7 @@ def get_graph_parts(graph):  # O(v + e) average
         if bad_edge:
             return bad_edge, set1, set2
 
+        # remove visited nodes from consideration
         # complexity depends of subset sizes
         # subtracting n elements is O(n)
         # after summing up subsets should contain every node
@@ -81,6 +83,8 @@ def get_subtree_parts(graph, start_node):
 
     queue = deque([start_node])  # O(1)
 
+    # BFS - go through the graph and add neighbours to queue
+
     while queue:  # for each node in subgraph - after summing up this loop will iterate through every node
         node = queue.popleft()  # O(1)
 
@@ -88,9 +92,12 @@ def get_subtree_parts(graph, start_node):
 
         for neighbour in graph.get_neighbours(
                 node):  # for each neighbour of node - after summing up this loop will iterate through every edge
+
+            # if this is true, there is a neighbour in the same color as this node so two-coloring is not possible
             if neighbour in this_color:  # O(1) average
                 return (node, neighbour), color_a, color_b
 
+            # if this is true, the neighbour was not visited yet, so color him and add to the queue
             if neighbour not in other_color:  # O(1) average
                 other_color.add(neighbour)  # O(1) average
                 queue.append(neighbour)  # O(1)

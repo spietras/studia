@@ -43,12 +43,12 @@ def generate_bipartite(n, first_n, density):
     """
     vertices = [i + 1 for i in range(n)]
 
-    x = random.sample(vertices, n)
+    x = random.sample(vertices, n)  # random shuffling of vertices
 
-    first = x[:first_n]
-    second = x[first_n:]
+    first = x[:first_n]  # first part of vertices
+    second = x[first_n:]  # second part of vertices
 
-    possible_edges = list(itertools.product(first, second))
+    possible_edges = list(itertools.product(first, second))  # edges as product between parts
 
     picked_edges = random.sample(possible_edges, int(density * len(possible_edges)))
 
@@ -65,9 +65,11 @@ def generate_non_bipartite(n, density):
     """
     vertices = [i + 1 for i in range(n)]
 
+    # pick 3 vertices and connect them so graph can't be bipartite
     bad_vertices = random.sample(vertices, 3)
     bad_vertices_edges = {tuple(sorted(edge)) for edge in itertools.combinations(bad_vertices, 2)}
 
+    # make all other possible edges excluding picked above (to avoid duplicates)
     all_edges = {tuple(sorted(edge)) for edge in itertools.combinations(vertices, 2)}
     possible_edges = all_edges - bad_vertices_edges
 
