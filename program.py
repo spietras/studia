@@ -1,7 +1,9 @@
 import argparse
+import statistics
 import sys
-import generator
+
 import algorithm
+import generator
 import measuring
 
 
@@ -13,18 +15,24 @@ def generate_and_solve(solvable, n, first_n, density):
     return algorithm.solve(n, generator.generate(solvable, n, first_n, density))
 
 
-def measure(start_n, iterations, step, density, instances, repeats_per_instance=10, verbosity=0):
+def measure(start_n, iterations, step, density, instances, repeats_per_instance=5, verbosity=0):
     if verbosity >= 1:
-        print("Measuring for density {}, starting with n = {}, with step {}, {} iterations, {} instances per iterations and {} repeats per instance".format(density, start_n, step, iterations, instances, repeats_per_instance))
+        print(
+            "Measuring for density {}, starting with n = {}, with step {}, {} iterations, {} instances per iterations and {} repeats per instance".format(
+                density, start_n, step, iterations, instances, repeats_per_instance))
 
     points = [n for n in range(start_n, start_n + iterations * step, step)]
     times = []
     for i, n in enumerate(points):
-        def algorithm_fun(edges, v=n): algorithm.solve(v, edges)
-        def generator_fun(v=n, d=density): return generator.generate(True, v, int(v / 2), d)
+        def algorithm_fun(edges, v=n):
+            algorithm.solve(v, edges)
+
+        def generator_fun(v=n, d=density):
+            return generator.generate(True, v, int(v / 2), d)
+
         times.append(measuring.measure_generated(algorithm_fun, generator_fun, instances, repeats_per_instance))
         if verbosity >= 2:
-            print("Measured for n = {} ({}/{})".format(n, i, iterations))
+            print("Measured for n = {} ({}/{})".format(n, i + 1, iterations))
 
     if verbosity >= 1:
         print("Measured all")
@@ -71,8 +79,45 @@ def parse_args_m3(parser, args):
         parser.error("Restrictions density has to be between 0.0 and 1.0")
     if args.instances is not None and not args.instances >= 1:
         parser.error("Minimum instances number is 1")
+    if args.instances is not None and not args.instances >= 1:
+        parser.error("Minimum repeats number is 1")
+    if args.verbose > 2:
+        args.verbose = 2
 
     return args
+
+
+def print_results(results):
+    bad_edge = results[0]
+    warehouse_a = results[1]
+    warehouse_b = results[2]
+
+    if bad_edge:
+        print("Can't place substances. Problematic restriction: ", bad_edge)
+        print("Current warehouse A: " + ' '.join(str(substance) for substance in warehouse_a))
+        print("Current warehouse B: " + ' '.join(str(substance) for substance in warehouse_b))
+        return
+
+    print("Warehouse A: " + ' '.join(str(substance) for substance in warehouse_a))
+    print("Warehouse B: " + ' '.join(str(substance) for substance in warehouse_b))
+    return
+
+
+def print_table(results):
+    points, times = map(list, zip(*results))
+    median_point = statistics.median(points)
+    median_time = statistics.median(times)
+    qs = list()
+
+    for point, time in results:
+        q = (time * algorithm.T(median_point, args.density)) / (algorithm.T(point, args.density) * median_time)
+        qs.append(q)
+
+    print("\nAlgorytm z asymptotą O(n + m) dla m = {} * n^2 / 4\n".format(args.density))
+    print('{:<10s}\t{:<10s}\t{:<10s}'.format("n", "t(n)[ms]", "q(n)"))
+    print('\n'.join(
+        '{:<10d}\t{:<10.5f}\t{:<10.5f}'.format(point, time, q) for point, time, q in zip(points, times, qs)))
+    return
 
 
 if __name__ == '__main__':
@@ -97,31 +142,37 @@ if __name__ == '__main__':
     m3_parser.add_argument('step', type=int, help="increment of substances in each iteration")
     m3_parser.add_argument('density', type=float,
                            help="density of restrictions (0.0 - no restrictions, 1.0 - max restrictions)")
-    m3_parser.add_argument('-instances', type=int, help="number of generated problem in each iteration", default=10)
+    m3_parser.add_argument('-ins', '--instances', type=int, help="number of generated problem in each iteration",
+                           default=10)
+    m3_parser.add_argument('-r', '--repeats', type=int,
+                           help="number of repeats of each generated problem in each iteration",
+                           default=10)
+    m3_parser.add_argument('-v', '--verbose', action='count', help="verbosity level, count flag", default=0)
 
     args = parser.parse_args()
 
     if args.mode == 'm1':
         args = parse_args_m1(m1_parser, args)
 
-        print(solve_given(args.n, args.i))
+        print_results(solve_given(args.n, args.i))
     elif args.mode == 'm2':
         if args.type == 'solvable':
             args = generator.parse_args_solvable(m2_parser, args)
 
-            print(generate_and_solve(True, args.n, args.f, args.d))
+            print_results(generate_and_solve(True, args.n, args.first, args.density))
         elif args.type == 'unsolvable':
             args = generator.parse_args_unsolvable(m2_parser, args)
 
-            print(generate_and_solve(False, args.n, None, args.d))
+            print_results(generate_and_solve(False, args.n, None, args.d))
         else:
             m2_parser.print_usage()
             parser.exit()
     elif args.mode == 'm3':
         args = parse_args_m3(m3_parser, args)
 
-        results = measure(args.n, args.iterations, args.step, args.density, args.instances)
-        print('\n'.join('{}\t{}'.format(*result) for result in results))
+        results = measure(args.n, args.iterations, args.step, args.density, args.instances, args.repeats, args.verbose)
+
+        print_table(results)
     else:
         parser.print_usage()
         parser.exit()
