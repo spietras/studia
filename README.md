@@ -70,7 +70,7 @@ Istnieją trzy tryby wykonania:
     
 ## Wejście/Wyjście
 
-Wejściem powinny być pary liczb odpowiadających substancjom, 
+Wejściem powinny być niepowtarzające się pary liczb odpowiadających substancjom, 
 które nie mogą być ze sobą w magazynie, oddzielone spacją.
 Kolejne pary powinny być oddzielone znakiem nowej linii.
 
@@ -82,7 +82,7 @@ Na przykład:
 3 5
 ```
 
-Liczby odpowiadające substancjom powinny być naturalne.
+Liczby odpowiadające substancjom powinny być naturalne i nie przekraczać liczby wszystkich substancji.
 Jedyne dopuszczalne znaki na wejściu to: cyfry, spacja i znak nowej linii.
 
 
@@ -96,6 +96,16 @@ Na przykład:
 ```
 Warehouse A: 1 2 3
 Warehouse B: 4 5
+```
+
+Jeżeli rozłożenie nie będzie możliwe, wypisana zostanie wadliwa restrykcja i aktualnie znalezione rozłożenie.
+
+Na przykład:
+
+```
+Can't place substances. Problematic restriction:  (4, 5)
+Current warehouse A: 1 2 3
+Current warehouse B: 4 5
 ```
 
 W przypadku wybrania trzeciego trybu uruchomienia zostanie wygenerowana tabela
@@ -133,7 +143,7 @@ Reprezentacja danych jako graf w postaci listy sąsiedztwa, na przykład:
 ```
 
 Aby stworzyć tę strukturę wystarczy utworzyć zbiory dla każdego wierzchołka
-i dla każdej krawędzi z wejścia dodawać odpowiedni wierzchołek do zbioru.
+i dla każdej krawędzi z wejścia dodawać odpowiedni wierzchołek do odpowiedniego zbioru.
 
 Aby znaleźć rozwiązanie trzeba pokolorować graf na dwa kolory. 
 Można to zrobić za pomocą algorytmu BFS.
