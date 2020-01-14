@@ -4,7 +4,6 @@
 #include "GLFW/glfw3.h"
 #include "entities/models/CubeModel.h"
 #include "utils/Window.h"
-#include <iostream>
 
 int main()
 {

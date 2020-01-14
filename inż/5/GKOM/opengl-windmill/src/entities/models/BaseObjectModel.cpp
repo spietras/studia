@@ -1,10 +1,3 @@
-#include <utility>
-
-#include <utility>
-
-#include <utility>
-#include <iostream>
-
 #include "BaseObjectModel.h"
 
 BaseObjectModel::BaseObjectModel(std::vector<Vertex> vertices,
