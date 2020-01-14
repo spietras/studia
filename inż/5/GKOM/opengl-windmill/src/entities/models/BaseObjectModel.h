@@ -4,16 +4,18 @@
 #include <vector>
 #include "GL/glew.h"
 #include "glm/vec3.hpp"
+#include "../../utils/Vertex.h"
 
 class BaseObjectModel
 {
-    std::vector<glm::vec3> points; //vertices
+    std::vector<Vertex> vertices;
 
     unsigned int VAO;
     unsigned int VBO;
 
 public:
-    BaseObjectModel(const std::vector<glm::vec3> &points, int positionLocation);
+    BaseObjectModel(std::vector<Vertex> vertices, int positionLocation, int normalLocation);
+
     ~BaseObjectModel();
 
     unsigned int getVAO() const
@@ -22,11 +24,11 @@ public:
     unsigned int getVBO() const
     { return VBO; }
 
-    unsigned int getPointsSize() const
-    { return points.size(); }
+    unsigned int getVerticesSize() const
+    { return vertices.size(); }
 
-    unsigned int getPointsByteSize() const
-    { return sizeof(glm::vec3) * points.size(); }
+    unsigned int getVerticesByteSize() const
+    { return sizeof(Vertex) * vertices.size(); }
 };
 
 

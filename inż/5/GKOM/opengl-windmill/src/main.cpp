@@ -15,12 +15,16 @@ int main()
 
     const char *vertexShaderSource = "#version 330 core\n"
                                      "layout (location = 0) in vec3 aPos;\n"
+                                     "layout (location = 1) in vec3 aNorm;\n"
                                      "uniform mat4 model;\n"
+                                     "out vec3 normal;\n"
                                      "void main()\n"
                                      "{\n"
-                                     "   gl_Position = model * vec4(aPos, 1.0);\n"
+                                     "  gl_Position = model * vec4(aPos, 1.0);\n"
+                                     "  normal = aNorm;\n"
                                      "}\0";
     const char *fragmentShaderSource = "#version 330 core\n"
+                                       "in vec3 normal;\n"
                                        "out vec4 FragColor;\n"
                                        "void main()\n"
                                        "{\n"
@@ -35,7 +39,7 @@ int main()
     Scene s;
 
     //create model and two entities based on this model
-    CubeModel cm(0.25f, 0);
+    CubeModel cm(0.25f, 0, 1);
     Entity cube(cm);
     Entity cube2(cm);
     s.addEntity(cube);
@@ -63,6 +67,6 @@ int main()
 
         w.draw(r, s, sp);
     }
-    
+
     return 0;
 }

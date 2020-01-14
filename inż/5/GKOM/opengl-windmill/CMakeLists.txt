@@ -32,7 +32,8 @@ add_executable( ${TARGET}
                 ${SRCDIR}/entities/Entity.cpp
                 ${SRCDIR}/entities/Entity.h
                 ${SRCDIR}/utils/Scene.cpp
-                ${SRCDIR}/utils/Scene.h)
+                ${SRCDIR}/utils/Scene.h
+                ${SRCDIR}/utils/Vertex.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

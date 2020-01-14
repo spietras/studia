@@ -6,10 +6,10 @@
 
 class CuboidModel : public BaseObjectModel
 {
-    static std::vector<glm::vec3> calculatePoints(float width, float height, float depth);
+    static std::vector<Vertex> calculateVertices(float width, float height, float depth);
 
 public:
-    CuboidModel(float width, float height, float depth, int positionLocation);
+    CuboidModel(float width, float height, float depth, int positionLocation, int normalLocation);
 };
 
 

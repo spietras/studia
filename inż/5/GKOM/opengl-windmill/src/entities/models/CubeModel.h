@@ -7,7 +7,8 @@
 class CubeModel : public CuboidModel
 {
 public:
-    CubeModel(float edgeSize, int positionLocation) : CuboidModel(edgeSize, edgeSize, edgeSize, positionLocation)
+    CubeModel(float edgeSize, int positionLocation, int normalLocation) : CuboidModel(edgeSize, edgeSize, edgeSize,
+                                                                                      positionLocation, normalLocation)
     {}
 };
 
