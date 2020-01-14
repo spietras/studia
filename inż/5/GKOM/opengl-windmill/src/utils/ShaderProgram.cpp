@@ -1,6 +1,24 @@
+#include <fstream>
+#include <sstream>
 #include "ShaderProgram.h"
 
-int ShaderProgram::createShader(int type, const std::string &source) const
+std::string ShaderProgram::getShaderSource(const std::string &path)
+{
+    try
+    {
+        std::ifstream file(path);
+        std::stringstream buffer;
+        buffer.exceptions(std::ios::failbit | std::ios::badbit);
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+    catch(std::runtime_error& e)
+    {
+        throw std::runtime_error("Can't open shader file " + path + ". " + e.what());
+    }
+}
+
+int ShaderProgram::createShader(int type, const std::string &source)
 {
     int shader = glCreateShader(type);
     const char *c_str = source.c_str();
@@ -10,8 +28,11 @@ int ShaderProgram::createShader(int type, const std::string &source) const
 }
 
 
-ShaderProgram::ShaderProgram(const std::string &vertexShaderSource, const std::string &fragmentShaderSource)
+ShaderProgram::ShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
 {
+    const std::string& vertexShaderSource = getShaderSource(vertexShaderPath);
+    const std::string& fragmentShaderSource = getShaderSource(fragmentShaderPath);
+
     int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
     int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 

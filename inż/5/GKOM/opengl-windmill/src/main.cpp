@@ -12,28 +12,13 @@ int main()
     const std::string TITLE = "Wiatrak";
     const ColorFloat BG_COLOR = {0.2f, 0.3f, 0.3f, 1.0f};
 
-    const char *vertexShaderSource = "#version 330 core\n"
-                                     "layout (location = 0) in vec3 aPos;\n"
-                                     "layout (location = 1) in vec3 aNorm;\n"
-                                     "uniform mat4 model;\n"
-                                     "out vec3 normal;\n"
-                                     "void main()\n"
-                                     "{\n"
-                                     "  gl_Position = model * vec4(aPos, 1.0);\n"
-                                     "  normal = aNorm;\n"
-                                     "}\0";
-    const char *fragmentShaderSource = "#version 330 core\n"
-                                       "in vec3 normal;\n"
-                                       "out vec4 FragColor;\n"
-                                       "void main()\n"
-                                       "{\n"
-                                       "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                       "}\n\0";
+    const std::string vertexShaderPath = "res/shaders/basic.vs";
+    const std::string fragmentShaderPath = "res/shaders/basic.fs";
 
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
 
     Renderer r(BG_COLOR);
-    ShaderProgram sp(vertexShaderSource, fragmentShaderSource);
+    ShaderProgram sp(vertexShaderPath, fragmentShaderPath);
 
     Scene s;
 

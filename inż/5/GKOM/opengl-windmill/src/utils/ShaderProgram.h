@@ -13,10 +13,12 @@ class ShaderProgram
 
     int shaderProgram;
 
-    int createShader(int type, const std::string &source) const;
+    static std::string getShaderSource(const std::string &path);
+
+    static int createShader(int type, const std::string &source);
 
 public:
-    ShaderProgram(const std::string &vertexShaderSource, const std::string &fragmentShaderSource);
+    ShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath);
 
     void use() const;
 
