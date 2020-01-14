@@ -24,7 +24,6 @@ add_executable( ${TARGET}
                 ${SRCDIR}/utils/Color.h
                 ${SRCDIR}/entities/models/BaseObjectModel.cpp
                 ${SRCDIR}/entities/models/BaseObjectModel.h
-                ${SRCDIR}/utils/Triangle.h
                 ${SRCDIR}/utils/ShaderProgram.cpp
                 ${SRCDIR}/utils/ShaderProgram.h
                 ${SRCDIR}/entities/models/CuboidModel.cpp

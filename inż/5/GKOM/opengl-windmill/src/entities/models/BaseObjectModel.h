@@ -4,19 +4,16 @@
 #include <vector>
 #include "GL/glew.h"
 #include "glm/vec3.hpp"
-#include "../../utils/Triangle.h"
 
 class BaseObjectModel
 {
     std::vector<glm::vec3> points; //vertices
-    std::vector<Triangle> triangles; //indices
 
     unsigned int VAO;
     unsigned int VBO;
-    unsigned int EBO;
 
 public:
-    BaseObjectModel(const std::vector<glm::vec3> &points, const std::vector<Triangle> &triangles, int positionLocation);
+    BaseObjectModel(const std::vector<glm::vec3> &points, int positionLocation);
     ~BaseObjectModel();
 
     unsigned int getVAO() const
@@ -25,14 +22,11 @@ public:
     unsigned int getVBO() const
     { return VBO; }
 
-    unsigned int getEBO() const
-    { return EBO; }
+    unsigned int getPointsSize() const
+    { return points.size(); }
 
     unsigned int getPointsByteSize() const
     { return sizeof(glm::vec3) * points.size(); }
-
-    unsigned int getTrianglesByteSize() const
-    { return sizeof(Triangle) * triangles.size(); }
 };
 
 

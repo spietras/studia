@@ -16,7 +16,7 @@ void Renderer::drawScene(const Scene &scene, const ShaderProgram &shaderProgram)
         shaderProgram.applyEntityTransformation(*entity);
         const BaseObjectModel &model = entity->getModel();
         glBindVertexArray(model.getVAO()); //bind model VAO
-        glDrawElements(GL_TRIANGLES, model.getTrianglesByteSize(), GL_UNSIGNED_INT, nullptr); //draw
+        glDrawArrays(GL_TRIANGLES, 0, model.getPointsSize()); // draw
         glBindVertexArray(0);
     }
 }
