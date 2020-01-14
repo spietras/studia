@@ -6,20 +6,24 @@
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "models/BaseObjectModel.h"
+#include "../utils/Color.h"
 
 class Entity
 {
     const BaseObjectModel& model; //geometry
     glm::mat4 modelMatrix; //transformation from local space to world space
+    ColorFloat color;
 
 public:
-    Entity(const BaseObjectModel& model);
+    Entity(const BaseObjectModel& model, ColorFloat color);
 
     const BaseObjectModel &getModel() const
     { return model; }
 
     const glm::mat4 &getModelMatrix() const
     { return modelMatrix; }
+
+    const ColorFloat& getColor() const { return color; }
 
     void setPosition(const glm::vec3& position);
 

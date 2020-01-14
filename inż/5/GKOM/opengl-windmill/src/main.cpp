@@ -10,7 +10,7 @@ int main()
     const unsigned int SCR_WIDTH = 600;
     const unsigned int SCR_HEIGHT = 600;
     const std::string TITLE = "Wiatrak";
-    const ColorFloat BG_COLOR = {0.2f, 0.3f, 0.3f, 1.0f};
+    const ColorInt BG_COLOR = {236, 237, 237};
 
     const std::string vertexShaderPath = "res/shaders/basic.vs";
     const std::string fragmentShaderPath = "res/shaders/basic.fs";
@@ -24,8 +24,8 @@ int main()
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
-    Entity cube(cm);
-    Entity cube2(cm);
+    Entity cube(cm, ColorInt(48, 95, 114));
+    Entity cube2(cm, ColorInt(241, 140, 142));
     s.addEntity(cube);
     s.addEntity(cube2);
 

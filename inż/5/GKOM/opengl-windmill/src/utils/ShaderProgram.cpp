@@ -118,3 +118,8 @@ void ShaderProgram::applyEntityTransformation(const Entity &entity) const
 {
     setUniformMat4(MODEL_MATRIX_UNIFORM_NAME, entity.getModelMatrix()); //copy model matrix to uniform in shader
 }
+
+void ShaderProgram::setEntityColor(const Entity &entity) const
+{
+    setUniformVec4(COLOR_UNIFORM_NAME, entity.getColor().getVec());
+}

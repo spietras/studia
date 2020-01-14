@@ -11,9 +11,10 @@ void Renderer::drawBackground() const
 
 void Renderer::drawScene(const Scene &scene, const ShaderProgram &shaderProgram) const
 {
-    for (const Entity *entity : scene.getEntities())
+    for (const Entity * entity : scene.getEntities())
     {
         shaderProgram.applyEntityTransformation(*entity);
+        shaderProgram.setEntityColor(*entity);
         const BaseObjectModel &model = entity->getModel();
         glBindVertexArray(model.getVAO()); //bind model VAO
         glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw

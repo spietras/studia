@@ -2,7 +2,7 @@
 
 #include "Entity.h"
 
-Entity::Entity(const BaseObjectModel& model) : model(model)
+Entity::Entity(const BaseObjectModel& model, ColorFloat color) : model(model), color(color)
 {
     this->modelMatrix = glm::mat4(1.0f); //start with identity matrix
 }
