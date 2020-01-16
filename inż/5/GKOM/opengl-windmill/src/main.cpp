@@ -24,7 +24,7 @@ int main()
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
-    Entity cube(cm, ColorInt(48, 95, 114));
+    Entity cube(cm, ColorInt(48, 96, 114));
     Entity cube2(cm, ColorInt(241, 140, 142));
     s.addEntity(cube);
     s.addEntity(cube2);
