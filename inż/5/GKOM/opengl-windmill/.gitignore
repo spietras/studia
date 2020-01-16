@@ -6,3 +6,5 @@ obj/
 .idea/
 
 cmake-build-debug/
+/.vs
+/Debug

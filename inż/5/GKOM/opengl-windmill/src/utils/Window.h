@@ -1,6 +1,8 @@
 #ifndef WIATRAK_WINDOW_H
 #define WIATRAK_WINDOW_H
 
+#define GLEW_STATIC
+
 #include <string>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"

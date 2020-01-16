@@ -1,6 +1,8 @@
 #ifndef WIATRAK_BASEOBJECTMODEL_H
 #define WIATRAK_BASEOBJECTMODEL_H
 
+#define GLEW_STATIC
+
 #include <vector>
 #include "GL/glew.h"
 #include "glm/vec3.hpp"

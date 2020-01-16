@@ -1,6 +1,7 @@
 #ifndef WIATRAK_SHADERPROGRAM_H
 #define WIATRAK_SHADERPROGRAM_H
 
+#define GLEW_STATIC
 
 #include <string>
 #include "GL/glew.h"

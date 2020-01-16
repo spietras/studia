@@ -1,3 +1,5 @@
+#define GLEW_STATIC
+
 #include <cmath>
 
 #include "GL/glew.h"

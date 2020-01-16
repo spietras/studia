@@ -1,6 +1,8 @@
 #ifndef ZT2_WIATRAK_RENDERER_H
 #define ZT2_WIATRAK_RENDERER_H
 
+#define GLEW_STATIC
+
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Color.h"
