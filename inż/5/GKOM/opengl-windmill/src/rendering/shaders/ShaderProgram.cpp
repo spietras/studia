@@ -12,7 +12,7 @@ std::string ShaderProgram::getShaderSource(const std::string &path)
         buffer << file.rdbuf();
         return buffer.str();
     }
-    catch(std::runtime_error& e)
+    catch (std::runtime_error &e)
     {
         throw std::runtime_error("Can't open shader file " + path + ". " + e.what());
     }
@@ -30,8 +30,8 @@ int ShaderProgram::createShader(int type, const std::string &source)
 
 ShaderProgram::ShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
 {
-    const std::string& vertexShaderSource = getShaderSource(vertexShaderPath);
-    const std::string& fragmentShaderSource = getShaderSource(fragmentShaderPath);
+    const std::string &vertexShaderSource = getShaderSource(vertexShaderPath);
+    const std::string &fragmentShaderSource = getShaderSource(fragmentShaderPath);
 
     int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
     int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
@@ -117,9 +117,4 @@ void ShaderProgram::setUniformMat4(const std::string &name, const glm::mat4 &mat
 void ShaderProgram::applyEntityTransformation(const Entity &entity) const
 {
     setUniformMat4(MODEL_MATRIX_UNIFORM_NAME, entity.getModelMatrix()); //copy model matrix to uniform in shader
-}
-
-void ShaderProgram::setEntityColor(const Entity &entity) const
-{
-    setUniformVec4(COLOR_UNIFORM_NAME, entity.getColor().getVec());
 }

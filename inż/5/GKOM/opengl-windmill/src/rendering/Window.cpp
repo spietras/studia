@@ -35,9 +35,10 @@ bool Window::shouldClose() const
     return glfwWindowShouldClose(this->handle);
 }
 
-void Window::draw(const Renderer &renderer, const Scene &scene, const ShaderProgram &shaderProgram) const
+void Window::draw(const Renderer &renderer, const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+                  const LightShaderProgram &lightShaderProgram) const
 {
-    renderer.render(scene, shaderProgram);
+    renderer.render(scene, absorberShaderProgram, lightShaderProgram);
     glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
     glfwPollEvents(); //process all events on windows in this frame
 }

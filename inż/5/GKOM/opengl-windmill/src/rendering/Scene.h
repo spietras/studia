@@ -4,15 +4,23 @@
 
 #include <vector>
 #include "../entities/Entity.h"
+#include "../entities/absorbers/Absorber.h"
+#include "../entities/lights/PointLight.h"
 
 class Scene
 {
-    std::vector<const Entity*> entities; //containing pointers, because we create and modify entities outside Scene
+    //containing pointers, because we create and modify entities outside Scene
+    std::vector<const Absorber *> absorbers;
+    std::vector<const PointLight *> lights;
 
 public:
-    const std::vector<const Entity*> &getEntities() const;
+    const std::vector<const Absorber *> &getAbsorbers() const;
 
-    void addEntity(const Entity &entity);
+    void addAbsorber(const Absorber &absorber);
+
+    const std::vector<const PointLight *> &getLights() const;
+
+    void addLight(const PointLight &light);
 };
 
 

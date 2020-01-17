@@ -10,12 +10,11 @@
 
 class Entity
 {
-    const BaseObjectModel& model; //geometry
+    const BaseObjectModel &model; //geometry
     glm::mat4 modelMatrix; //transformation from local space to world space
-    ColorFloat color;
 
 public:
-    Entity(const BaseObjectModel& model, ColorFloat color);
+    Entity(const BaseObjectModel &model);
 
     const BaseObjectModel &getModel() const
     { return model; }
@@ -23,15 +22,15 @@ public:
     const glm::mat4 &getModelMatrix() const
     { return modelMatrix; }
 
-    const ColorFloat& getColor() const { return color; }
-
-    void setPosition(const glm::vec3& position);
+    void setPosition(const glm::vec3 &position);
 
     void translate(const glm::vec3 &vector); //apply translation to current transformation
 
-    void rotateAroundOrigin(float radianAngle, const glm::vec3 &axis); // apply rotation around world origin to current transformation
+    void rotateAroundOrigin(float radianAngle,
+                            const glm::vec3 &axis); // apply rotation around world origin to current transformation
 
-    void rotate(float radianAngle, const glm::vec3 &axis); //apply rotation around model origin to current transformation
+    void
+    rotate(float radianAngle, const glm::vec3 &axis); //apply rotation around model origin to current transformation
 };
 
 

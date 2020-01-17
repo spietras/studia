@@ -7,7 +7,8 @@
 #include "GLFW/glfw3.h"
 #include "../utils/Color.h"
 #include "Scene.h"
-#include "shaders/ShaderProgram.h"
+#include "shaders/AbsorberShaderProgram.h"
+#include "shaders/LightShaderProgram.h"
 
 class Renderer
 {
@@ -15,14 +16,19 @@ class Renderer
 
     void drawBackground() const;
 
-    void drawScene(const Scene &scene, const ShaderProgram &shaderProgram) const;
+    void drawEntity(const Entity &entity) const;
+
+    void drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgram &shaderProgram) const;
+
+    void drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const;
 
 public:
 
     Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
     {};
 
-    void render(const Scene &scene, const ShaderProgram &shaderProgram) const;
+    void render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+                const LightShaderProgram &lightShaderProgram) const;
 };
 
 

@@ -1,11 +1,21 @@
 #include "Scene.h"
 
-const std::vector<const Entity*> &Scene::getEntities() const
+const std::vector<const Absorber *> &Scene::getAbsorbers() const
 {
-    return this->entities;
+    return this->absorbers;
 }
 
-void Scene::addEntity(const Entity &entity)
+void Scene::addAbsorber(const Absorber &absorber)
 {
-    this->entities.push_back(&entity);
+    this->absorbers.push_back(&absorber);
+}
+
+const std::vector<const PointLight *> &Scene::getLights() const
+{
+    return this->lights;
+}
+
+void Scene::addLight(const PointLight &light)
+{
+    this->lights.push_back(&light);
 }

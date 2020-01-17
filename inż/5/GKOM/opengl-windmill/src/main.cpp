@@ -14,22 +14,31 @@ int main()
     const std::string TITLE = "Wiatrak";
     const ColorInt BG_COLOR = {236, 237, 237};
 
-    const std::string vertexShaderPath = "res/shaders/basic.vs";
-    const std::string fragmentShaderPath = "res/shaders/basic.fs";
+    const std::string absorberVertexShaderPath = "res/shaders/absorber.vs";
+    const std::string absorberFragmentShaderPath = "res/shaders/absorber.fs";
+
+    const std::string lightVertexShaderPath = "res/shaders/light.vs";
+    const std::string lightFragmentShaderPath = "res/shaders/light.fs";
 
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
 
     Renderer r(BG_COLOR);
-    ShaderProgram sp(vertexShaderPath, fragmentShaderPath);
+    AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
+    LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
 
     Scene s;
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
-    Entity cube(cm, ColorInt(48, 96, 114));
-    Entity cube2(cm, ColorInt(241, 140, 142));
-    s.addEntity(cube);
-    s.addEntity(cube2);
+    Absorber cube(cm, ColorInt(48, 96, 114));
+    Absorber cube2(cm, ColorInt(241, 140, 142));
+    s.addAbsorber(cube);
+    s.addAbsorber(cube2);
+
+    PointLight light(cm, ColorFloat(1.0f, 1.0f, 1.0f));
+    s.addLight(light);
+
+    light.setPosition({0.8f, 0.8f, 0.0f});
 
     float deltaTime;
     float lastFrame = 0.0f;
@@ -45,13 +54,14 @@ int main()
 
         //apply different transformations to entities
 
-        cube.rotate(rotationSpeed * deltaTime, glm::vec3(1.0f, -1.0f, 0.0f));
+        cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
+        light.rotate(rotationSpeed * deltaTime, {-1.0f, 2.0f, -3.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
 
-        cube2.rotate(rotationSpeed * deltaTime, glm::vec3(0.0f, 3.0f, 1.0f));
+        cube2.rotate(rotationSpeed * deltaTime, {0.0f, 3.0f, 1.0f});
 
-        w.draw(r, s, sp);
+        w.draw(r, s, asp, lsp);
     }
 
     return 0;

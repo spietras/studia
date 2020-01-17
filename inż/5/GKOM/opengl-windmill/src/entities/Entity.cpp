@@ -1,8 +1,6 @@
-#include <utility>
-
 #include "Entity.h"
 
-Entity::Entity(const BaseObjectModel& model, ColorFloat color) : model(model), color(color)
+Entity::Entity(const BaseObjectModel &model) : model(model)
 {
     this->modelMatrix = glm::mat4(1.0f); //start with identity matrix
 }
@@ -17,15 +15,16 @@ void Entity::setPosition(const glm::vec3 &position)
 void Entity::translate(const glm::vec3 &vector)
 {
     glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), vector);
-    this->modelMatrix = translationMatrix  * this->modelMatrix; //left side to be able to apply transformation chronologically
+    this->modelMatrix =
+            translationMatrix * this->modelMatrix; //left side to be able to apply transformation chronologically
 }
 
 void Entity::rotateAroundOrigin(float radianAngle, const glm::vec3 &axis)
 {
     glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), radianAngle, axis);
-    this->modelMatrix = rotationMatrix  * this->modelMatrix; //left side to be able to apply transformation chronologically
+    this->modelMatrix =
+            rotationMatrix * this->modelMatrix; //left side to be able to apply transformation chronologically
 }
-
 
 void Entity::rotate(const float radianAngle, const glm::vec3 &axis)
 {

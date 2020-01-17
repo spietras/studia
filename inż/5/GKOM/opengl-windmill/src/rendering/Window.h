@@ -23,6 +23,7 @@ class Window
 
 public:
     Window(int width, int height, const std::string &title);
+
     ~Window();
 
     int getWidth() const
@@ -35,7 +36,8 @@ public:
 
     bool shouldClose() const;
 
-    void draw(const Renderer &renderer, const Scene &scene, const ShaderProgram &shaderProgram) const;
+    void draw(const Renderer &renderer, const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+              const LightShaderProgram &lightShaderProgram) const;
 };
 
 

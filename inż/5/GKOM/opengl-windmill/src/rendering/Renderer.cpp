@@ -9,22 +9,40 @@ void Renderer::drawBackground() const
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::drawScene(const Scene &scene, const ShaderProgram &shaderProgram) const
+void Renderer::drawEntity(const Entity &entity) const
 {
-    for (const Entity * entity : scene.getEntities())
+    const BaseObjectModel &model = entity.getModel();
+    glBindVertexArray(model.getVAO()); //bind model VAO
+    glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
+    glBindVertexArray(0);
+}
+
+void Renderer::drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgram &shaderProgram) const
+{
+    for (const Absorber *absorber : scene.getAbsorbers())
     {
-        shaderProgram.applyEntityTransformation(*entity);
-        shaderProgram.setEntityColor(*entity);
-        const BaseObjectModel &model = entity->getModel();
-        glBindVertexArray(model.getVAO()); //bind model VAO
-        glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
-        glBindVertexArray(0);
+        shaderProgram.applyEntityTransformation(*absorber);
+        shaderProgram.setAbsorberColor(*absorber);
+        drawEntity(*absorber);
     }
 }
 
-void Renderer::render(const Scene &scene, const ShaderProgram &shaderProgram) const
+void Renderer::drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const
+{
+    for (const PointLight *light : scene.getLights())
+    {
+        shaderProgram.applyEntityTransformation(*light);
+        shaderProgram.setLightColor(*light);
+        drawEntity(*light);
+    }
+}
+
+void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+                      const LightShaderProgram &lightShaderProgram) const
 {
     drawBackground();
-    shaderProgram.use();
-    drawScene(scene, shaderProgram);
+    absorberShaderProgram.use();
+    drawSceneAbsorbers(scene, absorberShaderProgram);
+    lightShaderProgram.use();
+    drawSceneLights(scene, lightShaderProgram);
 }

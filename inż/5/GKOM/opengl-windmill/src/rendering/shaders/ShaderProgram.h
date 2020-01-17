@@ -11,7 +11,6 @@
 class ShaderProgram
 {
     const std::string MODEL_MATRIX_UNIFORM_NAME = "model";
-    const std::string COLOR_UNIFORM_NAME = "objectColor";
 
     int shaderProgram;
 
@@ -49,8 +48,6 @@ public:
     void setUniformMat4(const std::string &name, const glm::mat4 &mat) const;
 
     void applyEntityTransformation(const Entity &entity) const;
-
-    void setEntityColor(const Entity &entity) const;
 };
 
 

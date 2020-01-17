@@ -19,6 +19,8 @@
     <ClCompile Include="src\rendering\Scene.cpp" />
     <ClCompile Include="src\rendering\shaders\ShaderProgram.cpp" />
     <ClCompile Include="src\rendering\Window.cpp" />
+    <ClCompile Include="src\rendering\shaders\LightShaderProgram.cpp" />
+    <ClCompile Include="src\rendering\shaders\AbsorberShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\entities\Entity.h" />
@@ -31,6 +33,10 @@
     <ClInclude Include="src\rendering\shaders\ShaderProgram.h" />
     <ClInclude Include="src\utils\Vertex.h" />
     <ClInclude Include="src\rendering\Window.h" />
+    <ClInclude Include="src\rendering\shaders\LightShaderProgram.h" />
+    <ClInclude Include="src\rendering\shaders\AbsorberShaderProgram.h" />
+    <ClInclude Include="src\entities\absorbers\Absorber.h" />
+    <ClInclude Include="src\entities\lights\PointLight.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B00CDD07-BE64-4A86-8B73-FAC569267C9A}</ProjectGuid>
