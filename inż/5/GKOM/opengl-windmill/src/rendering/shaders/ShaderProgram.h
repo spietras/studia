@@ -6,7 +6,7 @@
 #include <string>
 #include "GL/glew.h"
 #include "glm/glm.hpp"
-#include "../entities/Entity.h"
+#include "../../entities/Entity.h"
 
 class ShaderProgram
 {

@@ -5,7 +5,7 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "entities/models/CubeModel.h"
-#include "utils/Window.h"
+#include "rendering/Window.h"
 
 int main()
 {

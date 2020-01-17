@@ -5,9 +5,9 @@
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-#include "Color.h"
+#include "../utils/Color.h"
 #include "Scene.h"
-#include "ShaderProgram.h"
+#include "shaders/ShaderProgram.h"
 
 class Renderer
 {

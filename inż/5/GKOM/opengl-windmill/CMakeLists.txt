@@ -18,21 +18,21 @@ include_directories(${CMAKE_SOURCE_DIR}/${INCLUDEDIR})
 
 add_executable( ${TARGET}
                 ${SRCDIR}/main.cpp
-                ${SRCDIR}/utils/Renderer.cpp
-                ${SRCDIR}/utils/Window.cpp
-                ${SRCDIR}/utils/Window.h
+                ${SRCDIR}/rendering/Renderer.cpp
+                ${SRCDIR}/rendering/Window.cpp
+                ${SRCDIR}/rendering/Window.h
                 ${SRCDIR}/utils/Color.h
                 ${SRCDIR}/entities/models/BaseObjectModel.cpp
                 ${SRCDIR}/entities/models/BaseObjectModel.h
-                ${SRCDIR}/utils/ShaderProgram.cpp
-                ${SRCDIR}/utils/ShaderProgram.h
+                ${SRCDIR}/rendering/shaders/ShaderProgram.cpp
+                ${SRCDIR}/rendering/shaders/ShaderProgram.h
                 ${SRCDIR}/entities/models/CuboidModel.cpp
                 ${SRCDIR}/entities/models/CuboidModel.h
                 ${SRCDIR}/entities/models/CubeModel.h
                 ${SRCDIR}/entities/Entity.cpp
                 ${SRCDIR}/entities/Entity.h
-                ${SRCDIR}/utils/Scene.cpp
-                ${SRCDIR}/utils/Scene.h
+                ${SRCDIR}/rendering/Scene.cpp
+                ${SRCDIR}/rendering/Scene.h
                 ${SRCDIR}/utils/Vertex.h)
 
 target_link_libraries(  ${TARGET}
