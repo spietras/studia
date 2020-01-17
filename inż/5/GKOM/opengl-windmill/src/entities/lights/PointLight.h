@@ -3,16 +3,17 @@
 
 
 #include "../Entity.h"
+#include "../../utils/PointLightAttributes.h"
 
 class PointLight : public Entity
 {
-    ColorFloat lightColor;
+    PointLightAttributes attributes;
 public:
-    PointLight(const BaseObjectModel &model, ColorFloat lightColor) : Entity(model), lightColor(lightColor)
+    PointLight(const BaseObjectModel &model, PointLightAttributes attributes) : Entity(model), attributes(attributes)
     {}
 
-    const ColorFloat &getColor() const
-    { return lightColor; }
+    const PointLightAttributes &getAttributes() const
+    { return attributes; }
 };
 
 

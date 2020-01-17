@@ -24,6 +24,23 @@ int ShaderProgram::createShader(int type, const std::string &source)
     const char *c_str = source.c_str();
     glShaderSource(shader, 1, &c_str, nullptr);
     glCompileShader(shader);
+
+    GLint isCompiled = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+    if (isCompiled == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+        // The maxLength includes the NULL character
+        std::vector<GLchar> errorLog(maxLength);
+        glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+
+        glDeleteShader(shader); // Don't leak the shader.
+
+        throw std::runtime_error("Can't compile shader. " + std::string(begin(errorLog), end(errorLog)));
+    }
+
     return shader;
 }
 

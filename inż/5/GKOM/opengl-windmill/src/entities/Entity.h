@@ -22,6 +22,8 @@ public:
     const glm::mat4 &getModelMatrix() const
     { return modelMatrix; }
 
+    glm::vec3 getPosition() const;
+
     void setPosition(const glm::vec3 &position);
 
     void translate(const glm::vec3 &vector); //apply translation to current transformation

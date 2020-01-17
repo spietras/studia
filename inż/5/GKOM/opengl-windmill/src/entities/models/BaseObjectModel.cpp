@@ -18,6 +18,7 @@ BaseObjectModel::BaseObjectModel(std::vector<Vertex> vertices,
     glVertexAttribPointer(normalLocation, Vertex::getNormalDim(), GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           (void *) Vertex::getNormalOffset()); //set normal attribute
     glEnableVertexAttribArray(positionLocation);
+    glEnableVertexAttribArray(normalLocation);
 
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);

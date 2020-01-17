@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include "glm/vec4.hpp"
+#include "glm/vec3.hpp"
 
 static float convertIntToFloatColorValue(int colorValue)
 {
@@ -40,9 +41,14 @@ struct ColorFloat
     ColorFloat(ColorInt colorInt) : red(convertIntToFloatColorValue(colorInt.red)),
                                     green(convertIntToFloatColorValue(colorInt.green)),
                                     blue(convertIntToFloatColorValue(colorInt.blue)),
-                                    alpha(colorInt.alpha) {}
+                                    alpha(colorInt.alpha)
+    {}
 
-    glm::vec4 getVec() const { return glm::vec4(red, green, blue, alpha); }
+    glm::vec4 getVec4() const
+    { return glm::vec4(red, green, blue, alpha); }
+
+    glm::vec3 getVec3() const
+    { return glm::vec3(red, green, blue); }
 };
 
 static ColorFloat convertColorIntToFloat(const ColorInt &c)

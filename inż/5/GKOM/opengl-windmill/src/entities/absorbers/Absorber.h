@@ -3,16 +3,17 @@
 
 
 #include "../Entity.h"
+#include "../../utils/Material.h"
 
 class Absorber : public Entity
 {
-    ColorFloat color;
+    Material material;
 public:
-    Absorber(const BaseObjectModel &model, ColorFloat color) : Entity(model), color(color)
+    Absorber(const BaseObjectModel &model, Material material) : Entity(model), material(material)
     {}
 
-    const ColorFloat &getColor() const
-    { return color; }
+    const Material &getMaterial() const
+    { return material; }
 };
 
 

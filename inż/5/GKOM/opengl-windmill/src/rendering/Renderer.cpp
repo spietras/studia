@@ -19,10 +19,18 @@ void Renderer::drawEntity(const Entity &entity) const
 
 void Renderer::drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgram &shaderProgram) const
 {
+    const std::vector<const PointLight *> &lights = scene.getLights();
+    shaderProgram.setLightsNumber(lights.size());
+
     for (const Absorber *absorber : scene.getAbsorbers())
     {
         shaderProgram.applyEntityTransformation(*absorber);
-        shaderProgram.setAbsorberColor(*absorber);
+        shaderProgram.setAbsorberMaterial(*absorber);
+        shaderProgram.setViewPosition({0.0f, 0.0f, -1.0f}); // TODO: set camera positon
+
+        for (int i = 0; i < lights.size(); i++)
+            shaderProgram.setLight(*lights[i], i);
+
         drawEntity(*absorber);
     }
 }

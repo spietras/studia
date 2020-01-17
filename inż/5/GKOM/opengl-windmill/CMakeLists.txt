@@ -39,7 +39,10 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/shaders/AbsorberShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/AbsorberShaderProgram.h
                 ${SRCDIR}/entities/absorbers/Absorber.h
-                ${SRCDIR}/entities/lights/PointLight.h)
+                ${SRCDIR}/entities/lights/PointLight.h
+                ${SRCDIR}/utils/Material.h
+                ${SRCDIR}/utils/PointLightAttributes.h
+                ${SRCDIR}/rendering/shaders/LightShaderProgram.cpp)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

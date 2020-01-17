@@ -37,6 +37,8 @@
     <ClInclude Include="src\rendering\shaders\AbsorberShaderProgram.h" />
     <ClInclude Include="src\entities\absorbers\Absorber.h" />
     <ClInclude Include="src\entities\lights\PointLight.h" />
+    <ClInclude Include="src\utils\Material.h" />
+    <ClInclude Include="src\utils\PointLightAttributes.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B00CDD07-BE64-4A86-8B73-FAC569267C9A}</ProjectGuid>

@@ -30,15 +30,23 @@ int main()
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
-    Absorber cube(cm, ColorInt(48, 96, 114));
-    Absorber cube2(cm, ColorInt(241, 140, 142));
+    CubeModel cm2(0.05f, 0, 1);
+
+    //materials
+    Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+
+    Absorber cube(cm, m1);
+    Absorber cube2(cm, m2);
     s.addAbsorber(cube);
     s.addAbsorber(cube2);
 
-    PointLight light(cm, ColorFloat(1.0f, 1.0f, 1.0f));
+    //light
+    PointLightAttributes pla(ColorInt(255, 255, 255), 0.2f, 0.5f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLight light(cm2, pla);
     s.addLight(light);
 
-    light.setPosition({0.8f, 0.8f, 0.0f});
+    light.setPosition({0.8f, 0.8f, -0.8f});
 
     float deltaTime;
     float lastFrame = 0.0f;
@@ -55,11 +63,12 @@ int main()
         //apply different transformations to entities
 
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
-        light.rotate(rotationSpeed * deltaTime, {-1.0f, 2.0f, -3.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
 
         cube2.rotate(rotationSpeed * deltaTime, {0.0f, 3.0f, 1.0f});
+
+        light.rotate(rotationSpeed * deltaTime, {-1.0f, 2.0f, -3.0f});
 
         w.draw(r, s, asp, lsp);
     }
