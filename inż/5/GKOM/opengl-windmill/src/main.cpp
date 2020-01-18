@@ -56,12 +56,12 @@ int main()
     //materials
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
-    Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     Absorber cube(cm, m1);
     Absorber cube2(cm, m2);
 
-    CubeModel cm3(2.5f, 0, 1, 2);
+    CubeModel cm3(10.0f, 0, 1, 2);
     Skybox skybox(cm3, msky, skybox_texture);
 
     s.addAbsorber(cube);
@@ -100,7 +100,7 @@ int main()
         lastFrame = currentFrame;
 
         //apply different transformations 0to entities
-        skybox.setPosition({0.0f, 0.0f, -0.167766953f});
+        skybox.setPosition({0.0f, 0.0f, 1.167766953f});
         skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
         float circleTheta = currentFrame * circlingSpeed;

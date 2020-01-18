@@ -12,6 +12,6 @@ void main()
 {
     TexCoords = aPos;
     gl_Position = model * vec4(aPos, 1.0);
-    normal = aNorm;
+    normal = -aNorm;
 
 }
