@@ -4,12 +4,14 @@
 
 struct PointLightAttributes
 {
-    ColorFloat color;
+    ColorFloat color; // light color
 
+    // intensities of particular light components
     float ambientIntensity;
     float diffuseIntensity;
     float specularIntensity;
 
+    // attenuation values
     float constant;
     float linear;
     float quadratic;

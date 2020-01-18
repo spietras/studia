@@ -13,11 +13,12 @@ BaseObjectModel::BaseObjectModel(std::vector<Vertex> vertices,
     glBufferData(GL_ARRAY_BUFFER, getVerticesByteSize(), this->vertices.data(),
                  GL_STATIC_DRAW); //copy vertices data to VBO
 
+    //configure in variables in shaders
     glVertexAttribPointer(positionLocation, Vertex::getPositionDim(), GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           (void *) Vertex::getPositionOffset()); //set position attribute
+    glEnableVertexAttribArray(positionLocation);
     glVertexAttribPointer(normalLocation, Vertex::getNormalDim(), GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           (void *) Vertex::getNormalOffset()); //set normal attribute
-    glEnableVertexAttribArray(positionLocation);
     glEnableVertexAttribArray(normalLocation);
 
     // unbind

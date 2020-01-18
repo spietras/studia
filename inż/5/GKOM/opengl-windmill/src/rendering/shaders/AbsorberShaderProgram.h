@@ -8,6 +8,7 @@
 
 class AbsorberShaderProgram : public ShaderProgram
 {
+    // shader uniform variables
     const std::string MATERIAL_UNIFORM_NAME = "material";
     const std::string VIEWPOS_UNIFORM_NAME = "viewPos";
     const std::string LIGHTSNUM_UNIFORM_NAME = "lightsNum";

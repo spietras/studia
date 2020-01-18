@@ -11,6 +11,7 @@
 
 class ShaderProgram
 {
+    // shader uniform variables
     const std::string MODEL_MATRIX_UNIFORM_NAME = "model";
 
     const std::string VIEW_MATRIX_UNIFORM_NAME = "view";
