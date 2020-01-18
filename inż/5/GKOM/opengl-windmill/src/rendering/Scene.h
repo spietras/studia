@@ -9,6 +9,8 @@
 
 class Scene
 {
+    const int MAX_POINT_LIGHTS = 10;
+
     //containing pointers, because we create and modify entities outside Scene
     std::vector<const Absorber *> absorbers;
     std::vector<const PointLight *> lights;

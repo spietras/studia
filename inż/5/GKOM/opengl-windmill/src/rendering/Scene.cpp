@@ -17,5 +17,8 @@ const std::vector<const PointLight *> &Scene::getLights() const
 
 void Scene::addLight(const PointLight &light)
 {
+    if(this->lights.size() >= MAX_POINT_LIGHTS)
+        return;
+
     this->lights.push_back(&light);
 }

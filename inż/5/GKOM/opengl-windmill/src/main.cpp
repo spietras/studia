@@ -12,7 +12,7 @@ int main()
     const unsigned int SCR_WIDTH = 600;
     const unsigned int SCR_HEIGHT = 600;
     const std::string TITLE = "Wiatrak";
-    const ColorInt BG_COLOR = {236, 237, 237};
+    const ColorInt BG_COLOR = {15, 15, 15};
 
     const std::string absorberVertexShaderPath = "res/shaders/absorber.vs";
     const std::string absorberFragmentShaderPath = "res/shaders/absorber.fs";
@@ -42,11 +42,18 @@ int main()
     s.addAbsorber(cube2);
 
     //light
-    PointLightAttributes pla(ColorInt(255, 255, 255), 0.2f, 0.5f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
     s.addLight(light);
 
-    light.setPosition({0.8f, 0.8f, -0.8f});
+    light.setPosition({-0.5f, 0.0f, -1.0f});
+
+    //light
+    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLight light2(cm2, pla2);
+    s.addLight(light2);
+
+    light2.setPosition({0.5f, 0.0f, -1.0f});
 
     float deltaTime;
     float lastFrame = 0.0f;
@@ -67,8 +74,6 @@ int main()
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
 
         cube2.rotate(rotationSpeed * deltaTime, {0.0f, 3.0f, 1.0f});
-
-        light.rotate(rotationSpeed * deltaTime, {-1.0f, 2.0f, -3.0f});
 
         w.draw(r, s, asp, lsp);
     }

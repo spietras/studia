@@ -32,11 +32,28 @@ uniform Material material;
 
 out vec4 FragColor;
 
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 getAmbient(Material material, PointLight light)
+{
+    return vec3(light.ambientIntensity) * light.color * material.diffuseColor;
+}
+
+vec3 getDiffuse(Material material, PointLight light, vec3 norm, vec3 lightDir)
+{
+    float diff = max(dot(norm, lightDir), 0.0); // cosine of angle between norm and lightDir
+
+    return vec3(light.diffuseIntensity) * light.color * diff * material.diffuseColor;
+}
+
+vec3 getSpecular(Material material, PointLight light, vec3 norm, vec3 lightDir, vec3 viewDir)
+{
+    vec3 reflectDir = reflect(-lightDir, norm); // reflection direction
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess); // cosine of angle between viewDir and reflectDir to shininess power
+
+    return vec3(light.specularIntensity) * light.color * spec * material.specularColor;
+}
 
 void main()
 {
-    // properties
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragPos);
 
@@ -46,21 +63,14 @@ void main()
     {
         vec3 lightDir = normalize(pointLights[i].position - fragPos);
 
-        // diffuse shading
-        float diff = max(dot(norm, lightDir), 0.0);
-
-        // specular shading
-        vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 ambient = getAmbient(material, pointLights[i]);
+        vec3 diffuse = getDiffuse(material, pointLights[i], norm, lightDir);
+        vec3 specular = getSpecular(material, pointLights[i], norm, lightDir, viewDir);
 
         // attenuation
         float distance = length(pointLights[i].position - fragPos);
         float attenuation = 1.0 / (pointLights[i].constant + pointLights[i].linear * distance + pointLights[i].quadratic * (distance * distance));
 
-        // combine results
-        vec3 ambient = vec3(pointLights[i].ambientIntensity) * pointLights[i].color * material.diffuseColor;
-        vec3 diffuse = vec3(pointLights[i].diffuseIntensity) * pointLights[i].color * diff * material.diffuseColor;
-        vec3 specular = vec3(pointLights[i].specularIntensity) * pointLights[i].color * spec * material.specularColor;
         ambient *= attenuation;
         diffuse *= attenuation;
         specular *= attenuation;
