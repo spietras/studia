@@ -16,7 +16,7 @@ class BaseObjectModel
     unsigned int VBO;
 
 public:
-    BaseObjectModel(std::vector<Vertex> vertices, int positionLocation, int normalLocation);
+    BaseObjectModel(std::vector<Vertex> vertices, int positionLocation, int normalLocation, int textureLocation);
 
     ~BaseObjectModel();
 

@@ -12,7 +12,7 @@ void Renderer::drawBackground() const
 void Renderer::drawEntity(const Entity &entity) const
 {
     const BaseObjectModel &model = entity.getModel();
-    glBindVertexArray(model.getVAO()); //bind model VAO
+    glBindVertexArray(model.getVAO());                      //bind model VAO
     glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); //draw
     glBindVertexArray(0);
 }
@@ -54,11 +54,33 @@ void Renderer::drawSceneLights(const Scene &scene, const LightShaderProgram &sha
     }
 }
 
-void Renderer::render(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &absorberShaderProgram,
-                      const LightShaderProgram &lightShaderProgram) const
+void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram, const Camera &camera) const
+{
+    // TODO
+
+    for (const Skybox *skybox : scene.getSkybox())
+    {
+        shaderProgram.applyEntityTransformation(*skybox);
+        shaderProgram.setSkyboxMaterial(*skybox);
+        shaderProgram.setViewPosition({0.0f, 0.0f, -1.0f}); // TODO: set camera positon
+        shaderProgram.setSkyboxColor(*skybox);
+
+        const BaseObjectModel &model = skybox->getModel();
+        glBindVertexArray(model.getVAO()); //bind model VAO
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getTextureID());
+        glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
+        glBindVertexArray(0);
+        // drawEntity(*skybox);
+    }
+}
+
+void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+                      const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera) const
 {
     drawBackground();
-
+    skyboxShaderProgram.use();
+    drawSceneSkybox(scene, skyboxShaderProgram);
     absorberShaderProgram.use();
     absorberShaderProgram.applyView(camera);
     absorberShaderProgram.applyProjection(camera);

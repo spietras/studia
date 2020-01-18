@@ -1,12 +1,12 @@
 #ifndef WIATRAK_SCENE_H
 #define WIATRAK_SCENE_H
 
-
 #include <vector>
 #include "../entities/Entity.h"
 #include "../entities/absorbers/Absorber.h"
 #include "../entities/lights/PointLight.h"
 #include "../entities/lights/DirectionalLight.h"
+#include "../entities/skybox/Skybox.h"
 
 class Scene
 {
@@ -16,6 +16,7 @@ class Scene
     std::vector<const Absorber *> absorbers;
     const DirectionalLight* directionalLight = nullptr;
     std::vector<const PointLight *> lights;
+    std::vector<const Skybox *> skybox;
 
 public:
     const std::vector<const Absorber *> &getAbsorbers() const;
@@ -31,5 +32,9 @@ public:
     void setDirectionLight(const DirectionalLight &light);
 };
 
+    const std::vector<const Skybox *> &getSkybox() const;
+
+    void addSkybox(const Skybox &skybox);
+};
 
 #endif //WIATRAK_SCENE_H

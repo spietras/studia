@@ -27,18 +27,21 @@ public:
     ~Window();
 
     int getWidth() const
-    { return width; }
+    {
+        return width;
+    }
 
     int getHeight() const
-    { return height; }
+    {
+        return height;
+    }
 
     void resize(int newWidth, int newHeight);
 
     bool shouldClose() const;
 
     void draw(const Renderer &renderer, const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
-              const LightShaderProgram &lightShaderProgram, const Camera &camera) const;
+              const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera) const;
 };
-
 
 #endif //WIATRAK_WINDOW_H

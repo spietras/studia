@@ -9,6 +9,7 @@
 #include "Scene.h"
 #include "shaders/AbsorberShaderProgram.h"
 #include "shaders/LightShaderProgram.h"
+#include "shaders/SkyboxShaderProgram.h"
 
 class Renderer
 {
@@ -22,14 +23,13 @@ class Renderer
 
     void drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const;
 
+    void drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram) const;
+
 public:
+    Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor){};
 
-    Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
-    {};
-
-    void render(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &absorberShaderProgram,
-                const LightShaderProgram &lightShaderProgram) const;
+    void render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+                const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera& camera) const;
 };
-
 
 #endif //ZT2_WIATRAK_RENDERER_H
