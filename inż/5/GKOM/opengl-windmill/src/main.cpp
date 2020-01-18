@@ -1,13 +1,13 @@
 #define GLEW_STATIC
 
 #include <cmath>
-
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "entities/models/CubeModel.h"
 #include "rendering/Window.h"
 #include "rendering/Camera.h"
 #include "glm/ext.hpp"
+#include "CubeMap.h"
 
 int main()
 {
@@ -22,12 +22,32 @@ int main()
     const std::string lightVertexShaderPath = "res/shaders/light.vs";
     const std::string lightFragmentShaderPath = "res/shaders/light.fs";
 
+    const std::string cubeMapVertexShaderPath = "res/shaders/cubemap.vs";
+    const std::string cubeMapFragmentShaderPath = "res/shaders/cubemap.fs";
+
+    const std::string skyboxVertexShaderPath = "res/shaders/skybox.vs";
+    const std::string skyboxFragmentShaderPath = "res/shaders/skybox.fs";
+
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
 
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
+    ShaderProgram cmsp(cubeMapVertexShaderPath, cubeMapFragmentShaderPath);
+    ShaderProgram sbsp(skyboxVertexShaderPath, skyboxFragmentShaderPath);
 
+    cmsp.use();
+    cmsp.setUniformInt("skybox", 0);
+
+    sbsp.use();
+    sbsp.setUniformInt("skybox", 0);
+
+    CubeMap skyboxMap({"res/textures/skybox/ely_nevada/nevada_rt.tga",
+                       "res/textures/skybox/ely_nevada/nevada_lf.tga",
+                       "res/textures/skybox/ely_nevada/nevada_up.tga",
+                       "res/textures/skybox/ely_nevada/nevada_dn.tga",
+                       "res/textures/skybox/ely_nevada/nevada_ft.tga",
+                       "res/textures/skybox/ely_nevada/nevada_bk.tga"});
     Scene s;
     Camera c;
 
@@ -41,8 +61,13 @@ int main()
 
     Absorber cube(cm, m1);
     Absorber cube2(cm, m2);
+
+    CubeModel cm2(2.5f, 0, 1);
+    Absorber skybox(cm2, m2);
+
     s.addAbsorber(cube);
     s.addAbsorber(cube2);
+    s.addAbsorber(skybox);
 
     //light
     PointLightAttributes pla(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
@@ -69,6 +94,8 @@ int main()
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
+    glDisable(GL_CULL_FACE);
+
     while (!w.shouldClose())
     {
         float currentFrame = glfwGetTime();
@@ -76,7 +103,7 @@ int main()
         lastFrame = currentFrame;
 
         //apply different transformations to entities
-
+        skybox.setPosition({0.0f, 0.0f, 2.0f});
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
