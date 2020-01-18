@@ -7,6 +7,7 @@
 
 class LightShaderProgram : public ShaderProgram
 {
+    // shader uniform variables
     const std::string COLOR_UNIFORM_NAME = "lightColor";
 
 public:

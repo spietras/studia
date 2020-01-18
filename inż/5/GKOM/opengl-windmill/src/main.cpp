@@ -42,14 +42,14 @@ int main()
     s.addAbsorber(cube2);
 
     //light
-    PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
     s.addLight(light);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
 
     //light
-    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla2(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light2(cm2, pla2);
     s.addLight(light2);
 

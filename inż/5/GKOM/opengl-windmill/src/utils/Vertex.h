@@ -6,8 +6,8 @@
 
 class Vertex
 {
-    glm::vec3 positon;
-    glm::vec3 normal;
+    glm::vec3 positon; // position of vertex in model space
+    glm::vec3 normal; // normal of vertex in model space
 
 public:
     Vertex(glm::vec3 positon, glm::vec3 normal) : positon(positon), normal(normal) {}

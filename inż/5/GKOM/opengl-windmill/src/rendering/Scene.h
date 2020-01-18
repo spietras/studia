@@ -9,7 +9,7 @@
 
 class Scene
 {
-    const int MAX_POINT_LIGHTS = 10;
+    const int MAX_POINT_LIGHTS = 10; // same as in shader, needed for static array in shader
 
     //containing pointers, because we create and modify entities outside Scene
     std::vector<const Absorber *> absorbers;

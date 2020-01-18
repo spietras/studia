@@ -2,6 +2,8 @@
 
 Window::Window(int width, int height, const std::string &title) : width(width), height(height), title(title)
 {
+    //openGL init magic
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GLFW_VERSION.MAJOR);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLFW_VERSION.MINOR);

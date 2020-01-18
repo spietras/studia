@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_POINT_LIGHTS 10
+#define MAX_POINT_LIGHTS 10 // needed to make a static array
 
 struct Material {
     vec3 diffuseColor;
@@ -22,13 +22,13 @@ struct PointLight {
     float quadratic;
 };
 
-in vec3 fragPos;
-in vec3 normal;
+in vec3 fragPos; // fragment position from vertex shader
+in vec3 normal; // normal from vertex shader
 
-uniform int lightsNum;
-uniform vec3 viewPos;
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform Material material;
+uniform int lightsNum; // current number of lights
+uniform vec3 viewPos; // camera position
+uniform PointLight pointLights[MAX_POINT_LIGHTS]; // lights array
+uniform Material material; // absorber material
 
 out vec4 FragColor;
 
@@ -67,7 +67,7 @@ void main()
         vec3 diffuse = getDiffuse(material, pointLights[i], norm, lightDir);
         vec3 specular = getSpecular(material, pointLights[i], norm, lightDir, viewDir);
 
-        // attenuation
+        // attenuation - light influence decreases with distance
         float distance = length(pointLights[i].position - fragPos);
         float attenuation = 1.0 / (pointLights[i].constant + pointLights[i].linear * distance + pointLights[i].quadratic * (distance * distance));
 
