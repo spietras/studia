@@ -7,10 +7,15 @@
 #include "GL/glew.h"
 #include "glm/glm.hpp"
 #include "../../entities/Entity.h"
+#include "../Camera.h"
 
 class ShaderProgram
 {
     const std::string MODEL_MATRIX_UNIFORM_NAME = "model";
+
+    const std::string VIEW_MATRIX_UNIFORM_NAME = "view";
+
+    const std::string PROJECTION_MATRIX_UNIFORM_NAME = "projection";
 
     int shaderProgram;
 
@@ -48,6 +53,10 @@ public:
     void setUniformMat4(const std::string &name, const glm::mat4 &mat) const;
 
     void applyEntityTransformation(const Entity &entity) const;
+
+    void applyView(const Camera &camera) const;
+
+    void applyProjection(const Camera &camera) const;
 };
 
 

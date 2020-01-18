@@ -135,3 +135,13 @@ void ShaderProgram::applyEntityTransformation(const Entity &entity) const
 {
     setUniformMat4(MODEL_MATRIX_UNIFORM_NAME, entity.getModelMatrix()); //copy model matrix to uniform in shader
 }
+
+void ShaderProgram::applyView(const Camera &camera) const
+{
+    setUniformMat4(VIEW_MATRIX_UNIFORM_NAME, camera.getViewMatrix());
+}
+
+void ShaderProgram::applyProjection(const Camera &camera) const
+{
+    setUniformMat4(PROJECTION_MATRIX_UNIFORM_NAME, camera.getProjectionMatrix());
+}

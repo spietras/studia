@@ -6,6 +6,8 @@
 #include "GLFW/glfw3.h"
 #include "entities/models/CubeModel.h"
 #include "rendering/Window.h"
+#include "rendering/Camera.h"
+#include "glm/ext.hpp"
 
 int main()
 {
@@ -27,6 +29,8 @@ int main()
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
 
     Scene s;
+    Camera c;
+
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
@@ -42,14 +46,14 @@ int main()
     s.addAbsorber(cube2);
 
     //light
-    PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
     s.addLight(light);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
 
     //light
-    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla2(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light2(cm2, pla2);
     s.addLight(light2);
 
@@ -75,8 +79,9 @@ int main()
 
         cube2.rotate(rotationSpeed * deltaTime, {0.0f, 3.0f, 1.0f});
 
-        w.draw(r, s, asp, lsp);
+        c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
+        c.setViewDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+        w.draw(r, s, asp, lsp, c);
     }
-
     return 0;
 }
