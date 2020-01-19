@@ -23,7 +23,7 @@ class Renderer
 
     void drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const;
 
-    void drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram) const;
+    void drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram, const Camera &camera) const;
 
 public:
     Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor){};

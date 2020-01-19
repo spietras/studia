@@ -7,7 +7,6 @@
 #include "rendering/Window.h"
 #include "rendering/Camera.h"
 #include "glm/ext.hpp"
-#include "CubeMap.h"
 #include "rendering/shaders/SkyboxShaderProgram.h"
 #include "textures/Texture.h"
 
@@ -40,12 +39,12 @@ int main()
     // ShaderProgram cmsp(cubeMapVertexShaderPath, cubeMapFragmentShaderPath);
     SkyboxShaderProgram sbsp(skyboxVertexShaderPath, skyboxFragmentShaderPath);
 
-    GLuint skybox_texture = Texture::loadCubemap({"res/textures/skybox/ely_nevada/nevada_rt.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_lf.tga",
+    GLuint skybox_texture = Texture::loadCubemap({"res/textures/skybox/ely_nevada/nevada_ft.tga",
+                                                  "res/textures/skybox/ely_nevada/nevada_bk.tga",
                                                   "res/textures/skybox/ely_nevada/nevada_up.tga",
                                                   "res/textures/skybox/ely_nevada/nevada_dn.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_ft.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_bk.tga"});
+                                                  "res/textures/skybox/ely_nevada/nevada_rt.tga",
+                                                  "res/textures/skybox/ely_nevada/nevada_lf.tga"});
     Scene s;
     Camera c;
 
@@ -61,7 +60,7 @@ int main()
     Absorber cube(cm, m1);
     Absorber cube2(cm, m2);
 
-    CubeModel cm3(10.0f, 0, 1, 2);
+    CubeModel cm3(30.0f, 0, 1, 2);
     Skybox skybox(cm3, msky, skybox_texture);
 
     s.addAbsorber(cube);
@@ -101,7 +100,7 @@ int main()
 
         //apply different transformations 0to entities
         skybox.setPosition({0.0f, 0.0f, 1.167766953f});
-        skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
+        // skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
@@ -112,7 +111,7 @@ int main()
         cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
 
         c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
-        c.setViewDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+        c.setViewDirection(glm::vec3(1.5f * std::cos(0.25 * circleTheta), 0.0f, 1.0f));
         w.draw(r, s, asp, lsp, sbsp, c);
     }
     return 0;
