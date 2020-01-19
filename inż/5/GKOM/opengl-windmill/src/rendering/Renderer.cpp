@@ -22,6 +22,10 @@ void Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, cons
     const std::vector<const PointLight *> &lights = scene.getLights();
     shaderProgram.setLightsNumber(lights.size());
 
+    const DirectionalLight* directionalLight = scene.getDirectionalLight();
+    if (directionalLight != nullptr)
+        shaderProgram.setDirectionlight(*directionalLight);
+
     for (const Absorber *absorber : scene.getAbsorbers())
     {
         //set shader uniforms

@@ -36,3 +36,12 @@ void AbsorberShaderProgram::setLight(const PointLight &light, int lightIndex) co
     setUniformFloat(LIGHTS_UNIFORM_NAME + "[" + lightIndexString + "].specularIntensity",
                     light.getAttributes().specularIntensity);
 }
+
+void AbsorberShaderProgram::setDirectionlight(const DirectionalLight& light) const
+{
+    setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".direction", light.getAttributes().direction);
+    setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".color", light.getAttributes().color.getVec3());
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".ambientIntensity", light.getAttributes().ambientIntensity);
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".diffuseIntensity", light.getAttributes().diffuseIntensity);
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".specularIntensity", light.getAttributes().specularIntensity);
+}

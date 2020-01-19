@@ -31,7 +31,6 @@ int main()
     Scene s;
     Camera c;
 
-
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
     CubeModel cm2(0.05f, 0, 1);
@@ -58,6 +57,10 @@ int main()
     s.addLight(light2);
 
     light2.setPosition({0.5f, 0.0f, -1.0f});
+
+    DirectionalLightAttributes dla({0.0f, -1.0f, 0.0f}, ColorInt(0, 255, 0), 0.05f, 0.4f, 0.5f);
+    DirectionalLight dl(dla);
+    s.setDirectionLight(dl);
 
     float deltaTime;
     float lastFrame = 0.0f;

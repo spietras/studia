@@ -5,6 +5,7 @@
 #include "ShaderProgram.h"
 #include "../../entities/absorbers/Absorber.h"
 #include "../../entities/lights/PointLight.h"
+#include "../../entities/lights/DirectionalLight.h"
 
 class AbsorberShaderProgram : public ShaderProgram
 {
@@ -13,6 +14,7 @@ class AbsorberShaderProgram : public ShaderProgram
     const std::string VIEWPOS_UNIFORM_NAME = "viewPos";
     const std::string LIGHTSNUM_UNIFORM_NAME = "lightsNum";
     const std::string LIGHTS_UNIFORM_NAME = "pointLights";
+    const std::string DIRECTIONAL_LIGHT_UNIFORM_NAME = "directionalLight";
 
 public:
     AbsorberShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath) : ShaderProgram(
@@ -26,6 +28,8 @@ public:
     void setLightsNumber(int lightsNumber) const;
 
     void setLight(const PointLight &light, int lightIndex) const;
+
+    void setDirectionlight(const DirectionalLight& light) const;
 };
 
 

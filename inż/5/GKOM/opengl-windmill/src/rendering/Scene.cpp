@@ -22,3 +22,13 @@ void Scene::addLight(const PointLight &light)
 
     this->lights.push_back(&light);
 }
+
+const DirectionalLight * Scene::getDirectionalLight() const
+{
+    return this->directionalLight;
+}
+
+void Scene::setDirectionLight(const DirectionalLight &light)
+{
+    this->directionalLight = &light;
+}
