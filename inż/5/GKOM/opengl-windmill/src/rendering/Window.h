@@ -36,6 +36,10 @@ public:
 
     bool shouldClose() const;
 
+    void makeContextCurrent() const;
+
+    void setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const;
+
     void draw(const Renderer &renderer, const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
               const LightShaderProgram &lightShaderProgram, const Camera &camera) const;
 };

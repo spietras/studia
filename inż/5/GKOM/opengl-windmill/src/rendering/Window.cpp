@@ -44,3 +44,13 @@ void Window::draw(const Renderer &renderer, const Scene &scene, const AbsorberSh
     glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
     glfwPollEvents(); //process all events on windows in this frame
 }
+
+void Window::makeContextCurrent() const
+{
+    glfwMakeContextCurrent(this->handle);
+}
+
+void Window::setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const
+{
+    glfwSetKeyCallback(this->handle, *f);
+}
