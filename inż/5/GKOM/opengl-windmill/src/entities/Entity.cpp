@@ -87,12 +87,22 @@ void Entity::setScale(const glm::vec3 &factor)
     scale(factor);
 }
 
+void Entity::setScale(float factor)
+{
+    setScale(glm::vec3(factor, factor, factor));
+}
+
 void Entity::scaleFromOrigin(const glm::vec3 &factor)
 {
     glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), factor);
     this->modelMatrix =
             scaleMatrix * this->modelMatrix; //left side to be able to apply transformation chronologically
     this->currentScale *= factor;
+}
+
+void Entity::scaleFromOrigin(float factor)
+{
+    scaleFromOrigin(glm::vec3(factor, factor, factor));
 }
 
 void Entity::scale(const glm::vec3 &factor)
@@ -105,4 +115,9 @@ void Entity::scale(const glm::vec3 &factor)
     scaleFromOrigin(factor);
     rotate(rotation);
     translate(currentPos);
+}
+
+void Entity::scale(float factor)
+{
+    scale(glm::vec3(factor, factor, factor));
 }

@@ -56,9 +56,15 @@ public:
 
     void setScale(const glm::vec3 &factor);
 
+    void setScale(float factor);
+
     void scaleFromOrigin(const glm::vec3 &factor);
 
+    void scaleFromOrigin(float factor);
+
     void scale(const glm::vec3 &factor);
+
+    void scale(float factor);
 };
 
 
