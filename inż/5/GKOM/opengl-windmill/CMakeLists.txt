@@ -47,6 +47,10 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/Camera.h
                 ${SRCDIR}/entities/lights/DirectionalLight.h
                 ${SRCDIR}/utils/DirectionalLightAttributes.h)
+                ${SRCDIR}/entities/skybox/Skybox.h
+                ${SRCDIR}/utils/Texture.h
+                ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.cpp
+                ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
