@@ -17,7 +17,7 @@ void Renderer::drawEntity(const Entity &entity) const
     glBindVertexArray(0);
 }
 
-void Renderer::drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgram &shaderProgram) const
+void Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &shaderProgram) const
 {
     const std::vector<const PointLight *> &lights = scene.getLights();
     shaderProgram.setLightsNumber(lights.size());
@@ -27,7 +27,7 @@ void Renderer::drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgra
         //set shader uniforms
         shaderProgram.applyEntityTransformation(*absorber);
         shaderProgram.setAbsorberMaterial(*absorber);
-        shaderProgram.setViewPosition({0.0f, 0.0f, -1.0f}); // TODO: set camera positon
+        shaderProgram.setViewPosition(camera.getPosition());
 
         for (int i = 0; i < lights.size(); i++)
             shaderProgram.setLight(*lights[i], i);
@@ -50,14 +50,18 @@ void Renderer::drawSceneLights(const Scene &scene, const LightShaderProgram &sha
     }
 }
 
-void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+void Renderer::render(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &absorberShaderProgram,
                       const LightShaderProgram &lightShaderProgram) const
 {
     drawBackground();
 
     absorberShaderProgram.use();
-    drawSceneAbsorbers(scene, absorberShaderProgram);
+    absorberShaderProgram.applyView(camera);
+    absorberShaderProgram.applyProjection(camera);
+    drawSceneAbsorbers(scene, camera, absorberShaderProgram);
 
     lightShaderProgram.use();
     drawSceneLights(scene, lightShaderProgram);
+    lightShaderProgram.applyView(camera);
+    lightShaderProgram.applyProjection(camera);
 }

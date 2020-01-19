@@ -37,7 +37,7 @@ public:
     bool shouldClose() const;
 
     void draw(const Renderer &renderer, const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
-              const LightShaderProgram &lightShaderProgram) const;
+              const LightShaderProgram &lightShaderProgram, const Camera &camera) const;
 };
 
 

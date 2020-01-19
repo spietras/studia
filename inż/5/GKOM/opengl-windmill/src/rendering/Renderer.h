@@ -18,7 +18,7 @@ class Renderer
 
     void drawEntity(const Entity &entity) const;
 
-    void drawSceneAbsorbers(const Scene &scene, const AbsorberShaderProgram &shaderProgram) const;
+    void drawSceneAbsorbers(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &shaderProgram) const;
 
     void drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const;
 
@@ -27,7 +27,7 @@ public:
     Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
     {};
 
-    void render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+    void render(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &absorberShaderProgram,
                 const LightShaderProgram &lightShaderProgram) const;
 };
 

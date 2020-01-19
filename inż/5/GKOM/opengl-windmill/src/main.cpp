@@ -6,6 +6,8 @@
 #include "GLFW/glfw3.h"
 #include "entities/models/CubeModel.h"
 #include "rendering/Window.h"
+#include "rendering/Camera.h"
+#include "glm/ext.hpp"
 
 int main()
 {
@@ -27,6 +29,8 @@ int main()
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
 
     Scene s;
+    Camera c;
+
 
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1);
@@ -79,8 +83,9 @@ int main()
         float scaleDelta = currentFrame * scalingSpeed;
         cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
 
-        w.draw(r, s, asp, lsp);
+        c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
+        c.setViewDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+        w.draw(r, s, asp, lsp, c);
     }
-
     return 0;
 }

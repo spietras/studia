@@ -42,7 +42,7 @@ add_executable( ${TARGET}
                 ${SRCDIR}/entities/lights/PointLight.h
                 ${SRCDIR}/utils/Material.h
                 ${SRCDIR}/utils/PointLightAttributes.h
-                ${SRCDIR}/rendering/shaders/LightShaderProgram.cpp)
+                ${SRCDIR}/rendering/shaders/LightShaderProgram.cpp src/rendering/Camera.cpp src/rendering/Camera.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
