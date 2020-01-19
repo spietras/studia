@@ -16,6 +16,7 @@ class AbsorberShaderProgram : public ShaderProgram
     const std::string LIGHTS_UNIFORM_NAME = "pointLights";
     const std::string DIRECTIONAL_LIGHT_UNIFORM_NAME = "directionalLight";
     const std::string LIGHTSPACE_MATRIX_UNIFORM_NAME = "lightSpaceMatrix";
+    const std::string SHADOWSON_UNIFORM_NAME = "shadowsOn";
     const std::string SHADOWMAP_UNIFORM_NAME = "shadowMap";
 
 public:
@@ -31,7 +32,9 @@ public:
 
     void setLight(const PointLight &light, int lightIndex) const;
 
-    void setDirectionlight(const DirectionalLight &light) const;
+    void setDirectionallight(const DirectionalLight &light) const;
+
+    void setShadowsOn(bool on) const;
 
     void setShadowMap(int textureId) const;
 };

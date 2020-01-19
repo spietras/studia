@@ -31,6 +31,12 @@ glm::mat4 DirectionalLight::getLightViewMatrix() const
     glm::vec3 position = -LIGHT_DISTANCE * attributes.direction;
     glm::vec3 target = {0.0f, 0.0f, 0.0f}; //look at origin
     glm::vec3 up = {0.0f, 1.0f, 0.0f};
+
+    // if look direction and up are parallel, we have to change up to anything else
+    glm::vec3 lookDir = target - position;
+    if(lookDir.x == 0.0f && lookDir.z == 0.0f)
+        up = {0.0f, 0.0f, 1.0f};
+
     return glm::lookAt(position, target, up);
 }
 

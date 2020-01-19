@@ -17,6 +17,8 @@ class Scene
     const DirectionalLight* directionalLight = nullptr;
     std::vector<const PointLight *> lights;
 
+    bool shadows = false;
+
 public:
     const std::vector<const Absorber *> &getAbsorbers() const;
 
@@ -29,6 +31,12 @@ public:
     const DirectionalLight * getDirectionalLight() const;
 
     void setDirectionLight(const DirectionalLight &light);
+
+    bool isShadowsTurnedOn() const;
+
+    bool turnOnShadows();
+
+    bool turnOffShadows();
 };
 
 

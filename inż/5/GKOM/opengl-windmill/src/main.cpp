@@ -56,20 +56,21 @@ int main()
     //light
     PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
-    //s.addLight(light);
+    s.addLight(light);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
 
     //light
     PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light2(cm2, pla2);
-    //s.addLight(light2);
+    s.addLight(light2);
 
     light2.setPosition({0.5f, 0.0f, -1.0f});
 
-    DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f); // TODO: fix 0.0, -1.0, 0.0 direction
+    DirectionalLightAttributes dla({0.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f); // TODO: fix 0.0, -1.0, 0.0 direction
     DirectionalLight dl(dla);
     s.setDirectionLight(dl);
+    s.turnOnShadows();
 
     float deltaTime;
     float lastFrame = 0.0f;

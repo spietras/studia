@@ -12,7 +12,7 @@ void Renderer::drawBackground() const
 void Renderer::drawSceneAbsorbersDepth(const Scene &scene, const DepthShaderProgram &shaderProgram) const
 {
     const DirectionalLight *light = scene.getDirectionalLight();
-    shaderProgram.applyLightSpace(*light); // TODO: handle no directional light
+    shaderProgram.applyLightSpace(*light);
 
     for (const Absorber *absorber : scene.getAbsorbers())
     {
@@ -36,13 +36,19 @@ Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, const Abs
     const std::vector<const PointLight *> &lights = scene.getLights();
     shaderProgram.setLightsNumber(lights.size());
 
-    const DirectionalLight *directionalLight = scene.getDirectionalLight(); // TODO: handle no directional light
+    const DirectionalLight *directionalLight = scene.getDirectionalLight();
     if (directionalLight != nullptr)
     {
-        shaderProgram.setDirectionlight(*directionalLight);
-        shaderProgram.setShadowMap(directionalLight->getDepthTextureUnit());
-        glActiveTexture(directionalLight->getDepthTextureUnit());
-        glBindTexture(GL_TEXTURE_2D, directionalLight->getDepthMap());
+        shaderProgram.setDirectionallight(*directionalLight);
+        shaderProgram.setShadowsOn(false);
+
+        if(scene.isShadowsTurnedOn())
+        {
+            shaderProgram.setShadowsOn(true);
+            shaderProgram.setShadowMap(directionalLight->getDepthTextureUnit());
+            glActiveTexture(directionalLight->getDepthTextureUnit());
+            glBindTexture(GL_TEXTURE_2D, directionalLight->getDepthMap());
+        }
     }
 
     for (const Absorber *absorber : scene.getAbsorbers())
@@ -76,7 +82,7 @@ void Renderer::drawSceneLights(const Scene &scene, const LightShaderProgram &sha
 void Renderer::renderShadowMap(const Scene &scene, const DepthShaderProgram &depthShaderProgram) const
 {
     //draw to depth framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, scene.getDirectionalLight()->getDepthFBO()); // TODO: handle no directional light
+    glBindFramebuffer(GL_FRAMEBUFFER, scene.getDirectionalLight()->getDepthFBO());
     glClear(GL_DEPTH_BUFFER_BIT);
     // front-face culling to get rid of peter panning
     glCullFace(GL_FRONT);

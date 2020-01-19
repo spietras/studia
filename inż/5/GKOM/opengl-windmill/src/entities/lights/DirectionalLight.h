@@ -13,7 +13,7 @@ class DirectionalLight
 
     //depth map
     const unsigned int DEPTH_TEXTURE_UNIT = GL_TEXTURE0;
-    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
     unsigned int depthFBO;
     unsigned int depthMap;
     ColorFloat borderColor = {1.0f, 1.0f, 1.0f};

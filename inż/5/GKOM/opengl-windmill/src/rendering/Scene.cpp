@@ -32,3 +32,21 @@ void Scene::setDirectionLight(const DirectionalLight &light)
 {
     this->directionalLight = &light;
 }
+
+bool Scene::isShadowsTurnedOn() const
+{
+    return this->shadows;
+}
+
+bool Scene::turnOnShadows()
+{
+    if(directionalLight == nullptr)
+        return false;
+
+    shadows = true;
+}
+
+bool Scene::turnOffShadows()
+{
+    shadows = false;
+}

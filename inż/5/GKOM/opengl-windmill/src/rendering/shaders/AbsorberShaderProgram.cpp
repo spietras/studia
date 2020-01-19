@@ -36,7 +36,7 @@ void AbsorberShaderProgram::setLight(const PointLight &light, int lightIndex) co
                     light.getAttributes().specularIntensity);
 }
 
-void AbsorberShaderProgram::setDirectionlight(const DirectionalLight &light) const
+void AbsorberShaderProgram::setDirectionallight(const DirectionalLight &light) const
 {
     setUniformMat4(LIGHTSPACE_MATRIX_UNIFORM_NAME, light.getLightSpaceMatrix());
     setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".direction", light.getAttributes().direction);
@@ -44,6 +44,11 @@ void AbsorberShaderProgram::setDirectionlight(const DirectionalLight &light) con
     setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".ambientIntensity", light.getAttributes().ambientIntensity);
     setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".diffuseIntensity", light.getAttributes().diffuseIntensity);
     setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".specularIntensity", light.getAttributes().specularIntensity);
+}
+
+void AbsorberShaderProgram::setShadowsOn(bool on) const
+{
+    setUniformBool(SHADOWSON_UNIFORM_NAME, on);
 }
 
 void AbsorberShaderProgram::setShadowMap(int textureId) const
