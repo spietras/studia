@@ -67,7 +67,7 @@ int main()
 
     light2.setPosition({0.5f, 0.0f, -1.0f});
 
-    DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f);
+    DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f); // TODO: fix 0.0, -1.0, 0.0 direction
     DirectionalLight dl(dla);
     s.setDirectionLight(dl);
 

@@ -45,7 +45,7 @@ uniform sampler2D shadowMap; // depth map
 
 out vec4 FragColor;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
     // perform perspective divide (does nothing for orthogonal)
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -59,8 +59,14 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
+    float BIAS_MIN = 0.01;
+    float BIAS_MAX = 0.06;
+
+    // bias to remove shadow acne
+    float bias = max(BIAS_MAX * (1.0 - dot(normal, lightDir)), BIAS_MIN);
+
     // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     return shadow;
 }
@@ -93,7 +99,7 @@ vec3 getDirectionLighting(DirectionalLight light, vec3 norm, vec3 viewDir, vec4 
     vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
     vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
 
-    float shadow = ShadowCalculation(fragPosLightSpace);
+    float shadow = ShadowCalculation(fragPosLightSpace, norm, lightDir);
     //shadow = 1.0;
 
     return (ambient + (1.0 - shadow) * (diffuse + specular));
