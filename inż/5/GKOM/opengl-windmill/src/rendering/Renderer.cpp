@@ -41,6 +41,30 @@ void Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, cons
     }
 }
 
+void Renderer::drawSceneTexturedAbsorbers(const Scene &scene, const Camera &camera, const TexturedAbsorberShaderProgram &shaderProgram) const
+{
+    const std::vector<const PointLight *> &lights = scene.getLights();
+    shaderProgram.setLightsNumber(lights.size());
+
+    for (const TexturedAbsorber *texturedAbsorber : scene.getTexturedAbsorbers())
+    {
+        //set shader uniforms
+        shaderProgram.applyEntityTransformation(*texturedAbsorber);
+        shaderProgram.setTexturedAbsorberMaterial(*texturedAbsorber);
+        shaderProgram.setTexturedAbsorberTextureMode(*texturedAbsorber);
+        shaderProgram.setViewPosition(camera.getPosition());
+
+        for (int i = 0; i < lights.size(); i++)
+            shaderProgram.setLight(*lights[i], i);
+
+        //draw
+        glEnable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texturedAbsorber->getTexture().getTextureID());
+        drawEntity(*texturedAbsorber);
+    }
+}
+
 void Renderer::drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const
 {
     for (const PointLight *light : scene.getLights())
@@ -66,19 +90,19 @@ void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &sh
         shaderProgram.setViewPosition(camera.getPosition()); // TODO: set camera positon
         shaderProgram.setSkyboxColor(*skybox);
 
-        const BaseObjectModel &model = skybox->getModel();
-        glDepthMask(GL_FALSE);
-        glBindVertexArray(model.getVAO()); //bind model VAO
+        //const BaseObjectModel &model = skybox->getModel();
+        // glDepthMask(GL_FALSE);
+        // glBindVertexArray(model.getVAO()); //bind model VAO
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->getTextureID());
-        glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
-        glBindVertexArray(0);
-        glDepthMask(GL_TRUE);
-        //drawEntity(*skybox);
+        // glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
+        // glBindVertexArray(0);
+        // glDepthMask(GL_TRUE);
+        drawEntity(*skybox);
     }
 }
 
-void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram,
+void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberShaderProgram, const TexturedAbsorberShaderProgram &texturedAbsorberShaderProgram,
                       const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera) const
 {
     drawBackground();
@@ -87,6 +111,16 @@ void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberS
     skyboxShaderProgram.applyView(camera);
     skyboxShaderProgram.applyProjection(camera);
     drawSceneSkybox(scene, skyboxShaderProgram, camera);
+
+    absorberShaderProgram.use();
+    absorberShaderProgram.applyView(camera);
+    absorberShaderProgram.applyProjection(camera);
+    drawSceneAbsorbers(scene, camera, absorberShaderProgram);
+
+    texturedAbsorberShaderProgram.use();
+    texturedAbsorberShaderProgram.applyView(camera);
+    texturedAbsorberShaderProgram.applyProjection(camera);
+    drawSceneTexturedAbsorbers(scene, camera, texturedAbsorberShaderProgram);
 
     absorberShaderProgram.use();
     absorberShaderProgram.applyView(camera);

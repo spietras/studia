@@ -3,6 +3,7 @@
 
 #include "../Entity.h"
 #include "../../utils/Material.h"
+#include "../../utils/Texture.h"
 
 class Skybox : public Entity
 {
@@ -10,7 +11,7 @@ class Skybox : public Entity
     GLuint textureID;
 
 public:
-    Skybox(const BaseObjectModel &model, Material material, GLuint textureID) : Entity(model), material(material), textureID(textureID)
+    Skybox(const BaseObjectModel &model, Material material, Texture texture) : Entity(model), material(material), textureID(texture.getTextureID())
     {
     }
 

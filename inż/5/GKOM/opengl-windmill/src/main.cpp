@@ -8,7 +8,9 @@
 #include "rendering/Camera.h"
 #include "glm/ext.hpp"
 #include "rendering/shaders/SkyboxShaderProgram.h"
-#include "textures/Texture.h"
+#include "utils/Texture.h"
+#include "entities/models/PlaneModel.h"
+#define STB_IMAGE_IMPLEMENTATION
 
 int main()
 {
@@ -20,14 +22,12 @@ int main()
     const std::string absorberVertexShaderPath = "res/shaders/absorber.vs";
     const std::string absorberFragmentShaderPath = "res/shaders/absorber.fs";
 
+    const std::string textureAbsorberVertexShaderPath = "res/shaders/textured_absorber.vs";
+    const std::string textureAbsorberFragmentShaderPath = "res/shaders/textured_absorber.fs";
+
     const std::string lightVertexShaderPath = "res/shaders/light.vs";
     const std::string lightFragmentShaderPath = "res/shaders/light.fs";
 
-    const std::string cubeMapVertexShaderPath = "res/shaders/cubemap.vs";
-    const std::string cubeMapFragmentShaderPath = "res/shaders/cubemap.fs";
-
-    // const std::string skyboxVertexShaderPath = "res/shaders/skybox.vs";
-    // const std::string skyboxFragmentShaderPath = "res/shaders/skybox.fs";
     const std::string skyboxVertexShaderPath = "res/shaders/skybox.vs";
     const std::string skyboxFragmentShaderPath = "res/shaders/skybox.fs";
 
@@ -35,16 +35,23 @@ int main()
 
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
+    TexturedAbsorberShaderProgram tasp(textureAbsorberVertexShaderPath, textureAbsorberFragmentShaderPath);
+
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
     // ShaderProgram cmsp(cubeMapVertexShaderPath, cubeMapFragmentShaderPath);
     SkyboxShaderProgram sbsp(skyboxVertexShaderPath, skyboxFragmentShaderPath);
 
-    GLuint skybox_texture = Texture::loadCubemap({"res/textures/skybox/ely_nevada/nevada_ft.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_bk.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_up.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_dn.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_rt.tga",
-                                                  "res/textures/skybox/ely_nevada/nevada_lf.tga"});
+    Texture skyboxTexture({"res/textures/skybox/ely_nevada/nevada_ft.tga",
+                           "res/textures/skybox/ely_nevada/nevada_bk.tga",
+                           "res/textures/skybox/ely_nevada/nevada_up.tga",
+                           "res/textures/skybox/ely_nevada/nevada_dn.tga",
+                           "res/textures/skybox/ely_nevada/nevada_rt.tga",
+                           "res/textures/skybox/ely_nevada/nevada_lf.tga"},
+                          0);
+
+    Texture woodTexture("res/textures/wood.bmp", 1);
+    Texture groundTexture("res/textures/sand.bmp", 0);
+
     Scene s;
     Camera c;
 
@@ -60,15 +67,19 @@ int main()
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     Absorber cube(cm, m1);
-    Absorber cube2(cm, m2);
     Absorber atree(ctree, tree);
+    TexturedAbsorber cube2(cm, m1, woodTexture);
 
     CubeModel cm3(30.0f, 0, 1, 2);
-    Skybox skybox(cm3, msky, skybox_texture);
+    Skybox skybox(cm3, msky, skyboxTexture);
+
+    PlaneModel planeM(100.5f, 100.5f, 0, 1, 2);
+    TexturedAbsorber plane(planeM, m2, groundTexture);
+    s.addTexturedAbsorber(plane);
 
     s.addAbsorber(cube);
-    s.addAbsorber(cube2);
     s.addAbsorber(atree);
+    s.addTexturedAbsorber(cube2);
     s.addSkybox(skybox);
 
     //light
@@ -88,6 +99,8 @@ int main()
     DirectionalLightAttributes dla({0.0f, -1.0f, 0.0f}, ColorInt(0, 255, 0), 0.05f, 0.4f, 0.5f);
     DirectionalLight dl(dla);
     s.setDirectionLight(dl);
+    plane.rotate(1.57f, {1.0f, 0.0f, 0.0f});
+    plane.setPosition({0.0f, -1.0f, 0.0f});
 
     float deltaTime;
     float lastFrame = 0.0f;
@@ -117,12 +130,13 @@ int main()
         cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
 
         // c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
-        // c.setViewDirection(glm::vec3(1.5f * std::cos(0.25 * circleTheta), 0.0f, 1.0f));
+        c.setPosition({0.0f, 0.0f, -3.0f});
 
-        c.setPosition(glm::vec3(0.0f , 0.0f , -3.0f));
-        c.setViewDirection(glm::vec3(1.5f * std::cos(0.25 * circleTheta), 0.0f, 1.0f));
+        // c.setViewDirection(glm::vec3(1.5f * std::cos(0.25 * circleTheta), 0.0f, -1.0f));
+        c.setViewDirection({0.0f, 0.0f, 1.0f});
+        // c.setViewDirection({0.0f, 0.0f, 1.0f});
 
-        w.draw(r, s, asp, lsp, sbsp, c);
+        w.draw(r, s, asp, tasp, lsp, sbsp, c);
     }
     return 0;
 }
