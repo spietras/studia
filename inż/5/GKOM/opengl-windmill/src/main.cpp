@@ -14,31 +14,32 @@ Camera* cameraPtr;      //in order to change camera view we need access
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     float changePosition;
-    if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
+    float speed = 0.25f;
+    if (key == GLFW_KEY_UP && action == GLFW_REPEAT) //move camera forward
     {
         changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition - 0.5f;
+        changePosition = changePosition - speed;
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
     }
 
-    if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
+    if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
     {
         changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition + 0.5f;
+        changePosition = changePosition + speed;
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
     }
 
-    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
+    if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) //move camera to the right
     {
         changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition + 0.5f;
+        changePosition = changePosition + speed;
         cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
     }
 
-    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
+    if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
     {
         changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition - 0.5f;
+        changePosition = changePosition - speed;
         cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
     }
 }
