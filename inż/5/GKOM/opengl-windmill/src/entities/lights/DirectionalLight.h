@@ -16,6 +16,7 @@ class DirectionalLight
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     unsigned int depthFBO;
     unsigned int depthMap;
+    ColorFloat borderColor = {1.0f, 1.0f, 1.0f};
 
     const float PLANE_SIZE = 20.0f, NEAR_PLANE = 1.0f, FAR_PLANE = 7.5f;
     const float LIGHT_DISTANCE = 2.0f;

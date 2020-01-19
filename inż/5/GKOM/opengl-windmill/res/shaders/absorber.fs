@@ -53,6 +53,10 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     // transform NDC to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
 
+    // no shadow past far projection plane
+    if(projCoords.z > 1.0)
+        return 0.0;
+
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture2D(shadowMap, projCoords.xy).r;
 
