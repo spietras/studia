@@ -22,11 +22,15 @@ int main()
     const std::string lightVertexShaderPath = "res/shaders/light.vs";
     const std::string lightFragmentShaderPath = "res/shaders/light.fs";
 
+    const std::string depthVertexShaderPath = "res/shaders/depth.vs";
+    const std::string depthFragmentShaderPath = "res/shaders/depth.fs";
+
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
 
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
+    DepthShaderProgram dsp(depthVertexShaderPath, depthFragmentShaderPath);
 
     Scene s;
     Camera c;
@@ -41,24 +45,29 @@ int main()
 
     Absorber cube(cm, m1);
     Absorber cube2(cm, m2);
+    Absorber cube3(cm, m2);
     s.addAbsorber(cube);
     s.addAbsorber(cube2);
+    s.addAbsorber(cube3);
+
+    cube3.setScale(10.0f);
+    cube3.setPosition({0.0f, -2.0f, 0.0f});
 
     //light
-    PointLightAttributes pla(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
-    s.addLight(light);
+    //s.addLight(light);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
 
     //light
-    PointLightAttributes pla2(ColorInt(255, 255, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
+    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light2(cm2, pla2);
-    s.addLight(light2);
+    //s.addLight(light2);
 
     light2.setPosition({0.5f, 0.0f, -1.0f});
 
-    DirectionalLightAttributes dla({0.0f, -1.0f, 0.0f}, ColorInt(0, 255, 0), 0.05f, 0.4f, 0.5f);
+    DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f);
     DirectionalLight dl(dla);
     s.setDirectionLight(dl);
 
@@ -88,7 +97,7 @@ int main()
 
         c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
         c.setViewDirection(glm::vec3(0.0f, 0.0f, 1.0f));
-        w.draw(r, s, asp, lsp, c);
+        w.draw(r, s, dsp, asp, lsp, c);
     }
     return 0;
 }

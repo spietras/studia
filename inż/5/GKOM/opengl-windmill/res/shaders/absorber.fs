@@ -34,14 +34,36 @@ struct PointLight {
 
 in vec3 fragPos; // fragment position from vertex shader
 in vec3 normal; // normal from vertex shader
+in vec4 fragPosLightSpace; // fragment position in directional light space
 
 uniform int lightsNum; // current number of lights
 uniform vec3 viewPos; // camera position
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS]; // lights array
 uniform Material material; // absorber material
+uniform sampler2D shadowMap; // depth map
 
 out vec4 FragColor;
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // perform perspective divide (does nothing for orthogonal)
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    // transform NDC to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture2D(shadowMap, projCoords.xy).r;
+
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
 
 vec3 getAmbient(Material material, vec3 lightColor, float ambientIntensity)
 {
@@ -63,7 +85,7 @@ vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, ve
     return vec3(specularIntensity) * lightColor * spec * material.specularColor;
 }
 
-vec3 getDirectionLighting(DirectionalLight light, vec3 norm, vec3 viewDir)
+vec3 getDirectionLighting(DirectionalLight light, vec3 norm, vec3 viewDir, vec4 fragPosLightSpace)
 {
     vec3 lightDir = normalize(-light.direction);
 
@@ -71,7 +93,10 @@ vec3 getDirectionLighting(DirectionalLight light, vec3 norm, vec3 viewDir)
     vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
     vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
 
-    return (ambient + diffuse + specular);
+    float shadow = ShadowCalculation(fragPosLightSpace);
+    //shadow = 1.0;
+
+    return (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
 vec3 getPointLighting(PointLight light, Material material, vec3 fragPos, vec3 norm, vec3 viewDir)
@@ -98,7 +123,7 @@ void main()
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragPos);
 
-    vec3 result = getDirectionLighting(directionalLight, norm, viewDir);
+    vec3 result = getDirectionLighting(directionalLight, norm, viewDir, fragPosLightSpace);
 
     for(int i = 0; i < lightsNum; i++)
         result += getPointLighting(pointLights[i], material, fragPos, norm, viewDir);
