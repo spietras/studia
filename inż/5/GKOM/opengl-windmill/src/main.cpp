@@ -60,6 +60,7 @@ int main()
 
     float rotationSpeed = 2.0f;
     float circlingSpeed = 2.0f;
+    float scalingSpeed = 5.0f;
 
     while (!w.shouldClose())
     {
@@ -73,7 +74,10 @@ int main()
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
 
-        cube2.rotate(rotationSpeed * deltaTime, {0.0f, 3.0f, 1.0f});
+        cube2.rotate(rotationSpeed * deltaTime, {0.0f, 2.0f, 1.0f});
+
+        float scaleDelta = currentFrame * scalingSpeed;
+        cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
 
         w.draw(r, s, asp, lsp);
     }
