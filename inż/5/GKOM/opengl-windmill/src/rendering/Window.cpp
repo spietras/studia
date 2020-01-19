@@ -18,6 +18,8 @@ Window::Window(int width, int height, const std::string &title) : width(width), 
     glViewport(0, 0, width, height);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE); //enable face culling (but only to get rid of peter panning)
+    glCullFace(GL_FRONT);
 }
 
 Window::~Window()

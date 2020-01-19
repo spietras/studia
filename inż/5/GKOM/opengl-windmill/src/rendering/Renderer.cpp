@@ -78,10 +78,14 @@ void Renderer::renderShadowMap(const Scene &scene, const DepthShaderProgram &dep
     //draw to depth framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, scene.getDirectionalLight()->getDepthFBO()); // TODO: handle no directional light
     glClear(GL_DEPTH_BUFFER_BIT);
+    // front-face culling to get rid of peter panning
+    glCullFace(GL_FRONT);
 
     depthShaderProgram.use();
     drawSceneAbsorbersDepth(scene, depthShaderProgram);
 
+    //get back to back-face culling
+    glCullFace(GL_BACK);
     //return to default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
