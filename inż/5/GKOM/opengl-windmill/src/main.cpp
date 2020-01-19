@@ -126,6 +126,7 @@ int main()
 
         //c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
         w.draw(r, s, asp, lsp, c);
+
     }
     return 0;
 }
