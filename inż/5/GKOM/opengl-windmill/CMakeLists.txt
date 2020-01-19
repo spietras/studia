@@ -46,7 +46,10 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/Camera.cpp
                 ${SRCDIR}/rendering/Camera.h
                 ${SRCDIR}/entities/lights/DirectionalLight.h
-                ${SRCDIR}/utils/DirectionalLightAttributes.h)
+                ${SRCDIR}/utils/DirectionalLightAttributes.h
+                ${SRCDIR}/rendering/shaders/DepthShaderProgram.cpp
+                ${SRCDIR}/rendering/shaders/DepthShaderProgram.h
+                ${SRCDIR}/entities/lights/DirectionalLight.cpp)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

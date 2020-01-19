@@ -9,12 +9,15 @@
 #include "Scene.h"
 #include "shaders/AbsorberShaderProgram.h"
 #include "shaders/LightShaderProgram.h"
+#include "shaders/DepthShaderProgram.h"
 
 class Renderer
 {
     ColorFloat backgroundColor;
 
     void drawBackground() const;
+
+    void drawSceneAbsorbersDepth(const Scene& scene, const DepthShaderProgram& shaderProgram) const;
 
     void drawEntity(const Entity &entity) const;
 
@@ -27,7 +30,10 @@ public:
     Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
     {};
 
-    void render(const Scene &scene, const Camera &camera, const AbsorberShaderProgram &absorberShaderProgram,
+    void renderShadowMap(const Scene &scene, const DepthShaderProgram &depthShaderProgram) const;
+
+    void render(const Scene &scene, const Camera &camera,
+                const AbsorberShaderProgram &absorberShaderProgram,
                 const LightShaderProgram &lightShaderProgram) const;
 };
 
