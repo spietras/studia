@@ -63,7 +63,7 @@ void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &sh
 
         shaderProgram.applyEntityTransformation(*skybox);
         shaderProgram.setSkyboxMaterial(*skybox);
-        shaderProgram.setViewPosition({0.0f, 0.0f, -1.0f}); // TODO: set camera positon
+        shaderProgram.setViewPosition(camera.getPosition()); // TODO: set camera positon
         shaderProgram.setSkyboxColor(*skybox);
 
         const BaseObjectModel &model = skybox->getModel();
@@ -74,7 +74,7 @@ void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &sh
         glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); // draw
         glBindVertexArray(0);
         glDepthMask(GL_TRUE);
-        // drawEntity(*skybox);
+        //drawEntity(*skybox);
     }
 }
 
@@ -82,13 +82,12 @@ void Renderer::render(const Scene &scene, const AbsorberShaderProgram &absorberS
                       const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera) const
 {
     drawBackground();
-    glDepthMask(GL_FALSE);
+
     skyboxShaderProgram.use();
-    drawSceneSkybox(scene, skyboxShaderProgram, camera);
     skyboxShaderProgram.applyView(camera);
     skyboxShaderProgram.applyProjection(camera);
+    drawSceneSkybox(scene, skyboxShaderProgram, camera);
 
-    glDepthMask(GL_TRUE);
     absorberShaderProgram.use();
     absorberShaderProgram.applyView(camera);
     absorberShaderProgram.applyProjection(camera);

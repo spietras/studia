@@ -18,8 +18,8 @@ void main()
     TexCoords = aPos;
     // multiplying by model matrix to get into world space
     fragPos = vec3(model * vec4(aPos, 1.0));
-    normal = vec3(model * vec4(-aNorm, 1.0));
+    normal = vec3(model * vec4(aNorm, 1.0));
 
     // screen space position
-    gl_Position = projection * view * vec4(fragPos, 1.0);
+    gl_Position = projection * view * model * vec4(fragPos, 1.0);
 }
