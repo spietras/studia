@@ -54,7 +54,7 @@ int main()
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1, 2);
     CubeModel cm2(0.05f, 0, 1, 2);
-    CubeModel ctree(0.15f, 0, 1, 2);
+    CubeModel ctree(0.1f, 0, 1, 2);
 
     //materials
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
@@ -63,7 +63,15 @@ int main()
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     Absorber cube(cm, m1);
-    Absorber atree(ctree, tree);
+
+    int rw = 5;
+    std::vector<Absorber> vector;
+    for(int i = 0; i<=rw; i++)
+    {
+        Absorber atree(ctree, tree);
+        vector.push_back(atree);
+    }
+
     Absorber cube2(cm, m1, woodTexture);
 
     CubeModel cm3(30.0f, 0, 1, 2);
@@ -74,7 +82,6 @@ int main()
     s.addAbsorber(plane);
 
     s.addAbsorber(cube);
-    s.addAbsorber(atree);
     s.addAbsorber(cube2);
     s.addSkybox(skybox);
 
@@ -105,13 +112,20 @@ int main()
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
+    int i = 0;
+    for(auto el : vector)
+    {
+        el.setPosition({0.15f*cos(2*3.1416*i/5), 0.01f*sin(2*3.1416*i/5), -2.0f});
+        s.addAbsorber(el);
+        i++;
+    }
+
     while (!w.shouldClose())
     {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        atree.setPosition({0.0f, 0.0f, -1.5f});
 
         //apply different transformations 0to entities
         skybox.setPosition({0.0f, 1.0f, 1.0f});
