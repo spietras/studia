@@ -44,9 +44,11 @@ bool Scene::turnOnShadows()
         return false;
 
     shadows = true;
+    return true;
 }
 
 bool Scene::turnOffShadows()
 {
     shadows = false;
+    return true;
 }
