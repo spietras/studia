@@ -42,7 +42,7 @@ bool Window::shouldClose() const
 void Window::draw(const Renderer &renderer, const Scene &scene,
                   const DepthShaderProgram &depthShaderProgram,
                   const AbsorberShaderProgram &absorberShaderProgram,
-                  const LightShaderProgram &lightShaderProgram, const Camera &camera)
+                  const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera)
 {
     if(scene.isShadowsTurnedOn())
     {
@@ -58,10 +58,10 @@ void Window::draw(const Renderer &renderer, const Scene &scene,
         resize(currentWidth, currentHeight);
     }
 
-    renderer.render(scene, camera, absorberShaderProgram, lightShaderProgram);
+    renderer.render(scene, camera, absorberShaderProgram, lightShaderProgram, skyboxShaderProgram);
 
     glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
-    glfwPollEvents(); //process all events on windows in this frame
+    glfwPollEvents();              //process all events on windows in this frame
 }
 
 void Window::makeContextCurrent() const

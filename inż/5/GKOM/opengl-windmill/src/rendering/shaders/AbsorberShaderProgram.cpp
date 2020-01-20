@@ -7,6 +7,16 @@ void AbsorberShaderProgram::setAbsorberMaterial(const Absorber &absorber) const
     setUniformFloat(MATERIAL_UNIFORM_NAME + ".shininess", absorber.getMaterial().shininess);
 }
 
+void AbsorberShaderProgram::setMode(const Absorber &absorber) const
+{
+    setUniformInt(MODE, absorber.getMode());
+}
+
+void AbsorberShaderProgram::setTextureMode(const Absorber &absorber) const
+{
+    setUniformInt(TEXTURE_MODE, absorber.getTexture().getMode());
+}
+
 void AbsorberShaderProgram::setViewPosition(const glm::vec3 &viewPosition) const
 {
     setUniformVec3(VIEWPOS_UNIFORM_NAME, viewPosition);

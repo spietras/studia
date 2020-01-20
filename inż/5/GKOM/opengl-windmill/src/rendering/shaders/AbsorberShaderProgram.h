@@ -1,7 +1,6 @@
 #ifndef WIATRAK_ABSORBERSHADERPROGRAM_H
 #define WIATRAK_ABSORBERSHADERPROGRAM_H
 
-
 #include "ShaderProgram.h"
 #include "../../entities/absorbers/Absorber.h"
 #include "../../entities/lights/PointLight.h"
@@ -18,13 +17,20 @@ class AbsorberShaderProgram : public ShaderProgram
     const std::string LIGHTSPACE_MATRIX_UNIFORM_NAME = "lightSpaceMatrix";
     const std::string SHADOWSON_UNIFORM_NAME = "shadowsOn";
     const std::string SHADOWMAP_UNIFORM_NAME = "shadowMap";
+    const std::string MODE = "mode";
+    const std::string TEXTURE_MODE = "textureMode";
 
 public:
     AbsorberShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath) : ShaderProgram(
-            vertexShaderPath, fragmentShaderPath)
-    {}
+                                                                                                            vertexShaderPath, fragmentShaderPath)
+    {
+    }
 
     void setAbsorberMaterial(const Absorber &absorber) const;
+
+    void setMode(const Absorber &absorber) const;
+
+    void setTextureMode(const Absorber &absorber) const;
 
     void setViewPosition(const glm::vec3 &viewPosition) const;
 
@@ -38,6 +44,5 @@ public:
 
     void setShadowMap(int textureId) const;
 };
-
 
 #endif //WIATRAK_ABSORBERSHADERPROGRAM_H
