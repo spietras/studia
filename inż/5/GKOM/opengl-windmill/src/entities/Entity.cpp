@@ -73,6 +73,12 @@ void Entity::rotate(const float radianAngle, const glm::vec3 &axis)
 void Entity::rotate(const glm::quat &rotation)
 {
     glm::vec3 currentPos = getPosition();
+    for (auto child : children)
+    {
+        child->translate(-currentPos);
+        child->rotateAroundOrigin(rotation);
+        child->translate(currentPos);
+    }
     translate(-currentPos);
     rotateAroundOrigin(rotation);
     translate(currentPos);
