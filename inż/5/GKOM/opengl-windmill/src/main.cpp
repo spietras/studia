@@ -115,6 +115,7 @@ int main()
     //materials
     Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material tree2(ColorInt(255, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     CubeModel cm3(30.0f, 0, 1, 2);
@@ -242,6 +243,15 @@ int main()
         s.addAbsorber(*el);
         i++;
     }
+    // i = 0;
+    // for(auto el : vector2)
+    // {
+    //     el->setPosition({0.15f*cos(2*3.1416*(i)/(rw)), 0.15f*sin(2*3.1416*(i)/rw), -2.0f});
+    //     s.addAbsorber(*el);
+    //     i++;
+    // }
+
+    parent.rotate(1, {0.0f, 0.0f, -1.0f});
 
     for (auto el : vec_connectors)
     {
