@@ -15,6 +15,12 @@ glm::vec3 Entity::getPosition() const
 
 void Entity::setPosition(const glm::vec3 &position)
 {
+    for(auto obj : children)
+    {
+        glm::vec3 offset = obj->getPosition() - getPosition();
+        obj->setPosition(position+offset);
+    }
+
     glm::vec3 currentPos = getPosition();
     translate(-currentPos); //translate to origin
     translate(position); //translate to new position
@@ -119,4 +125,9 @@ void Entity::scale(const glm::vec3 &factor)
 void Entity::scale(float factor)
 {
     scale(glm::vec3(factor, factor, factor));
+}
+
+void Entity::addChild(Entity* obj)
+{
+    children.push_back(obj);
 }
