@@ -147,12 +147,13 @@ int main()
 
     Absorber cube(cm, m1);
 
-    int rw = 5;
-    std::vector<Absorber> vector;
-    for(int i = 0; i<=rw; i++)
+    int rw = 10;
+    std::vector<Absorber*> vector;
+    Absorber* obj[10];
+    for(int i = 0; i<rw; i++)
     {
-        Absorber atree(ctree, tree);
-        vector.push_back(atree);
+        obj[i] = new Absorber(ctree, tree);
+        vector.push_back(obj[i]);
     }
 
     Absorber cube2(cm, m1, woodTexture);
@@ -215,7 +216,13 @@ int main()
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
-    /*  loop  */
+    int i = 0;
+    for(auto el : vector)
+    {
+        el->setPosition({0.15f*cos(2*3.1416*i/rw), 0.15f*sin(2*3.1416*i/rw), -2.0f});
+        s.addAbsorber(*el);
+        i++;
+    }
 
     while (!w.shouldClose())
     {
