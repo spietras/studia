@@ -123,6 +123,9 @@ int main()
     Texture groundTexture("res/textures/sand.bmp");
 
     /*  stuff  */
+    Texture woodTexture("res/textures/wood.bmp", Texture::LINEAR);
+    Texture woodTextureR("res/textures/wood.bmp", Texture::REAPETED);
+    Texture groundTexture("res/textures/sand.bmp", Texture::REAPETED);
 
     Scene s;
     Camera c;
@@ -146,19 +149,6 @@ int main()
     /*  absorbers  */
 
     Absorber cube(cm, m1);
-
-    Absorber parent(ctree, tree);
-    parent.setPosition({0.0f, 0.0f, -2.0f});
-    s.addAbsorber(parent);
-    int rw = 5;
-    std::vector<Absorber*> vector;
-    Absorber* obj[10];
-    for(int i = 0; i<rw; i++)
-    {
-        obj[i] = new Absorber(child, tree);
-        vector.push_back(obj[i]);
-        parent.addChild(obj[i]);
-    }
 
     Absorber cube2(cm, m1, woodTexture);
     Absorber cube3(cm, m1);
@@ -198,15 +188,21 @@ int main()
     /*  adding to scene  */
 
     s.addAbsorber(plane);
-    s.addAbsorber(cube);
     s.addAbsorber(atree);
-    s.addAbsorber(cube2);
     s.addAbsorber(cube3);
     s.addAbsorber(test);
 
-    s.addSkybox(skybox);
     s.addLight(light);
     s.addLight(light2);
+    //light
+    PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    PointLight light3(cm2, pla3);
+    s.addLight(light3);
+
+    light3.setPosition({0.5f, 0.0f, 5.0f});
+
+    DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
+    DirectionalLight dl(dla);
     s.setDirectionalLight(dl);
 
     s.turnOnShadows();
@@ -220,14 +216,45 @@ int main()
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
-    double i = 0;
-    for(auto el : vector)
+
+    float radius_of_paddles = 0.15f;
+    float pad_length = 0.15f;
+    float pad_width = 0.04f;
+    float pad_depth = 0.02f;
+
+    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
+    Absorber parent(ctree, tree, woodTexture);
+    parent.setPosition({0.0f, 0.0f, -2.0f});
+    s.addAbsorber(parent);
+    int no_paddles = 4;
+    std::vector<Absorber*> vector1;
+    std::vector<Absorber*> vector2;
+    Absorber* obj[10];
+    for(int i = 0; i<no_paddles; i++)
     {
-        el->setPosition({0.15f*cos(2*3.1416*(i+1)/(rw)), 0.15f*sin(2*3.1416*(i+1)/rw), -2.0f});
-        el->setRotation(cos(2*3.1416*(i+1)/double(rw+1)), {0.0f, 0.0f, -1.0f});
+        obj[i] = new Absorber(child, tree, woodTexture);
+        vector1.push_back(obj[i]);
+        parent.addChild(obj[i]);
+        obj[i] = new Absorber(child, tree2);
+        vector2.push_back(obj[i]);
+    }
+    double i = 0;
+    for(auto el : vector1)
+    {
+        el->setPosition({radius_of_paddles*sin(2*3.1416*(i)/(no_paddles)), radius_of_paddles*cos(2*3.1416*(i)/no_paddles), -2.0f});
+        el->rotate(2*3.1416*i/double(no_paddles)+3.14, {0.0f, 0.0f, -1.0f});
         s.addAbsorber(*el);
         i++;
     }
+    // i = 0;
+    // for(auto el : vector2)
+    // {
+    //     el->setPosition({0.15f*cos(2*3.1416*(i)/(rw)), 0.15f*sin(2*3.1416*(i)/rw), -2.0f});
+    //     s.addAbsorber(*el);
+    //     i++;
+    // }
+
+    parent.rotate(1, {0.0f, 0.0f, -1.0f});
 
     while (!w.shouldClose())
     {
@@ -237,6 +264,12 @@ int main()
 
         /*  animation  */
 
+        parent.setPosition({0.0f, 0.1f, 2.0f});
+        parent.rotate(0.001, {0.0f, 0.0f, -1.0f});
+
+        //apply different transformations 0to entities
+        skybox.setPosition({0.0f, 1.0f, 1.0f});
+        // skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
