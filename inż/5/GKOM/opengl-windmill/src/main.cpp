@@ -122,7 +122,7 @@ int main()
     //create model and two entities based on this model
     CubeModel cm(0.25f, 0, 1, 2);
     CubeModel cm2(0.05f, 0, 1, 2);
-    CubeModel ctree(0.1f, 0, 1, 2);
+    CubeModel ctree(0.05f, 0, 1, 2);
 
     //materials
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
@@ -132,12 +132,13 @@ int main()
 
     Absorber cube(cm, m1);
 
-    int rw = 5;
-    std::vector<Absorber> vector;
-    for(int i = 0; i<=rw; i++)
+    int rw = 10;
+    std::vector<Absorber*> vector;
+    Absorber* obj[10];
+    for(int i = 0; i<rw; i++)
     {
-        Absorber atree(ctree, tree);
-        vector.push_back(atree);
+        obj[i] = new Absorber(ctree, tree);
+        vector.push_back(obj[i]);
     }
 
     Absorber cube2(cm, m1, woodTexture);
@@ -189,8 +190,8 @@ int main()
     int i = 0;
     for(auto el : vector)
     {
-        el.setPosition({0.15f*cos(2*3.1416*i/5), 0.01f*sin(2*3.1416*i/5), -2.0f});
-        s.addAbsorber(el);
+        el->setPosition({0.15f*cos(2*3.1416*i/rw), 0.15f*sin(2*3.1416*i/rw), -2.0f});
+        s.addAbsorber(*el);
         i++;
     }
 
