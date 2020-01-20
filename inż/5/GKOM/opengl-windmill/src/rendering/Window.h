@@ -40,6 +40,8 @@ public:
 
     void setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const;
 
+    void setCursorCallback(void (*f)(GLFWwindow*, double, double));
+
     void draw(const Renderer &renderer, const Scene &scene, const DepthShaderProgram &depthShaderProgram,
               const AbsorberShaderProgram &absorberShaderProgram,
               const LightShaderProgram &lightShaderProgram, const Camera &camera);

@@ -11,65 +11,58 @@
 
 Camera* cameraPtr;      //in order to change camera view we need access
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-    float changePosition;
     float speed = 0.25f;
     if (key == GLFW_KEY_UP && action == GLFW_REPEAT) //move camera forward
     {
-        changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition - speed;
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
     }
 
     else if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
     {
-        changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition - speed;
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
     }
 
     if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
     {
-        changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition + speed;
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
     }
 
     else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
     {
-        changePosition = cameraPtr->getPosition().z;
-        changePosition = changePosition + speed;
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
     }
 
     if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) //move camera to the right
     {
-        changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition + speed;
-        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+        //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
     {
-        changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition + speed;
-        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
     {
-        changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition - speed;
-        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
     {
-        changePosition = cameraPtr->getPosition().x;
-        changePosition = changePosition - speed;
-        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
+        glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
+{
+    glm::vec2 newMousePosition = glm::vec2(xPosition, yPosition);
+    cameraPtr->updateMouse(newMousePosition);
 }
 
 int main()
@@ -90,7 +83,9 @@ int main()
 
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
     w.makeContextCurrent();
-    w.setKeyCallback(key_callback);
+    w.setKeyCallback(keyCallback);
+    //w.setCursorCallback(cursorCallback);  //if you want to use mouse to rotate unable this line
+
 
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);

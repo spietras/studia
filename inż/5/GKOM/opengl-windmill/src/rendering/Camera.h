@@ -10,14 +10,18 @@ class Camera
 
     glm::vec3 viewDirection;    //where camera is looking
 
-    glm::mat4 projection;
+    const glm::mat4 projection;
 
     const glm::vec3 UP;
+
+    glm::vec2 oldMousePosition;      //where is the mouse
 
 public:
     Camera();
 
     glm::mat4 getViewMatrix() const;
+
+    void updateMouse(const glm::vec2& newMousePosition);
 
     void setViewDirection(const glm::vec3 &value);
 
@@ -28,6 +32,8 @@ public:
     glm::vec3 getPosition() const;
 
     glm::mat4 getProjectionMatrix() const;
+
+    glm::vec3 getUP() const;
 };
 
 
