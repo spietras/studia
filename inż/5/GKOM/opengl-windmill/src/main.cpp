@@ -22,7 +22,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
     }
 
+    else if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
+    {
+        changePosition = cameraPtr->getPosition().z;
+        changePosition = changePosition - speed;
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+    }
+
     if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
+    {
+        changePosition = cameraPtr->getPosition().z;
+        changePosition = changePosition + speed;
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition().x, cameraPtr->getPosition().y, changePosition));
+    }
+
+    else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
     {
         changePosition = cameraPtr->getPosition().z;
         changePosition = changePosition + speed;
@@ -36,7 +50,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
     }
 
+    else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
+    {
+        changePosition = cameraPtr->getPosition().x;
+        changePosition = changePosition + speed;
+        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+    }
+
     if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
+    {
+        changePosition = cameraPtr->getPosition().x;
+        changePosition = changePosition - speed;
+        cameraPtr->setPosition(glm::vec3(changePosition, cameraPtr->getPosition().y, cameraPtr->getPosition().z));
+    }
+
+    else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
     {
         changePosition = cameraPtr->getPosition().x;
         changePosition = changePosition - speed;
