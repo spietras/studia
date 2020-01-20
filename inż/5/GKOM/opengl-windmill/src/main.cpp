@@ -10,11 +10,12 @@
 #include "rendering/shaders/SkyboxShaderProgram.h"
 #include "utils/Texture.h"
 #include "entities/models/PlaneModel.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 
-Camera* cameraPtr;      //in order to change camera view we need access
+Camera *cameraPtr;      //in order to change camera view we need access
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float changePosition;
     float speed = 0.25f;
@@ -67,7 +68,6 @@ int main()
     const std::string skyboxFragmentShaderPath = "res/shaders/skybox.fs";
 
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
-    w.makeContextCurrent();
     w.setKeyCallback(key_callback);
 
     Renderer r(BG_COLOR);
@@ -105,6 +105,9 @@ int main()
     Absorber cube(cm, m1);
     Absorber atree(ctree, tree);
     Absorber cube2(cm, m1, woodTexture);
+    Absorber cube3(cm, m1);
+    cube3.scale(10.0f);
+    cube3.setPosition({0.0f, -2.0f, 0.0f});
 
     CubeModel cm3(30.0f, 0, 1, 2);
     Skybox skybox(cm3, msky, skyboxTexture);
@@ -116,30 +119,28 @@ int main()
     s.addAbsorber(cube);
     s.addAbsorber(atree);
     s.addAbsorber(cube2);
+    s.addAbsorber(cube3);
     s.addSkybox(skybox);
-
-    cube3.setScale(10.0f);
-    cube3.setPosition({0.0f, -2.0f, 0.0f});
 
     //light
     PointLightAttributes pla(ColorInt(255, 0, 0), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light(cm2, pla);
-    s.addLight(light);
+    //s.addLight(light);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
 
     //light
     PointLightAttributes pla2(ColorInt(0, 0, 255), 0.1f, 0.75f, 1.0f, 1.0f, 0.09f, 0.032f);
     PointLight light2(cm2, pla2);
-    s.addLight(light2);
+    //s.addLight(light2);
 
     light2.setPosition({0.5f, 0.0f, -1.0f});
 
-    DirectionalLightAttributes dla({0.0f, -1.0f, 0.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f); // TODO: fix 0.0, -1.0, 0.0 direction
+    DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.05f, 0.4f, 0.5f);
     DirectionalLight dl(dla);
-    s.setDirectionLight(dl);
+    s.setDirectionalLight(dl);
     s.turnOnShadows();
-    
+
     plane.rotate(1.57f, {1.0f, 0.0f, 0.0f});
     plane.setPosition({0.0f, -1.0f, 0.0f});
 

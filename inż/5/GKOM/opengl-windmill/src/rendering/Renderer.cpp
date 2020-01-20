@@ -42,12 +42,12 @@ Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, const Abs
         shaderProgram.setDirectionallight(*directionalLight);
         shaderProgram.setShadowsOn(false);
 
-        if(scene.isShadowsTurnedOn())
+        if (scene.isShadowsTurnedOn())
         {
             shaderProgram.setShadowsOn(true);
-            shaderProgram.setShadowMap(directionalLight->getDepthTextureUnit());
-            glActiveTexture(directionalLight->getDepthTextureUnit());
+            glActiveTexture(GL_TEXTURE0 + directionalLight->getDepthTextureUnit());
             glBindTexture(GL_TEXTURE_2D, directionalLight->getDepthMap());
+            shaderProgram.setShadowMap(directionalLight->getDepthTextureUnit());
         }
     }
 
@@ -64,11 +64,12 @@ Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, const Abs
 
         if (absorber->getMode() == Absorber::TEXTURE)
         {
-            glEnable(GL_TEXTURE_2D);
-            glActiveTexture(GL_TEXTURE0);
-            shaderProgram.setTextureMode(*absorber);
+            glActiveTexture(GL_TEXTURE0 + absorber->getTexture().getTextureUnit());
             glBindTexture(GL_TEXTURE_2D, absorber->getTexture().getTextureID());
+            shaderProgram.setUniformInt("material.diffuse", absorber->getTexture().getTextureUnit());
+            shaderProgram.setTextureMode(*absorber);
         }
+
         drawEntity(*absorber);
     }
 }
@@ -91,14 +92,10 @@ void Renderer::renderShadowMap(const Scene &scene, const DepthShaderProgram &dep
     //draw to depth framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, scene.getDirectionalLight()->getDepthFBO());
     glClear(GL_DEPTH_BUFFER_BIT);
-    // front-face culling to get rid of peter panning
-    glCullFace(GL_FRONT);
 
     depthShaderProgram.use();
     drawSceneAbsorbersDepth(scene, depthShaderProgram);
 
-    //get back to back-face culling
-    glCullFace(GL_BACK);
     //return to default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -107,10 +104,9 @@ void Renderer::renderShadowMap(const Scene &scene, const DepthShaderProgram &dep
 void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram, const Camera &camera) const
 {
     // TODO
-
+    
     for (const Skybox *skybox : scene.getSkybox())
     {
-
         shaderProgram.applyEntityTransformation(*skybox);
         shaderProgram.setSkyboxMaterial(*skybox);
         shaderProgram.setViewPosition(camera.getPosition()); // TODO: set camera positon
@@ -131,7 +127,8 @@ void Renderer::drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &sh
 void Renderer::render(const Scene &scene,
                       const Camera &camera,
                       const AbsorberShaderProgram &absorberShaderProgram,
-                      const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram) const
+                      const LightShaderProgram &lightShaderProgram,
+                      const SkyboxShaderProgram &skyboxShaderProgram) const
 {
     drawBackground();
 

@@ -42,11 +42,15 @@ public:
 
     void makeContextCurrent() const;
 
-    void setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const;
+    void setKeyCallback(void (*f)(GLFWwindow *, int, int, int, int)) const;
 
-    void draw(const Renderer &renderer, const Scene &scene, const DepthShaderProgram &depthShaderProgram,
+    void draw(const Renderer &renderer,
+              const Scene &scene,
+              const DepthShaderProgram &depthShaderProgram,
               const AbsorberShaderProgram &absorberShaderProgram,
-              const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram, const Camera &camera);
+              const LightShaderProgram &lightShaderProgram,
+              const SkyboxShaderProgram &skyboxShaderProgram,
+              const Camera &camera);
 };
 
 #endif //WIATRAK_WINDOW_H

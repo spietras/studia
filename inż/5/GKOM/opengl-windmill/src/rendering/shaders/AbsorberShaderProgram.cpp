@@ -61,7 +61,7 @@ void AbsorberShaderProgram::setShadowsOn(bool on) const
     setUniformBool(SHADOWSON_UNIFORM_NAME, on);
 }
 
-void AbsorberShaderProgram::setShadowMap(int textureId) const
+void AbsorberShaderProgram::setShadowMap(int textureUnit) const
 {
-    setUniformInt(SHADOWMAP_UNIFORM_NAME, textureId);
+    setUniformInt(SHADOWMAP_UNIFORM_NAME, textureUnit);
 }

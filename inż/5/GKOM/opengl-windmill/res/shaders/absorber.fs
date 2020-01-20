@@ -39,7 +39,6 @@ in vec4 fragPosLightSpace; // fragment position in directional light space
 
 in vec2 texCoords;
 
-
 uniform int lightsNum; // current number of lights
 uniform vec3 viewPos; // camera position
 uniform DirectionalLight directionalLight;
@@ -54,7 +53,7 @@ out vec4 FragColor;
 
 vec3 getDiffuseMaterial(Material material)
 {
-    if (mode == 0) 
+    if (mode == 0)
     {
         return material.diffuseColor;
     }
@@ -86,9 +85,9 @@ float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     float bias = max(BIAS_MAX * (1.0 - dot(normal, lightDir)), BIAS_MIN);
 
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0); //get size of shadow map texel at lod 0
+    vec2 texelSize = 0.5 / textureSize(shadowMap, 0); //get size of shadow map texel at lod 0
 
-    int X_LEFT = -3, X_RIGHT = 3, Y_DOWN = -3, Y_UP = 3;
+    int X_LEFT = -1, X_RIGHT = 1, Y_DOWN = -1, Y_UP = 1;
 
     // sample around projCoords
     for(int x = X_LEFT; x <= X_RIGHT; x++)
@@ -131,6 +130,7 @@ vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm
     vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
     vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
     vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
+
 
     if(shadowsOn)
     {

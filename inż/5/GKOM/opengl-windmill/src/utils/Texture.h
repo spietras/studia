@@ -13,6 +13,7 @@
 class Texture
 {
 private:
+    const unsigned int TEXTURE_UNIT = 0;
     unsigned int textureID;
     int mode; /// 0 repeated, 1 linear
 
@@ -42,7 +43,7 @@ public:
             else if (nrComponents == 4)
                 format = GL_RGBA;
 
-            glEnable(GL_TEXTURE_2D);
+            glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT);
             glBindTexture(GL_TEXTURE_2D, textureID);
             glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
@@ -73,6 +74,7 @@ public:
     Texture(std::vector<std::string> faces, unsigned int mode) : mode(mode)
     {
         glGenTextures(1, &textureID);
+        glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
         int width, height, nrChannels;
@@ -107,6 +109,11 @@ public:
     unsigned int getTextureID() const
     {
         return textureID;
+    }
+
+    unsigned int getTextureUnit() const
+    {
+        return TEXTURE_UNIT;
     }
 };
 

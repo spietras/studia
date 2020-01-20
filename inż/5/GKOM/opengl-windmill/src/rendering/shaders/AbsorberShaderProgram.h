@@ -42,7 +42,7 @@ public:
 
     void setShadowsOn(bool on) const;
 
-    void setShadowMap(int textureId) const;
+    void setShadowMap(int textureUnit) const;
 };
 
 #endif //WIATRAK_ABSORBERSHADERPROGRAM_H

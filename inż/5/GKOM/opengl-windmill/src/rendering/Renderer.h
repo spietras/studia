@@ -31,9 +31,6 @@ class Renderer
 public:
     Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor){};
 
-    Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
-    {};
-
     void renderShadowMap(const Scene &scene, const DepthShaderProgram &depthShaderProgram) const;
 
     void render(const Scene &scene, const Camera &camera,

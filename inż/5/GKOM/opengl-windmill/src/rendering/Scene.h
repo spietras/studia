@@ -32,7 +32,7 @@ public:
 
     const DirectionalLight *getDirectionalLight() const;
 
-    void setDirectionLight(const DirectionalLight &light);
+    void setDirectionalLight(const DirectionalLight &light);
 
     bool isShadowsTurnedOn() const;
 

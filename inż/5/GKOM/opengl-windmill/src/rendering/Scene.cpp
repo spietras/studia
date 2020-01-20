@@ -28,7 +28,7 @@ const DirectionalLight * Scene::getDirectionalLight() const
     return this->directionalLight;
 }
 
-void Scene::setDirectionLight(const DirectionalLight &light)
+void Scene::setDirectionalLight(const DirectionalLight &light)
 {
     this->directionalLight = &light;
 }

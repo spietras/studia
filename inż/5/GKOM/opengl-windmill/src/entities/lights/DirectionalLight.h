@@ -12,14 +12,14 @@ class DirectionalLight
     DirectionalLightAttributes attributes;
 
     //depth map
-    const unsigned int DEPTH_TEXTURE_UNIT = GL_TEXTURE0;
+    const unsigned int DEPTH_TEXTURE_UNIT = 1;
     const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
     unsigned int depthFBO;
     unsigned int depthMap;
     ColorFloat borderColor = {1.0f, 1.0f, 1.0f};
 
-    const float PLANE_SIZE = 20.0f, NEAR_PLANE = 1.0f, FAR_PLANE = 7.5f;
-    const float LIGHT_DISTANCE = 2.0f;
+    const float PLANE_SIZE = 5.0f, NEAR_PLANE = 1.0f, FAR_PLANE = 7.5f;
+    const float LIGHT_DISTANCE = 3.0f;
     glm::mat4 lightSpaceMatrix;
 
     void initDepthMap();
