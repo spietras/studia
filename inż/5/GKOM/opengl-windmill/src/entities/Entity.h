@@ -19,6 +19,7 @@ class Entity
     glm::vec3 currentPosition;
     glm::vec3 currentScale;
     glm::quat currentRotation;
+    std::vector<Entity*> children;
 
 public:
     Entity(const BaseObjectModel &model);
@@ -65,7 +66,9 @@ public:
     void scale(const glm::vec3 &factor);
 
     void scale(float factor);
-};
+
+    void addChild(Entity* object);
+    };
 
 
 #endif //WIATRAK_ENTITY_H
