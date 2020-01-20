@@ -22,9 +22,6 @@ int main()
     const std::string absorberVertexShaderPath = "res/shaders/absorber.vs";
     const std::string absorberFragmentShaderPath = "res/shaders/absorber.fs";
 
-    const std::string textureAbsorberVertexShaderPath = "res/shaders/textured_absorber.vs";
-    const std::string textureAbsorberFragmentShaderPath = "res/shaders/textured_absorber.fs";
-
     const std::string lightVertexShaderPath = "res/shaders/light.vs";
     const std::string lightFragmentShaderPath = "res/shaders/light.fs";
 
@@ -35,7 +32,6 @@ int main()
 
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
-    TexturedAbsorberShaderProgram tasp(textureAbsorberVertexShaderPath, textureAbsorberFragmentShaderPath);
 
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
     // ShaderProgram cmsp(cubeMapVertexShaderPath, cubeMapFragmentShaderPath);
@@ -49,8 +45,8 @@ int main()
                            "res/textures/skybox/ely_nevada/nevada_lf.tga"},
                           0);
 
-    Texture woodTexture("res/textures/wood.bmp", 1);
-    Texture groundTexture("res/textures/sand.bmp", 0);
+    Texture woodTexture("res/textures/wood.bmp", Texture::LINEAR);
+    Texture groundTexture("res/textures/sand.bmp", Texture::REAPETED);
 
     Scene s;
     Camera c;
@@ -68,18 +64,18 @@ int main()
 
     Absorber cube(cm, m1);
     Absorber atree(ctree, tree);
-    TexturedAbsorber cube2(cm, m1, woodTexture);
+    Absorber cube2(cm, m1, woodTexture);
 
     CubeModel cm3(30.0f, 0, 1, 2);
     Skybox skybox(cm3, msky, skyboxTexture);
 
     PlaneModel planeM(100.5f, 100.5f, 0, 1, 2);
-    TexturedAbsorber plane(planeM, m2, groundTexture);
-    s.addTexturedAbsorber(plane);
+    Absorber plane(planeM, m2, groundTexture);
+    s.addAbsorber(plane);
 
     s.addAbsorber(cube);
     s.addAbsorber(atree);
-    s.addTexturedAbsorber(cube2);
+    s.addAbsorber(cube2);
     s.addSkybox(skybox);
 
     //light
@@ -136,7 +132,7 @@ int main()
         c.setViewDirection({0.0f, 0.0f, 1.0f});
         // c.setViewDirection({0.0f, 0.0f, 1.0f});
 
-        w.draw(r, s, asp, tasp, lsp, sbsp, c);
+        w.draw(r, s, asp, lsp, sbsp, c);
     }
     return 0;
 }

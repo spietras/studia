@@ -14,9 +14,18 @@ class Texture
 {
 private:
     unsigned int textureID;
-    unsigned int mode; /// 0 repeated, 1 linear
+    int mode; /// 0 repeated, 1 linear
 
 public:
+    static const int REAPETED = 0;
+    static const int LINEAR = 1;
+
+    Texture()
+    {
+        textureID = -1;
+        mode = 0;
+    }
+
     Texture(std::string path, unsigned int mode) : mode(mode)
     {
         glGenTextures(1, &textureID);

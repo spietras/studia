@@ -10,16 +10,6 @@ void Scene::addAbsorber(const Absorber &absorber)
     this->absorbers.push_back(&absorber);
 }
 
-const std::vector<const TexturedAbsorber *> &Scene::getTexturedAbsorbers() const
-{
-    return this->texturedAbsorbers;
-}
-
-void Scene::addTexturedAbsorber(const TexturedAbsorber &texturedAbsorber)
-{
-    this->texturedAbsorbers.push_back(&texturedAbsorber);
-}
-
 const std::vector<const PointLight *> &Scene::getLights() const
 {
     return this->lights;

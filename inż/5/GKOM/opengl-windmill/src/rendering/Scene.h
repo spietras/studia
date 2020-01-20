@@ -4,7 +4,6 @@
 #include <vector>
 #include "../entities/Entity.h"
 #include "../entities/absorbers/Absorber.h"
-#include "../entities/absorbers/TexturedAbsorber.h"
 
 #include "../entities/lights/PointLight.h"
 #include "../entities/lights/DirectionalLight.h"
@@ -16,8 +15,7 @@ class Scene
 
     //containing pointers, because we create and modify entities outside Scene
     std::vector<const Absorber *> absorbers;
-    const DirectionalLight* directionalLight = nullptr;
-    std::vector<const TexturedAbsorber *> texturedAbsorbers;
+    const DirectionalLight *directionalLight = nullptr;
     std::vector<const PointLight *> lights;
     std::vector<const Skybox *> skybox;
 
@@ -26,15 +24,11 @@ public:
 
     void addAbsorber(const Absorber &absorber);
 
-    const std::vector<const TexturedAbsorber *> &getTexturedAbsorbers() const;
-
-    void addTexturedAbsorber(const TexturedAbsorber &texturedAbsorber);
-
     const std::vector<const PointLight *> &getLights() const;
 
     void addLight(const PointLight &light);
 
-    const DirectionalLight * getDirectionalLight() const;
+    const DirectionalLight *getDirectionalLight() const;
 
     void setDirectionLight(const DirectionalLight &light);
 

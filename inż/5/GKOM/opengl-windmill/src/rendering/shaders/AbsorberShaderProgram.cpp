@@ -8,6 +8,16 @@ void AbsorberShaderProgram::setAbsorberMaterial(const Absorber &absorber) const
     setUniformFloat(MATERIAL_UNIFORM_NAME + ".shininess", absorber.getMaterial().shininess);
 }
 
+void AbsorberShaderProgram::setMode(const Absorber &absorber) const
+{
+    setUniformInt(MODE, absorber.getMode());
+}
+
+void AbsorberShaderProgram::setTextureMode(const Absorber &absorber) const
+{
+    setUniformInt(TEXTURE_MODE, absorber.getTexture().getMode());
+}
+
 void AbsorberShaderProgram::setViewPosition(const glm::vec3 &viewPosition) const
 {
     setUniformVec3(VIEWPOS_UNIFORM_NAME, viewPosition);
@@ -37,7 +47,7 @@ void AbsorberShaderProgram::setLight(const PointLight &light, int lightIndex) co
                     light.getAttributes().specularIntensity);
 }
 
-void AbsorberShaderProgram::setDirectionlight(const DirectionalLight& light) const
+void AbsorberShaderProgram::setDirectionlight(const DirectionalLight &light) const
 {
     setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".direction", light.getAttributes().direction);
     setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".color", light.getAttributes().color.getVec3());
