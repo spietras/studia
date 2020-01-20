@@ -124,6 +124,8 @@ int main()
     CubeModel cm2(0.05f, 0, 1, 2);
     CubeModel ctree(0.05f, 0, 1, 2);
 
+    CuboidModel child(0.05f, 0.15f, 0.05f, 0, 1, 2);
+
     //materials
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
@@ -135,12 +137,12 @@ int main()
     Absorber parent(ctree, tree);
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
-    int rw = 10;
+    int rw = 5;
     std::vector<Absorber*> vector;
     Absorber* obj[10];
     for(int i = 0; i<rw; i++)
     {
-        obj[i] = new Absorber(ctree, tree);
+        obj[i] = new Absorber(child, tree);
         vector.push_back(obj[i]);
         parent.addChild(obj[i]);
     }
@@ -191,10 +193,11 @@ int main()
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
-    int i = 0;
+    double i = 0;
     for(auto el : vector)
     {
-        el->setPosition({0.15f*cos(2*3.1416*i/rw), 0.15f*sin(2*3.1416*i/rw), -2.0f});
+        el->setPosition({0.15f*cos(2*3.1416*(i+1)/(rw)), 0.15f*sin(2*3.1416*(i+1)/rw), -2.0f});
+        el->setRotation(cos(2*3.1416*(i+1)/double(rw+1)), {0.0f, 0.0f, -1.0f});
         s.addAbsorber(*el);
         i++;
     }
