@@ -7,7 +7,7 @@ void DirectionalLight::initDepthMap()
 
     //generate texture to store depth into
     glGenTextures(1, &this->depthMap);
-    glActiveTexture(DEPTH_TEXTURE_UNIT);
+    glActiveTexture(GL_TEXTURE0 + DEPTH_TEXTURE_UNIT);
     glBindTexture(GL_TEXTURE_2D, this->depthMap);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
                  NULL);

@@ -3,6 +3,7 @@
 #define MAX_POINT_LIGHTS 10 // needed to make a static array
 
 struct Material {
+    sampler2D diffuse;
     vec3 diffuseColor;
     vec3 specularColor;
     float shininess;
@@ -36,6 +37,8 @@ in vec3 fragPos; // fragment position from vertex shader
 in vec3 normal; // normal from vertex shader
 in vec4 fragPosLightSpace; // fragment position in directional light space
 
+in vec2 texCoords;
+
 uniform int lightsNum; // current number of lights
 uniform vec3 viewPos; // camera position
 uniform DirectionalLight directionalLight;
@@ -44,7 +47,21 @@ uniform Material material; // absorber material
 uniform bool shadowsOn;
 uniform sampler2D shadowMap; // depth map
 
+uniform int mode;
+
 out vec4 FragColor;
+
+vec3 getDiffuseMaterial(Material material)
+{
+    if (mode == 0)
+    {
+        return material.diffuseColor;
+    }
+    if (mode == 1)
+    {
+        return texture(material.diffuse, texCoords).rgb;
+    }
+}
 
 float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
@@ -68,9 +85,9 @@ float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     float bias = max(BIAS_MAX * (1.0 - dot(normal, lightDir)), BIAS_MIN);
 
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0); //get size of shadow map texel at lod 0
+    vec2 texelSize = 0.5 / textureSize(shadowMap, 0); //get size of shadow map texel at lod 0
 
-    int X_LEFT = -3, X_RIGHT = 3, Y_DOWN = -3, Y_UP = 3;
+    int X_LEFT = -1, X_RIGHT = 1, Y_DOWN = -1, Y_UP = 1;
 
     // sample around projCoords
     for(int x = X_LEFT; x <= X_RIGHT; x++)
@@ -88,14 +105,14 @@ float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 
 vec3 getAmbient(Material material, vec3 lightColor, float ambientIntensity)
 {
-    return vec3(ambientIntensity) * lightColor * material.diffuseColor;
+    return vec3(ambientIntensity) * lightColor * getDiffuseMaterial(material);
 }
 
 vec3 getDiffuse(Material material, vec3 lightColor, float diffuseIntensity, vec3 norm, vec3 lightDir)
 {
     float diff = max(dot(norm, lightDir), 0.0); // cosine of angle between norm and lightDir
 
-    return vec3(diffuseIntensity) * lightColor * diff * material.diffuseColor;
+    return vec3(diffuseIntensity) * lightColor * diff * getDiffuseMaterial(material);
 }
 
 vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, vec3 norm, vec3 lightDir, vec3 viewDir)
@@ -113,6 +130,7 @@ vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm
     vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
     vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
     vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
+
 
     if(shadowsOn)
     {

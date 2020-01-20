@@ -17,7 +17,7 @@ const std::vector<const PointLight *> &Scene::getLights() const
 
 void Scene::addLight(const PointLight &light)
 {
-    if(this->lights.size() >= MAX_POINT_LIGHTS)
+    if (this->lights.size() >= MAX_POINT_LIGHTS)
         return;
 
     this->lights.push_back(&light);
@@ -28,7 +28,7 @@ const DirectionalLight * Scene::getDirectionalLight() const
     return this->directionalLight;
 }
 
-void Scene::setDirectionLight(const DirectionalLight &light)
+void Scene::setDirectionalLight(const DirectionalLight &light)
 {
     this->directionalLight = &light;
 }
@@ -51,4 +51,15 @@ bool Scene::turnOffShadows()
 {
     shadows = false;
     return true;
+}
+
+
+const std::vector<const Skybox *> &Scene::getSkybox() const
+{
+    return this->skybox;
+}
+
+void Scene::addSkybox(const Skybox &skybox)
+{
+    this->skybox.push_back(&skybox);
 }

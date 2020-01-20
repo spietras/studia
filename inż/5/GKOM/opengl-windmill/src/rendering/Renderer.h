@@ -10,6 +10,7 @@
 #include "shaders/AbsorberShaderProgram.h"
 #include "shaders/LightShaderProgram.h"
 #include "shaders/DepthShaderProgram.h"
+#include "shaders/SkyboxShaderProgram.h"
 
 class Renderer
 {
@@ -25,17 +26,16 @@ class Renderer
 
     void drawSceneLights(const Scene &scene, const LightShaderProgram &shaderProgram) const;
 
-public:
+    void drawSceneSkybox(const Scene &scene, const SkyboxShaderProgram &shaderProgram, const Camera &camera) const;
 
-    Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor)
-    {};
+public:
+    Renderer(ColorFloat backgroundColor) : backgroundColor(backgroundColor){};
 
     void renderShadowMap(const Scene &scene, const DepthShaderProgram &depthShaderProgram) const;
 
     void render(const Scene &scene, const Camera &camera,
                 const AbsorberShaderProgram &absorberShaderProgram,
-                const LightShaderProgram &lightShaderProgram) const;
+                const LightShaderProgram &lightShaderProgram, const SkyboxShaderProgram &skyboxShaderProgram) const;
 };
-
 
 #endif //ZT2_WIATRAK_RENDERER_H

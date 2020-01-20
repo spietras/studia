@@ -27,10 +27,14 @@ public:
     ~Window();
 
     int getWidth() const
-    { return width; }
+    {
+        return width;
+    }
 
     int getHeight() const
-    { return height; }
+    {
+        return height;
+    }
 
     void resize(int newWidth, int newHeight);
 
@@ -42,9 +46,13 @@ public:
 
     void setCursorCallback(void (*f)(GLFWwindow*, double, double));
 
-    void draw(const Renderer &renderer, const Scene &scene, const DepthShaderProgram &depthShaderProgram,
+    void draw(const Renderer &renderer,
+              const Scene &scene,
+              const DepthShaderProgram &depthShaderProgram,
               const AbsorberShaderProgram &absorberShaderProgram,
-              const LightShaderProgram &lightShaderProgram, const Camera &camera);
+              const LightShaderProgram &lightShaderProgram,
+              const SkyboxShaderProgram &skyboxShaderProgram,
+              const Camera &camera);
 };
 
 

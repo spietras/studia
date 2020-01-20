@@ -49,7 +49,13 @@ add_executable( ${TARGET}
                 ${SRCDIR}/utils/DirectionalLightAttributes.h
                 ${SRCDIR}/rendering/shaders/DepthShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/DepthShaderProgram.h
-                ${SRCDIR}/entities/lights/DirectionalLight.cpp)
+                ${SRCDIR}/entities/lights/DirectionalLight.cpp
+                ${SRCDIR}/entities/skybox/Skybox.h
+                ${SRCDIR}/utils/Texture.h
+                ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.cpp
+                ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h
+                ${SRCDIR}/entities/models/PlaneModel.cpp
+                ${SRCDIR}/entities/models/PlaneModel.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

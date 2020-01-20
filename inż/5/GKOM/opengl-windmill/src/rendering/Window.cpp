@@ -18,8 +18,6 @@ Window::Window(int width, int height, const std::string &title) : width(width), 
     glViewport(0, 0, width, height);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE); //enable face culling (but only to get rid of peter panning)
-    glCullFace(GL_BACK);
 }
 
 Window::~Window()
@@ -42,9 +40,11 @@ bool Window::shouldClose() const
 void Window::draw(const Renderer &renderer, const Scene &scene,
                   const DepthShaderProgram &depthShaderProgram,
                   const AbsorberShaderProgram &absorberShaderProgram,
-                  const LightShaderProgram &lightShaderProgram, const Camera &camera)
+                  const LightShaderProgram &lightShaderProgram,
+                  const SkyboxShaderProgram &skyboxShaderProgram,
+                  const Camera &camera)
 {
-    if(scene.isShadowsTurnedOn())
+    if (scene.isShadowsTurnedOn())
     {
         const DirectionalLight *light = scene.getDirectionalLight();
         const int currentWidth = width;
@@ -58,10 +58,10 @@ void Window::draw(const Renderer &renderer, const Scene &scene,
         resize(currentWidth, currentHeight);
     }
 
-    renderer.render(scene, camera, absorberShaderProgram, lightShaderProgram);
+    renderer.render(scene, camera, absorberShaderProgram, lightShaderProgram, skyboxShaderProgram);
 
     glfwSwapBuffers(this->handle); //swap front and back buffer, because we use double buffering
-    glfwPollEvents(); //process all events on windows in this frame
+    glfwPollEvents();              //process all events on windows in this frame
 }
 
 void Window::makeContextCurrent() const
@@ -69,7 +69,7 @@ void Window::makeContextCurrent() const
     glfwMakeContextCurrent(this->handle);
 }
 
-void Window::setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const
+void Window::setKeyCallback(void (*f)(GLFWwindow *, int, int, int, int)) const
 {
     glfwSetKeyCallback(this->handle, *f);
 }
