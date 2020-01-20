@@ -146,7 +146,15 @@ int main()
     /*  absorbers  */
 
     Absorber cube(cm, m1);
-    Absorber atree(ctree, tree);
+
+    int rw = 5;
+    std::vector<Absorber> vector;
+    for(int i = 0; i<=rw; i++)
+    {
+        Absorber atree(ctree, tree);
+        vector.push_back(atree);
+    }
+
     Absorber cube2(cm, m1, woodTexture);
     Absorber cube3(cm, m1);
     Absorber plane(planeM, m1, groundTexture);
@@ -171,6 +179,9 @@ int main()
     DirectionalLightAttributes dla({1.0f, -2.0f, 0.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
 
     /*  lights  */
+    s.addAbsorber(cube);
+    s.addAbsorber(cube2);
+    s.addSkybox(skybox);
 
     PointLight light(cm2, pla);
     PointLight light2(cm2, pla2);
