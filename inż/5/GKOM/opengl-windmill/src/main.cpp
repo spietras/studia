@@ -64,6 +64,9 @@ int main()
 
     Absorber cube(cm, m1);
 
+    Absorber parent(ctree, tree);
+    parent.setPosition({0.0f, 0.0f, -2.0f});
+    s.addAbsorber(parent);
     int rw = 10;
     std::vector<Absorber*> vector;
     Absorber* obj[10];
@@ -71,6 +74,7 @@ int main()
     {
         obj[i] = new Absorber(ctree, tree);
         vector.push_back(obj[i]);
+        parent.addChild(obj[i]);
     }
 
     Absorber cube2(cm, m1, woodTexture);
@@ -126,6 +130,8 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        parent.setPosition({-0.2f, 0.1f, 0.0f});
 
 
         //apply different transformations 0to entities
