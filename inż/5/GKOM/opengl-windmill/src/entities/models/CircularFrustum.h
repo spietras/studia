@@ -68,7 +68,7 @@ class CircularFrustum : public BaseObjectModel
             vertices.emplace_back(vertexPositons[index2 + 1],                   baseNormal,     glm::vec2(texPart2,     0.0f    ));
 
             vertices.emplace_back(vertexPositons[index1],                       -baseNormal,    glm::vec2(texPart1,     0.0f    ));
-            vertices.emplace_back(glm::vec3(0.0f, 0.0f * height, 0.0f),         -baseNormal,    glm::vec2(texPart2,     1.0f    ));
+            vertices.emplace_back(glm::vec3(0.0f, -0.5f * height, 0.0f),        -baseNormal,    glm::vec2(texPart2,     1.0f    ));
             vertices.emplace_back(vertexPositons[index2],                       -baseNormal,    glm::vec2(texPart2,     0.0f    ));
         }
 
