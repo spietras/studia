@@ -265,15 +265,10 @@ int main()
         s.addAbsorber(*el);
         i++;
     }
-    // i = 0;
-    // for(auto el : vector2)
-    // {
-    //     el->setPosition({0.15f*cos(2*3.1416*(i)/(rw)), 0.15f*sin(2*3.1416*(i)/rw), -2.0f});
-    //     s.addAbsorber(*el);
-    //     i++;
-    // }
 
-    parent.rotate(1, {0.0f, 0.0f, -1.0f});
+    parent.setPosition(foundation_root.getPosition());
+    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, 0.1f}));
+    foundation_root.addChild(&parent);
 
     for (auto el : vec_connectors)
     {
