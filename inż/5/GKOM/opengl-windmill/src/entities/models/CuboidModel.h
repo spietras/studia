@@ -1,9 +1,9 @@
 #ifndef WIATRAK_CUBOIDMODEL_H
 #define WIATRAK_CUBOIDMODEL_H
 
-#include "RectangleFrustum.h"
+#include "RectangularFrustum.h"
 
-class CuboidModel : public RectangleFrustum
+class CuboidModel : public RectangularFrustum
 {
 public:
     CuboidModel(float width,
@@ -12,7 +12,7 @@ public:
                 int positionLocation,
                 int normalLocation,
                 int textureLocation,
-                bool scaleTextures = true) : RectangleFrustum(width,
+                bool scaleTextures = true) : RectangularFrustum(width,
                                                               depth,
                                                               width,
                                                               depth,

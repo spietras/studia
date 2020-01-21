@@ -1,11 +1,11 @@
-#ifndef WIATRAK_RECTANGLEFRUSTUM_H
-#define WIATRAK_RECTANGLEFRUSTUM_H
+#ifndef WIATRAK_RECTANGULARFRUSTUM_H
+#define WIATRAK_RECTANGULARFRUSTUM_H
 
 
 #include "BaseObjectModel.h"
 #include "../../utils/GeometryHelper.h"
 
-class RectangleFrustum : public BaseObjectModel
+class RectangularFrustum : public BaseObjectModel
 {
     static std::vector<Vertex> calculateVertices(float downWidth,
                                                  float downDepth,
@@ -88,7 +88,7 @@ class RectangleFrustum : public BaseObjectModel
     }
 
 public:
-    RectangleFrustum(float downWidth,
+    RectangularFrustum(float downWidth,
                      float downDepth,
                      float upWidth,
                      float upDepth,
@@ -108,4 +108,4 @@ public:
     {}
 };
 
-#endif //WIATRAK_RECTANGLEFRUSTUM_H
+#endif //WIATRAK_RECTANGULARFRUSTUM_H

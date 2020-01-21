@@ -54,7 +54,7 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h
                 ${SRCDIR}/entities/models/PlaneModel.h
-                ${SRCDIR}/entities/models/RectangleFrustum.h
+                ${SRCDIR}/entities/models/RectangularFrustum.h
                 ${SRCDIR}/utils/GeometryHelper.h
                 ${SRCDIR}/entities/models/Pyramid.h
                 ${SRCDIR}/entities/models/RegularPyramid.h

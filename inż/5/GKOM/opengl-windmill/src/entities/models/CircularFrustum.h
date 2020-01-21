@@ -13,6 +13,10 @@ class CircularFrustum : public BaseObjectModel
                                                  int baseVertices,
                                                  bool scaleTextures)
     {
+        float scaleY = scaleTextures        ? 1.0f : height;
+        float scaleDownX = scaleTextures    ? 1.0f : 2 * M_PI * downRadius;
+        float scaleUpX = scaleTextures      ? 1.0f : 2 * M_PI * upRadius;
+
         std::vector<glm::vec3> vertexPositons;
 
         for (int i = 0; i < baseVertices; ++i)
@@ -52,24 +56,24 @@ class CircularFrustum : public BaseObjectModel
             float texPart1 = i / (float) baseVertices;
             float texPart2 = (i + 1) / (float) baseVertices;
 
-            vertices.emplace_back(vertexPositons[index1],                       sideNormal,     glm::vec2(texPart1,     0.0f    ));
-            vertices.emplace_back(vertexPositons[index2 + 1],                   sideNormal,     glm::vec2(texPart2,     1.0f    ));
-            vertices.emplace_back(vertexPositons[index2],                       sideNormal,     glm::vec2(texPart2,     0.0f    ));
-            vertices.emplace_back(vertexPositons[index2 + 1],                   sideNormal,     glm::vec2(texPart2,     1.0f    ));
-            vertices.emplace_back(vertexPositons[index1],                       sideNormal,     glm::vec2(texPart1,     0.0f    ));
-            vertices.emplace_back(vertexPositons[index1 + 1],                   sideNormal,     glm::vec2(texPart1,     1.0f    ));
+            vertices.emplace_back(vertexPositons[index1],                       sideNormal,     glm::vec2(texPart1 * scaleDownX,    0.0f * scaleY       ));
+            vertices.emplace_back(vertexPositons[index2 + 1],                   sideNormal,     glm::vec2(texPart2 * scaleUpX,      1.0f * scaleY       ));
+            vertices.emplace_back(vertexPositons[index2],                       sideNormal,     glm::vec2(texPart2 * scaleUpX,      0.0f * scaleY       ));
+            vertices.emplace_back(vertexPositons[index2 + 1],                   sideNormal,     glm::vec2(texPart2 * scaleUpX,      1.0f * scaleY       ));
+            vertices.emplace_back(vertexPositons[index1],                       sideNormal,     glm::vec2(texPart1 * scaleDownX,    0.0f * scaleY       ));
+            vertices.emplace_back(vertexPositons[index1 + 1],                   sideNormal,     glm::vec2(texPart1 * scaleDownX,    1.0f * scaleY       ));
 
             glm::vec3 baseNormal = GeometryHelper::getSurfaceNormal(vertexPositons[index1 + 1],
                                                                     glm::vec3(0.0f, 0.5f * height, 0.0f),
                                                                     vertexPositons[index2 + 1]);
 
-            vertices.emplace_back(vertexPositons[index1 + 1],                   baseNormal,     glm::vec2(texPart1,     0.0f    ));
-            vertices.emplace_back(glm::vec3(0.0f, 0.5f * height, 0.0f),         baseNormal,     glm::vec2(texPart2,     1.0f    ));
-            vertices.emplace_back(vertexPositons[index2 + 1],                   baseNormal,     glm::vec2(texPart2,     0.0f    ));
+            vertices.emplace_back(vertexPositons[index1 + 1],                   baseNormal,     glm::vec2(texPart1 * scaleUpX,      0.0f * upRadius     ));
+            vertices.emplace_back(glm::vec3(0.0f, 0.5f * height, 0.0f),         baseNormal,     glm::vec2(texPart2 * scaleUpX,      1.0f * upRadius     ));
+            vertices.emplace_back(vertexPositons[index2 + 1],                   baseNormal,     glm::vec2(texPart2 * scaleUpX,      0.0f * upRadius     ));
 
-            vertices.emplace_back(vertexPositons[index1],                       -baseNormal,    glm::vec2(texPart1,     0.0f    ));
-            vertices.emplace_back(glm::vec3(0.0f, -0.5f * height, 0.0f),        -baseNormal,    glm::vec2(texPart2,     1.0f    ));
-            vertices.emplace_back(vertexPositons[index2],                       -baseNormal,    glm::vec2(texPart2,     0.0f    ));
+            vertices.emplace_back(vertexPositons[index1],                       -baseNormal,    glm::vec2(texPart1 * scaleDownX,    0.0f * downRadius   ));
+            vertices.emplace_back(glm::vec3(0.0f, -0.5f * height, 0.0f),        -baseNormal,    glm::vec2(texPart2 * scaleDownX,    1.0f * downRadius   ));
+            vertices.emplace_back(vertexPositons[index2],                       -baseNormal,    glm::vec2(texPart2 * scaleDownX,    0.0f * downRadius   ));
         }
 
         return vertices;
