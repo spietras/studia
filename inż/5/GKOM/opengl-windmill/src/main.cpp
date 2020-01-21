@@ -305,7 +305,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        foundation_root.setPosition({0.0f, root_h, 0.0f});
+        foundation_root.setPosition({1.0f, root_h, 0.0f});
         parent.rotate(rotationSpeed * deltaTime * 0.1, {0.0f, 0.0f, 1.0f});
 
         //apply different transformations to entities
