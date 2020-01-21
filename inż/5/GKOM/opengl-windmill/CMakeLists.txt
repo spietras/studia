@@ -55,7 +55,9 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h
                 ${SRCDIR}/entities/models/PlaneModel.h
                 ${SRCDIR}/entities/models/RectangleFrustum.h
-                ${SRCDIR}/utils/GeometryHelper.h)
+                ${SRCDIR}/utils/GeometryHelper.h
+                ${SRCDIR}/entities/models/Pyramid.h
+                ${SRCDIR}/entities/models/RegularPyramid.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

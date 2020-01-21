@@ -10,6 +10,8 @@
 #include "rendering/shaders/SkyboxShaderProgram.h"
 #include "utils/Texture.h"
 #include "entities/models/PlaneModel.h"
+#include "entities/models/Pyramid.h"
+#include "entities/models/RegularPyramid.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -128,7 +130,7 @@ int main()
     CubeModel ctree(0.15f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    RectangleFrustum rf(3.0f, 3.0f, 1.0f, 1.0f, 1.0f, 0, 1, 2);
+    RegularPyramid tm(1.0f, 2.0f, 0, 1, 2);
 
     /*  materials  */
 
@@ -143,7 +145,7 @@ int main()
     Absorber cube2(cm, m1, woodTexture);
     Absorber cube3(cm, m1);
     Absorber plane(planeM, m1, groundTexture);
-    Absorber test(rf, m1, woodTexture);
+    Absorber test(tm, m1, woodTexture);
 
     atree.setPosition({0.0f, 0.0f, -1.5f});
     cube3.scale(10.0f);
