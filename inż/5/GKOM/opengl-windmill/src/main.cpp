@@ -117,17 +117,18 @@ int main()
     Texture groundTexture("res/textures/sand.bmp");
 
     /*  stuff  */
-    Texture woodTexture("res/textures/wood.bmp", Texture::LINEAR);
-    Texture woodTextureR("res/textures/wood.bmp", Texture::REAPETED);
-    Texture groundTexture("res/textures/sand.bmp", Texture::REAPETED);
-
     Scene s;
     Camera c;
     cameraPtr = &c;
+    
 
-    //create model and two entities based on this model
+    /*  models  */
+    CubeModel cm(0.25f, 0, 1, 2);
     CubeModel cm2(0.05f, 0, 1, 2);
     CubeModel ctree(0.05f, 0, 1, 2);
+    CubeModel cm3(30.0f, 0, 1, 2);
+    PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
+    RegularTetrahedron tm(2.0f, 0, 1, 2);
     CubeModel small_light(0.01f, 0, 1, 2);
 
     //materials
@@ -135,41 +136,41 @@ int main()
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
-    CubeModel cm3(30.0f, 0, 1, 2);
+    /*  skybox  */
     Skybox skybox(cm3, msky, skyboxTexture);
+    skybox.setPosition({0.0f, 1.0f, 1.0f});
 
-    PlaneModel planeM(100.5f, 100.5f, 0, 1, 2);
-    Absorber plane(planeM, m2, groundTexture);
-    s.addAbsorber(plane);
-    s.addSkybox(skybox);
+    /*  light attributes  */
+    PointLightAttributes pla(ColorInt(255, 0, 0), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    DirectionalLightAttributes dla({1.0f, -2.0f, 0.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
 
+    /* light */
+    PointLight light3(cm2, pla3);
     PointLight light(cm2, pla);
     PointLight light2(cm2, pla2);
     DirectionalLight dl(dla);
 
+
     light.setPosition({-0.5f, 0.0f, -1.0f});
     light2.setPosition({0.5f, 0.0f, -1.0f});
-
-    /*  adding to scene  */
-
-    s.addAbsorber(plane);
-    s.addAbsorber(atree);
-    s.addAbsorber(cube3);
-    s.addAbsorber(test);
-
-    s.addLight(light);
-    s.addLight(light2);
-    //light
-    PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    PointLight light3(cm2, pla3);
-    s.addLight(light3);
-
     light3.setPosition({0.0f, 0.0f, 0.6f});
 
-    DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
-    DirectionalLight dl(dla);
-    s.setDirectionalLight(dl);
+    /* absorbers */
 
+    Absorber plane(planeM, m2, groundTexture);
+    plane.rotate(1.57f, {1.0f, 0.0f, 0.0f});
+    plane.setPosition({0.0f, 0.0f, 0.0f});
+
+    /* adding to scene */
+
+    s.addLight(light3);
+    s.addAbsorber(plane);
+    s.addSkybox(skybox);
+    s.addLight(light);
+    s.addLight(light2);
+    s.setDirectionalLight(dl);
     s.turnOnShadows();
 
     /*  animation params  */
@@ -237,10 +238,6 @@ int main()
     float con_width = pad_width/2;
     float con_depth = pad_depth/2;
 
-    float con_length = radius_of_paddles;
-    float con_width = 0.01f;
-    float con_depth = 0.01f;
-
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
     Absorber parent(ctree, tree, woodTexture);
@@ -276,30 +273,6 @@ int main()
         s.addAbsorber(*el);
         i++;
     }
-
-    float base_pad_connector_length = 0.1f;
-    CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
-    Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
-    s.addAbsorber(base_pad_con_abs);
-    base_pad_con_abs.setPosition(foundation_root.getPosition());
-    base_pad_con_abs.setPosition(foundation_root.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length/2}));
-    foundation_root.addChild(&base_pad_con_abs);
-
-    parent.setPosition(foundation_root.getPosition());
-    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
-    foundation_root.addChild(&parent);
-
-    for (auto el : vec_connectors)
-    {
-        el->setPosition({radius_of_paddles * 0.5 * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * 0.5 * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
-        el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
-        s.addAbsorber(*el);
-        i++;
-    }
-
-    parent.setPosition(foundation_root.getPosition());
-    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
-    foundation_root.addChild(&parent);
 
     float base_pad_connector_length = 0.1f;
     CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
