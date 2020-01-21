@@ -2,7 +2,7 @@
 #include <glm/gtx/transform.hpp>
 #include <GL/glew.h>
 
-Camera::Camera() : position (0.0f, 0.0f, 3.0f ), viewDirection (0.0f, 0.0f, -1.0f), UP(0.0f, 1.0f, 0.0f), projection (glm::perspective(glm::radians(45.0f), (GLfloat)600/(GLfloat)600, 0.1f, 100.0f))
+Camera::Camera() : position (0.0f, 0.5f, 3.0f ), viewDirection (0.0f, 0.0f, -1.0f), UP(0.0f, 1.0f, 0.0f), projection (glm::perspective(glm::radians(45.0f), (GLfloat)600/(GLfloat)600, 0.1f, 100.0f))
 {
 
 }
