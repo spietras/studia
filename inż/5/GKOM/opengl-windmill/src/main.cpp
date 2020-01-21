@@ -29,38 +29,31 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
     }
-
     else if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
     }
-
     if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
     }
-
     else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
     }
-
     if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) //move camera to the right
     {
         //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
         cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
-
     else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
     {
         cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
-
     if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
     {
         cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
-
     else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
     {
         cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
@@ -75,6 +68,7 @@ void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
     glm::vec2 newMousePosition = glm::vec2(xPosition, yPosition);
     cameraPtr->updateMouse(newMousePosition);
 }
+
 
 int main()
 {
@@ -131,51 +125,22 @@ int main()
     Camera c;
     cameraPtr = &c;
 
-    /*  models  */
-
-    CubeModel cm(0.25f, 0, 1, 2);
+    //create model and two entities based on this model
     CubeModel cm2(0.05f, 0, 1, 2);
-    CubeModel ctree(0.15f, 0, 1, 2);
-    CubeModel cm3(30.0f, 0, 1, 2);
-    PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    RegularTetrahedron tm(2.0f, 0, 1, 2);
+    CubeModel ctree(0.05f, 0, 1, 2);
+    CubeModel small_light(0.01f, 0, 1, 2);
 
-    /*  materials  */
-
-    Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
-    Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
+    //materials
+    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
-    /*  absorbers  */
-
-    Absorber cube(cm, m1);
-
-    Absorber cube2(cm, m1, woodTexture);
-    Absorber cube3(cm, m1);
-    Absorber plane(planeM, m1, groundTexture);
-    Absorber test(tm, m1, woodTexture);
-
-    atree.setPosition({0.0f, 0.0f, -1.5f});
-    cube3.scale(10.0f);
-    cube3.setPosition({0.0f, -2.0f, 0.0f});
-    plane.setPosition({0.0f, -1.0f, 0.0f});
-    test.setPosition({5.0f, 0.0f, 0.0f});
-
-    /*  skybox  */
-
+    CubeModel cm3(30.0f, 0, 1, 2);
     Skybox skybox(cm3, msky, skyboxTexture);
 
-    skybox.setPosition({0.0f, 1.0f, 1.0f});
-
-    /*  light attributes  */
-
-    PointLightAttributes pla(ColorInt(255, 0, 0), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    DirectionalLightAttributes dla({1.0f, -2.0f, 0.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
-
-    /*  lights  */
-    s.addAbsorber(cube);
-    s.addAbsorber(cube2);
+    PlaneModel planeM(100.5f, 100.5f, 0, 1, 2);
+    Absorber plane(planeM, m2, groundTexture);
+    s.addAbsorber(plane);
     s.addSkybox(skybox);
 
     PointLight light(cm2, pla);
@@ -199,9 +164,9 @@ int main()
     PointLight light3(cm2, pla3);
     s.addLight(light3);
 
-    light3.setPosition({0.2f, 0.0f, 2.0f});
+    light3.setPosition({0.0f, 0.0f, 0.6f});
 
-    DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
+    DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
     DirectionalLight dl(dla);
     s.setDirectionalLight(dl);
 
@@ -228,7 +193,7 @@ int main()
     foundation_root.setPosition({0.0f, root_h, 0.0f});
     s.addAbsorber(foundation_root);
 
-    double angle_degrees = 20;
+    double angle_degrees = 12;
     double angle = angle_degrees * 3.141592 / 180;
 
     float plank_length = (root_h) / cos(angle);
@@ -267,21 +232,31 @@ int main()
     float pad_width = 0.03f;
     float pad_depth = 0.02f;
 
+    float con_length = radius_of_paddles;
+    float con_width = 0.01f;
+    float con_depth = 0.01f;
+
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
+    CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
     Absorber parent(ctree, tree, woodTexture);
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
     int no_paddles = 15;
-    std::vector<Absorber *> vector1;
+    std::vector<Absorber *> vec_paddles;
+    std::vector<Absorber *> vec_connectors;
     Absorber *obj[100];
+    Absorber *con[100];
     for (int i = 0; i < no_paddles; i++)
     {
         obj[i] = new Absorber(child, tree, woodTexture);
-        vector1.push_back(obj[i]);
+        con[i] = new Absorber(connector, tree, woodTexture);
+        vec_paddles.push_back(obj[i]);
+        vec_connectors.push_back(con[i]);
         parent.addChild(obj[i]);
+        parent.addChild(con[i]);
     }
     double i = 0;
-    for (auto el : vector1)
+    for (auto el : vec_paddles)
     {
         el->setPosition({radius_of_paddles * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
         el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
@@ -289,20 +264,47 @@ int main()
         i++;
     }
 
+    for (auto el : vec_connectors)
+    {
+        el->setPosition({radius_of_paddles * 0.5 * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * 0.5 * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
+        el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
+        s.addAbsorber(*el);
+        i++;
+    }
+
+    float base_pad_connector_length = 0.1f;
+    CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
+    Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
+    s.addAbsorber(base_pad_con_abs);
+    base_pad_con_abs.setPosition(foundation_root.getPosition());
+    base_pad_con_abs.setPosition(foundation_root.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length/2}));
+    foundation_root.addChild(&base_pad_con_abs);
+
     parent.setPosition(foundation_root.getPosition());
-    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, 0.1f}));
+    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
     foundation_root.addChild(&parent);
+
+    //light
+    PointLight light4(small_light, pla3);
+    s.addLight(light4);
+    light4.setPosition(parent.getPosition());
+    parent.addChild(&light4);
 
     // PADDLES ^^^^
     
     while (!w.shouldClose())
     {
+
+        // DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
+        // DirectionalLight dl(dla);
+        // s.setDirectionalLight(dl);
+        
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         foundation_root.setPosition({0.0f, root_h, 0.0f});
-        parent.rotate(0.001, {0.0f, 0.0f, 1.0f});
+        parent.rotate(rotationSpeed * deltaTime * 0.1, {0.0f, 0.0f, 1.0f});
 
         //apply different transformations to entities
         skybox.setPosition({0.0f, 1.0f, 1.0f});
