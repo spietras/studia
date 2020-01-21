@@ -6,8 +6,15 @@
 class CubeModel : public CuboidModel
 {
 public:
-    CubeModel(float edgeSize, int positionLocation, int normalLocation, int textureLocation) : CuboidModel(edgeSize, edgeSize, edgeSize,
-                                                                                                           positionLocation, normalLocation, textureLocation)
+    CubeModel(float edgeSize,
+              int positionLocation,
+              int normalLocation,
+              int textureLocation) : CuboidModel(edgeSize,
+                                                 edgeSize,
+                                                 edgeSize,
+                                                 positionLocation,
+                                                 normalLocation,
+                                                 textureLocation)
     {
     }
 };

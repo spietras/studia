@@ -1,12 +1,10 @@
 #ifndef WIATRAK_CUBOIDMODEL_H
 #define WIATRAK_CUBOIDMODEL_H
 
-#include "BaseObjectModel.h"
+#include "RectangleFrustum.h"
 
-class CuboidModel : public BaseObjectModel
+class CuboidModel : public RectangleFrustum
 {
-    static std::vector<Vertex> calculateVertices(float width, float height, float depth, bool scaleTextures);
-
 public:
     CuboidModel(float width,
                 float height,
@@ -14,7 +12,16 @@ public:
                 int positionLocation,
                 int normalLocation,
                 int textureLocation,
-                bool scaleTextures = false);
+                bool scaleTextures = true) : RectangleFrustum(width,
+                                                              depth,
+                                                              width,
+                                                              depth,
+                                                              height,
+                                                              positionLocation,
+                                                              normalLocation,
+                                                              textureLocation,
+                                                              scaleTextures)
+    {}
 };
 
 #endif //WIATRAK_CUBOIDMODEL_H
