@@ -76,6 +76,6 @@ void Window::setKeyCallback(void (*f)(GLFWwindow *, int, int, int, int)) const
 
 void Window::setCursorCallback(void (*f)(GLFWwindow *, double, double))
 {
+    glfwSetInputMode(this->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(this->handle, *f);
-    glfwSetCursorPos(this->handle, 0.0f, 0.0f);
 }

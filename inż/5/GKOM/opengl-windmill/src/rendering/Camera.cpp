@@ -11,7 +11,7 @@ void Camera::updateMouse(const glm::vec2 &newMousePosition)
 {
     glm::vec2 mouseDelta = newMousePosition - oldMousePosition;
 
-    if(glm::length(mouseDelta)>50.0f)
+    if(glm::length(mouseDelta) > 50.0f)
     {
         oldMousePosition = newMousePosition;
         return;
