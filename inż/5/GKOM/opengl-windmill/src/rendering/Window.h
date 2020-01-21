@@ -30,11 +30,8 @@ public:
     void resize(int newWidth, int newHeight);
     bool shouldClose() const;
     void makeContextCurrent() const;
-
     void setKeyCallback(void (*f)(GLFWwindow*, int, int, int, int)) const;
-
     void setCursorCallback(void (*f)(GLFWwindow*, double, double));
-
     void draw(const Renderer &renderer,
               const Scene &scene,
               const DepthShaderProgram &depthShaderProgram,
@@ -43,6 +40,4 @@ public:
               const SkyboxShaderProgram &skyboxShaderProgram,
               const Camera &camera);
 };
-
-
 #endif //WIATRAK_WINDOW_H
