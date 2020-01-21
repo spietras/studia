@@ -160,7 +160,6 @@ int main()
     /* absorbers */
 
     Absorber plane(planeM, m2, groundTexture);
-    plane.rotate(1.57f, {1.0f, 0.0f, 0.0f});
     plane.setPosition({0.0f, 0.0f, 0.0f});
 
     /* adding to scene */
@@ -172,10 +171,6 @@ int main()
     s.addLight(light2);
     s.setDirectionalLight(dl);
     s.turnOnShadows();
-
-    /*  animation params  */
-    plane.rotate(1.57f, {1.0f, 0.0f, 0.0f});
-    plane.setPosition({0.0f, 0.0f, 0.0f});
 
     float deltaTime;
     float lastFrame = 0.0f;
@@ -308,15 +303,21 @@ int main()
     Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
     s.addAbsorber(tail_base_connector);
 
-    tail_base_connector.translate({-(cm_tail_length+con_tail_length)/2, 0.0f, 0.0f});
-    tail_base_connector.addChild(&tail);
-    tail_base_connector.setPosition(foundation_root.getPosition()-glm::vec3(-con_tail_length/2, 0.0f, 0.0f));
+    CuboidModel cm_tail_end(0.04f, 0.04f, 0.04f, 0, 1, 2);
+    Absorber tail_end(cm_tail_end, tree, woodTexture);
+    s.addAbsorber(tail_end);
 
-    foundation_root.addChild(&tail_base_connector);
+    tail_end.translate({-(con_tail_length)/2, 0.0f, 0.0f});
+    tail_end.addChild(&tail_base_connector);
+    tail_end.setPosition(tail_end.getPosition()+glm::vec3(-(cm_tail_length+con_tail_length)/2, 0.0f, 0.0f));
+    tail_base_connector.addChild(&tail);
+    tail_end.setPosition(foundation_root.getPosition()-glm::vec3(0.0f, 0.0f, 0.0f));
+
+    foundation_root.addChild(&tail_end);
 
     // TAIL ^^^
 
-    tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
+   // tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
 
     
     while (!w.shouldClose())
