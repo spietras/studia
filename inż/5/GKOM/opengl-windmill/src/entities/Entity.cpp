@@ -130,6 +130,10 @@ void Entity::scale(const glm::vec3 &factor)
 
 void Entity::scale(float factor)
 {
+    for (auto el : children)
+    {
+        el->scale(glm::vec3(factor, factor, factor));
+    }
     scale(glm::vec3(factor, factor, factor));
 }
 
