@@ -14,6 +14,7 @@
 #include "entities/models/RegularPyramid.h"
 #include "entities/models/CircularFrustum.h"
 #include "entities/models/Cylinder.h"
+#include "entities/models/Cone.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -132,7 +133,7 @@ int main()
     CubeModel ctree(0.15f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    Cylinder tm(1.0f, 1.0f, 50, 0, 1, 2);
+    Cone tm(1.0f, 1.0f, 100, 0, 1, 2);
 
     /*  materials  */
 
