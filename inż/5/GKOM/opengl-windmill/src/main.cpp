@@ -95,8 +95,8 @@ int main()
     Window w(SCR_WIDTH, SCR_HEIGHT, TITLE);
     w.makeContextCurrent();
     w.setKeyCallback(keyCallback);
-    w.setCursorCallback(cursorCallback);  //if you want to use mouse to rotate unable this line
-
+    w.setCursorCallback(cursorCallback);
+    
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
@@ -212,8 +212,6 @@ int main()
 
         float scaleDelta = currentFrame * scalingSpeed;
         cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
-
-        //c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
 
         /*  rendering  */
 
