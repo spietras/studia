@@ -58,7 +58,8 @@ add_executable( ${TARGET}
                 ${SRCDIR}/utils/GeometryHelper.h
                 ${SRCDIR}/entities/models/Pyramid.h
                 ${SRCDIR}/entities/models/RegularPyramid.h
-                ${SRCDIR}/entities/models/CircularFrustum.h)
+                ${SRCDIR}/entities/models/CircularFrustum.h
+                ${SRCDIR}/entities/models/Cylinder.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
