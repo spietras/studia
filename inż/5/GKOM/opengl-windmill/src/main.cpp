@@ -132,7 +132,6 @@ int main()
     /*  materials  */
 
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
-    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
@@ -192,7 +191,6 @@ int main()
     float rotationSpeed = 2.0f;
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
-    float upSpeed = 0.001f;
 
     /*  loop  */
 
