@@ -17,6 +17,7 @@
 #include "entities/models/Cone.h"
 #include "entities/models/Tetrahedron.h"
 #include "entities/models/RegularTetrahedron.h"
+#include "entities/models/Sphere.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -135,7 +136,7 @@ int main()
     CubeModel ctree(0.15f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    RegularTetrahedron tm(2.0f, 0, 1, 2);
+    Sphere tm(1.0f, 100, 100, 0, 1, 2, true);
 
     /*  materials  */
 
