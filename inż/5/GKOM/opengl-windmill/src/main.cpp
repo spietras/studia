@@ -10,6 +10,9 @@
 #include "rendering/shaders/SkyboxShaderProgram.h"
 #include "utils/Texture.h"
 #include "entities/models/PlaneModel.h"
+#include "entities/models/Pyramid.h"
+#include "entities/models/RegularPyramid.h"
+#include "entities/models/CircularFrustum.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -128,11 +131,11 @@ int main()
     CubeModel ctree(0.15f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
+    CircularFrustum tm(2.0f, 1.0f, 1.0f, 10, 0, 1, 2);
 
     /*  materials  */
 
     Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
-    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
@@ -143,11 +146,13 @@ int main()
     Absorber cube2(cm, m1, woodTexture);
     Absorber cube3(cm, m1);
     Absorber plane(planeM, m1, groundTexture);
+    Absorber test(tm, m1, woodTexture);
 
     atree.setPosition({0.0f, 0.0f, -1.5f});
     cube3.scale(10.0f);
     cube3.setPosition({0.0f, -2.0f, 0.0f});
     plane.setPosition({0.0f, -1.0f, 0.0f});
+    test.setPosition({5.0f, 0.0f, 0.0f});
 
     /*  skybox  */
 
@@ -177,6 +182,8 @@ int main()
     s.addAbsorber(atree);
     s.addAbsorber(cube2);
     s.addAbsorber(cube3);
+    s.addAbsorber(test);
+
     s.addSkybox(skybox);
     s.addLight(light);
     s.addLight(light2);
@@ -192,7 +199,6 @@ int main()
     float rotationSpeed = 2.0f;
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
-    float upSpeed = 0.001f;
 
     /*  loop  */
 

@@ -26,7 +26,6 @@ add_executable( ${TARGET}
                 ${SRCDIR}/entities/models/BaseObjectModel.h
                 ${SRCDIR}/rendering/shaders/ShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/ShaderProgram.h
-                ${SRCDIR}/entities/models/CuboidModel.cpp
                 ${SRCDIR}/entities/models/CuboidModel.h
                 ${SRCDIR}/entities/models/CubeModel.h
                 ${SRCDIR}/entities/Entity.cpp
@@ -54,8 +53,12 @@ add_executable( ${TARGET}
                 ${SRCDIR}/utils/Texture.h
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h
-                ${SRCDIR}/entities/models/PlaneModel.cpp
-                ${SRCDIR}/entities/models/PlaneModel.h)
+                ${SRCDIR}/entities/models/PlaneModel.h
+                ${SRCDIR}/entities/models/RectangleFrustum.h
+                ${SRCDIR}/utils/GeometryHelper.h
+                ${SRCDIR}/entities/models/Pyramid.h
+                ${SRCDIR}/entities/models/RegularPyramid.h
+                ${SRCDIR}/entities/models/CircularFrustum.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
