@@ -133,7 +133,6 @@ int main()
     //materials
     Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
-    Material tree2(ColorInt(255, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     CubeModel cm3(30.0f, 0, 1, 2);
@@ -238,6 +237,10 @@ int main()
     float con_width = pad_width/2;
     float con_depth = pad_depth/2;
 
+    float con_length = radius_of_paddles;
+    float con_width = 0.01f;
+    float con_depth = 0.01f;
+
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
     Absorber parent(ctree, tree, woodTexture);
@@ -266,8 +269,24 @@ int main()
         i++;
     }
 
+    for (auto el : vec_connectors)
+    {
+        el->setPosition({radius_of_paddles * 0.5 * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * 0.5 * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
+        el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
+        s.addAbsorber(*el);
+        i++;
+    }
+
+    float base_pad_connector_length = 0.1f;
+    CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
+    Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
+    s.addAbsorber(base_pad_con_abs);
+    base_pad_con_abs.setPosition(foundation_root.getPosition());
+    base_pad_con_abs.setPosition(foundation_root.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length/2}));
+    foundation_root.addChild(&base_pad_con_abs);
+
     parent.setPosition(foundation_root.getPosition());
-    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, 0.1f}));
+    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
     foundation_root.addChild(&parent);
 
     for (auto el : vec_connectors)
