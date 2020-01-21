@@ -212,8 +212,8 @@ int main()
     float pad_depth = 0.01f;
 
     float con_length = radius_of_paddles;
-    float con_width = 0.01f;
-    float con_depth = 0.01f;
+    float con_width = pad_width/2;
+    float con_depth = pad_depth/2;
 
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
