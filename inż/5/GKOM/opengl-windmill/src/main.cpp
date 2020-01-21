@@ -171,12 +171,12 @@ int main()
     foundation_root.setPosition({0.0f, root_h, 0.0f});
     s.addAbsorber(foundation_root);
 
-    double angle_degrees = 12;
+    double angle_degrees = 6;
     double angle = angle_degrees * 3.141592 / 180;
 
     float plank_length = (root_h) / cos(angle);
-    float plank_width = 0.04f;
-    float plank_depth = 0.04f;
+    float plank_width = 0.015f;
+    float plank_depth = 0.015f;
 
     CuboidModel leg(plank_width, plank_length, plank_depth, 0, 1, 2);
     Absorber legs(leg, tree, woodTexture);
@@ -184,15 +184,16 @@ int main()
     int no_of_legs = 4;
     Absorber *obj2[4];
     glm::vec3 leg_rotations[] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}};
-    glm::vec3 leg_positions[] = {{-(plank_length)*sin(angle) / 2, root_h / 2, 0.0f},
-                                 {0.0f, root_h / 2, -(plank_length)*sin(angle) / 2},
-                                 {(plank_length)*sin(angle) / 2, root_h / 2, 0.0f},
-                                 {0.0f, root_h / 2, (plank_length)*sin(angle) / 2}};
+    glm::vec3 leg_positions[] = {{-(plank_length)*sin(angle) / 2, root_h / 2, (plank_length)*sin(angle) / 2},
+                                 {-(plank_length)*sin(angle) / 2, root_h / 2, -(plank_length)*sin(angle) / 2},
+                                 {(plank_length)*sin(angle) / 2, root_h / 2, -(plank_length)*sin(angle) / 2},
+                                 {(plank_length)*sin(angle) / 2, root_h / 2, (plank_length)*sin(angle) / 2}};
     for (int i = 0; i < no_of_legs; i++)
     {
         obj2[i] = new Absorber(leg, tree, woodTexture);
         legs_v.push_back(obj2[i]);
         obj2[i]->rotate(angle, leg_rotations[i]);
+        obj2[i]->rotate(0.785, glm::vec3(0.0f, 1.0f, 0.0f));
         s.addAbsorber(*obj2[i]);
         obj2[i]->setPosition({leg_positions[i]});
         foundation_root.addChild(obj2[i]);
@@ -208,7 +209,7 @@ int main()
     float radius_of_paddles = 0.15f;
     float pad_length = 0.15f;
     float pad_width = 0.03f;
-    float pad_depth = 0.02f;
+    float pad_depth = 0.01f;
 
     float con_length = radius_of_paddles;
     float con_width = 0.01f;
