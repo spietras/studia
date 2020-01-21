@@ -60,7 +60,9 @@ add_executable( ${TARGET}
                 ${SRCDIR}/entities/models/RegularPyramid.h
                 ${SRCDIR}/entities/models/CircularFrustum.h
                 ${SRCDIR}/entities/models/Cylinder.h
-                ${SRCDIR}/entities/models/Cone.h)
+                ${SRCDIR}/entities/models/Cone.h
+                ${SRCDIR}/entities/models/Tetrahedron.h
+                ${SRCDIR}/entities/models/RegularTetrahedron.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a
