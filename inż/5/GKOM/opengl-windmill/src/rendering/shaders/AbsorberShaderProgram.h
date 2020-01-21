@@ -30,8 +30,6 @@ public:
 
     void setMode(const Absorber &absorber) const;
 
-    void setTextureMode(const Absorber &absorber) const;
-
     void setViewPosition(const glm::vec3 &viewPosition) const;
 
     void setLightsNumber(int lightsNumber) const;

@@ -5,10 +5,16 @@
 
 class CuboidModel : public BaseObjectModel
 {
-    static std::vector<Vertex> calculateVertices(float width, float height, float depth);
+    static std::vector<Vertex> calculateVertices(float width, float height, float depth, bool scaleTextures);
 
 public:
-    CuboidModel(float width, float height, float depth, int positionLocation, int normalLocation, int textureLocation);
+    CuboidModel(float width,
+                float height,
+                float depth,
+                int positionLocation,
+                int normalLocation,
+                int textureLocation,
+                bool scaleTextures = false);
 };
 
 #endif //WIATRAK_CUBOIDMODEL_H

@@ -9,9 +9,6 @@ uniform mat4 view;  //view matrix
 uniform mat4 projection;  //projection matrix
 uniform mat4 lightSpaceMatrix;
 
-uniform int textureMode;
-
-
 out vec3 fragPos; // fragment position in world space
 out vec3 normal; // normal in world space
 out vec4 fragPosLightSpace; // fragment position in light space
@@ -22,18 +19,14 @@ void main()
 {
     // multiplying by model matrix to get into world space
     fragPos = vec3(model * vec4(aPos, 1.0));
-    normal = vec3(model * vec4(aNorm, 1.0));
+
+     //fix normals after scaling
+    normal = mat3(transpose(inverse(model))) * aNorm;
+
     fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
 
     // screen space position
     gl_Position = projection * view * vec4(fragPos, 1.0);
 
-    if(textureMode == 1) 
-    {
-        texCoords = aTexCoords;
-    }
-    else
-    {
-        texCoords = aPos.xy;
-    }
+    texCoords = aTexCoords;
 }

@@ -67,7 +67,6 @@ Renderer::drawSceneAbsorbers(const Scene &scene, const Camera &camera, const Abs
             glActiveTexture(GL_TEXTURE0 + absorber->getTexture().getTextureUnit());
             glBindTexture(GL_TEXTURE_2D, absorber->getTexture().getTextureID());
             shaderProgram.setUniformInt("material.diffuse", absorber->getTexture().getTextureUnit());
-            shaderProgram.setTextureMode(*absorber);
         }
 
         drawEntity(*absorber);

@@ -63,7 +63,7 @@ vec3 getDiffuseMaterial(Material material)
     }
 }
 
-float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
+float getShadow(vec4 fragPosLightSpace, vec3 norm, vec3 lightPosFromFrag)
 {
     // perform perspective divide (does nothing for orthogonal)
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -78,11 +78,11 @@ float getShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
-    float BIAS_MIN = 0.01;
-    float BIAS_MAX = 0.06;
+    float BIAS_MIN = 0.005;
+    float BIAS_MAX = 0.05;
 
     // bias to remove shadow acne
-    float bias = max(BIAS_MAX * (1.0 - dot(normal, lightDir)), BIAS_MIN);
+    float bias = max(BIAS_MAX * (1.0 - dot(norm, lightPosFromFrag)), BIAS_MIN);
 
     float shadow = 0.0;
     vec2 texelSize = 0.5 / textureSize(shadowMap, 0); //get size of shadow map texel at lod 0
@@ -108,33 +108,32 @@ vec3 getAmbient(Material material, vec3 lightColor, float ambientIntensity)
     return vec3(ambientIntensity) * lightColor * getDiffuseMaterial(material);
 }
 
-vec3 getDiffuse(Material material, vec3 lightColor, float diffuseIntensity, vec3 norm, vec3 lightDir)
+vec3 getDiffuse(Material material, vec3 lightColor, float diffuseIntensity, vec3 norm, vec3 lightPosFromFrag)
 {
-    float diff = max(dot(norm, lightDir), 0.0); // cosine of angle between norm and lightDir
+    float diff = max(dot(norm, lightPosFromFrag), 0.0); // cosine of angle between norm and lightDir
 
     return vec3(diffuseIntensity) * lightColor * diff * getDiffuseMaterial(material);
 }
 
-vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, vec3 norm, vec3 lightDir, vec3 viewDir)
+vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, vec3 norm, vec3 lightPosFromFrag, vec3 viewDir)
 {
-    vec3 reflectDir = reflect(-lightDir, norm); // reflection direction
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess); // cosine of angle between viewDir and reflectDir to shininess power
+    vec3 halfwayDir = normalize(lightPosFromFrag + viewDir); // Blinn-Phong halfway vector
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
 
     return vec3(specularIntensity) * lightColor * spec * material.specularColor;
 }
 
 vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm, vec3 viewDir, vec4 fragPosLightSpace)
 {
-    vec3 lightDir = normalize(-light.direction);
+    vec3 lightPosFromFrag = normalize(-light.direction);
 
     vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
-    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
-    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
-
+    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightPosFromFrag);
+    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
 
     if(shadowsOn)
     {
-        float shadow = getShadow(fragPosLightSpace, norm, lightDir);
+        float shadow = getShadow(fragPosLightSpace, norm, lightPosFromFrag);
 
         return (ambient + (1.0 - shadow) * (diffuse + specular)); //leave ambient alone
     }
@@ -144,11 +143,11 @@ vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm
 
 vec3 getPointLighting(PointLight light, Material material, vec3 fragPos, vec3 norm, vec3 viewDir)
 {
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightPosFromFrag = normalize(light.position - fragPos);
 
     vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
-    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightDir);
-    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightDir, viewDir);
+    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightPosFromFrag);
+    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
 
     // attenuation - light influence decreases with distance
     float distance = length(light.position - fragPos);
