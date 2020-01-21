@@ -73,3 +73,9 @@ void Window::setKeyCallback(void (*f)(GLFWwindow *, int, int, int, int)) const
 {
     glfwSetKeyCallback(this->handle, *f);
 }
+
+void Window::setCursorCallback(void (*f)(GLFWwindow *, double, double))
+{
+    glfwSetCursorPosCallback(this->handle, *f);
+    glfwSetCursorPos(this->handle, 0.0f, 0.0f);
+}

@@ -7,6 +7,25 @@ Camera::Camera() : position (0.0f, 0.5f, 3.0f ), viewDirection (0.0f, 0.0f, -1.0
 
 }
 
+void Camera::updateMouse(const glm::vec2 &newMousePosition)
+{
+    glm::vec2 mouseDelta = newMousePosition - oldMousePosition;
+
+    if(glm::length(mouseDelta)>50.0f)
+    {
+        oldMousePosition = newMousePosition;
+        return;
+    }
+
+    this->viewDirection = glm::mat3(glm::rotate(-mouseDelta.x * 0.005f, UP)) * this->viewDirection;
+
+    glm::vec3 rotationAxis = glm::cross(this->viewDirection, this->UP);
+    this->viewDirection = glm::mat3(glm::rotate(-mouseDelta.y * 0.005f, rotationAxis)) * this->viewDirection;
+
+    this->oldMousePosition = newMousePosition;
+}
+
+
 glm::mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(this->position, this->position + this->viewDirection, this->UP);
@@ -36,4 +55,9 @@ void Camera::setPosition(const glm::vec3 &value)
 glm::mat4 Camera::getProjectionMatrix() const
 {
     return this->projection;
+}
+
+glm::vec3 Camera::getUP() const
+{
+    return this->UP;
 }
