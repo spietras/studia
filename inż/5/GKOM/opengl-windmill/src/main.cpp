@@ -240,7 +240,9 @@ int main()
 
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
-    Absorber parent(ctree, tree, woodTexture);
+    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);
+    Absorber parent(cylinder, tree, woodTexture);
+    parent.rotate(3.14/2, glm::vec3(1.0f, 0.0f, 0.0f));
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
     int no_paddles = 15;
@@ -293,6 +295,29 @@ int main()
     parent.addChild(&light4);
 
     // PADDLES ^^^^
+
+    // TAIL VVV
+
+    float cm_tail_length = 0.17f;
+    CuboidModel cm_tail(cm_tail_length, 0.10f, 0.005f, 0, 1, 2);
+    Absorber tail(cm_tail, tree, woodTexture);
+    s.addAbsorber(tail);
+
+    float con_tail_length = 0.2f;
+    CuboidModel cm_tb_con(con_tail_length, 0.01f, 0.005f, 0, 1, 2);
+    Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
+    s.addAbsorber(tail_base_connector);
+
+    tail_base_connector.translate({-(cm_tail_length+con_tail_length)/2, 0.0f, 0.0f});
+    tail_base_connector.addChild(&tail);
+    tail_base_connector.setPosition(foundation_root.getPosition()-glm::vec3(-con_tail_length/2, 0.0f, 0.0f));
+
+    foundation_root.addChild(&tail_base_connector);
+
+    // TAIL ^^^
+
+    tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
+
     
     while (!w.shouldClose())
     {
