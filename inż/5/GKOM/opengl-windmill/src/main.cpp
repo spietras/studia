@@ -217,9 +217,6 @@ int main()
         foundation_root.addChild(obj2[i]);
     }
 
-        foundation_root.setPosition({root_lr, 0.5f, root_fb});
-
-
     // FOUNDATION ^^^
 
     // PADDLES VVVVV
@@ -317,7 +314,30 @@ int main()
 
     // TAIL ^^^
 
-   // tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
+    // BARRELS VVV
+    float barrel_h = root_h/7;
+    float barrel_r = 0.025;
+    Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
+
+    Absorber barrel1(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel1);
+    barrel1.setPosition({-((plank_length)*sin(angle)*1.4+barrel_r*2), barrel_h/2, 0.0f});
+    foundation_root.addChild(&barrel1);
+
+    Absorber barrel2(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel2);
+    barrel2.setPosition({(plank_length)*sin(angle)*1.4+barrel_r*2, barrel_h/2, (plank_length)*sin(angle)*1.6+barrel_r*2});
+    foundation_root.addChild(&barrel2);
+
+    Absorber barrel3(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel3);
+    barrel3.rotate(3.14/2, glm::vec3(1.0f, 0.0f, 0.0f));
+    barrel3.setPosition({-((plank_length)*sin(angle)*1.3+barrel_r*2), barrel_h/2, (plank_length)*sin(angle)*2+barrel_r*2});
+    foundation_root.addChild(&barrel3);
+
+    // BARRELS ^^^
+
+   //tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
 
     
     while (!w.shouldClose())
