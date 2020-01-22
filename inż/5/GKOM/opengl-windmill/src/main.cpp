@@ -329,6 +329,7 @@ int main()
     s.addAbsorber(barrel3);
     barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
+    barrel3.translate({0.0f, -barrel_h/2+barrel_r, 0.0f});
     foundation_root.addChild(&barrel3);
 
     // BARRELS ^^^
@@ -360,9 +361,9 @@ int main()
         if (currentFrame - initial_time > fall_time)
         {
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
-                parent.translate({0.0f, -0.001f, 0.0f});
+                parent.translate({0.0f, -0.75*deltaTime, 0.0f});
             else
-                parent.translate({-0.001f*paddles_direction, 0.0f, 0.0f});
+                parent.translate({-0.6*deltaTime*paddles_direction, 0.0f, 0.0f});
         }
 
         //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
