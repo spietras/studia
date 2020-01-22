@@ -20,43 +20,43 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 
-Camera* cameraPtr;      //in order to change camera view we need access
+Camera *cameraPtr; //in order to change camera view we need access
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float speed = 0.25f;
     if (key == GLFW_KEY_UP && action == GLFW_REPEAT) //move camera forward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * speed));
     }
     else if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * speed));
     }
     if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() - cameraPtr->getViewDirection() * speed));
     }
     else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() - cameraPtr->getViewDirection() * speed));
     }
     if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) //move camera to the right
     {
         //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() + glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
     else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
     {
-        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() + glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
     if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
     {
-        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
     else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
     {
-        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
@@ -68,7 +68,6 @@ void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
     glm::vec2 newMousePosition = glm::vec2(xPosition, yPosition);
     cameraPtr->updateMouse(newMousePosition);
 }
-
 
 int main()
 {
@@ -97,7 +96,7 @@ int main()
     w.makeContextCurrent();
     w.setKeyCallback(keyCallback);
     w.setCursorCallback(cursorCallback);
-    
+
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
@@ -120,7 +119,6 @@ int main()
     Scene s;
     Camera c;
     cameraPtr = &c;
-    
 
     /*  models  */
     CubeModel cm(0.25f, 0, 1, 2);
@@ -152,7 +150,6 @@ int main()
     PointLight light2(cm2, pla2);
     DirectionalLight dl(dla);
 
-
     light.setPosition({-0.5f, 0.0f, -1.0f});
     light2.setPosition({0.5f, 0.0f, -1.0f});
     light3.setPosition({0.0f, 0.0f, 0.6f});
@@ -183,7 +180,6 @@ int main()
     float root_h = 0.7f;
     float root_lr = 0.5f;
     float root_fb = 0.0f;
-
 
     Absorber foundation_root(ctree, tree, woodTexture);
     foundation_root.setPosition({0.0f, root_h, 0.0f});
@@ -227,14 +223,14 @@ int main()
     float pad_depth = 0.01f;
 
     float con_length = radius_of_paddles;
-    float con_width = pad_width/2;
-    float con_depth = pad_depth/2;
+    float con_width = pad_width / 2;
+    float con_depth = pad_depth / 2;
 
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
     Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);
     Absorber parent(cylinder, tree, woodTexture);
-    parent.rotate(3.14/2, glm::vec3(1.0f, 0.0f, 0.0f));
+    parent.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
     int no_paddles = 15;
@@ -273,11 +269,11 @@ int main()
     Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
     s.addAbsorber(base_pad_con_abs);
     base_pad_con_abs.setPosition(foundation_root.getPosition());
-    base_pad_con_abs.setPosition(foundation_root.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length/2}));
+    base_pad_con_abs.setPosition(foundation_root.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length / 2}));
     foundation_root.addChild(&base_pad_con_abs);
 
     parent.setPosition(foundation_root.getPosition());
-    parent.setPosition(parent.getPosition()+(glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
+    parent.setPosition(parent.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
     foundation_root.addChild(&parent);
 
     //light
@@ -300,62 +296,73 @@ int main()
     Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
     s.addAbsorber(tail_base_connector);
 
-    CuboidModel cm_tail_end(0.04f, 0.04f, 0.04f, 0, 1, 2);
+    CuboidModel cm_tail_end(0.01f, 0.01f, 0.01f, 0, 1, 2);
     Absorber tail_end(cm_tail_end, tree, woodTexture);
     s.addAbsorber(tail_end);
 
-    tail_end.translate({-(con_tail_length)/2, 0.0f, 0.0f});
+    tail_end.translate({-(con_tail_length) / 2, 0.0f, 0.0f});
     tail_end.addChild(&tail_base_connector);
-    tail_end.setPosition(tail_end.getPosition()+glm::vec3(-(cm_tail_length+con_tail_length)/2, 0.0f, 0.0f));
+    tail_end.setPosition(tail_end.getPosition() + glm::vec3(-(cm_tail_length + con_tail_length) / 2, 0.0f, 0.0f));
     tail_base_connector.addChild(&tail);
-    tail_end.setPosition(foundation_root.getPosition()-glm::vec3(0.0f, 0.0f, 0.0f));
+    tail_end.setPosition(foundation_root.getPosition() - glm::vec3(0.0f, 0.0f, 0.0f));
 
     foundation_root.addChild(&tail_end);
 
     // TAIL ^^^
 
     // BARRELS VVV
-    float barrel_h = root_h/7;
+    float barrel_h = root_h / 7;
     float barrel_r = 0.025;
     Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
 
     Absorber barrel1(barrel_c, tree, woodTexture);
     s.addAbsorber(barrel1);
-    barrel1.setPosition({-((plank_length)*sin(angle)*1.4+barrel_r*2), barrel_h/2, 0.0f});
+    barrel1.setPosition({-((plank_length)*sin(angle) * 1.4 + barrel_r * 2), barrel_h / 2, 0.0f});
     foundation_root.addChild(&barrel1);
 
     Absorber barrel2(barrel_c, tree, woodTexture);
     s.addAbsorber(barrel2);
-    barrel2.setPosition({(plank_length)*sin(angle)*1.4+barrel_r*2, barrel_h/2, (plank_length)*sin(angle)*1.6+barrel_r*2});
+    barrel2.setPosition({(plank_length)*sin(angle) * 1.4 + barrel_r * 2, barrel_h / 2, (plank_length)*sin(angle) * 1.6 + barrel_r * 2});
     foundation_root.addChild(&barrel2);
 
     Absorber barrel3(barrel_c, tree, woodTexture);
     s.addAbsorber(barrel3);
-    barrel3.rotate(3.14/2, glm::vec3(1.0f, 0.0f, 0.0f));
-    barrel3.setPosition({-((plank_length)*sin(angle)*1.3+barrel_r*2), barrel_h/2, (plank_length)*sin(angle)*2+barrel_r*2});
+    barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+    barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
     foundation_root.addChild(&barrel3);
 
     // BARRELS ^^^
 
-    tail_base_connector.rotateRelative(foundation_root.getPosition(), 20, glm::vec3(0.0f, 0.0f, 1.0f));
-
+    tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
+    tail_end.rotateRelative(foundation_root.getPosition(), 3.14/3, glm::vec3(0.0f, 1.0f, 0.0f));
     foundation_root.setPosition({1.0f, root_h, 0.0f});
-    foundation_root.rotate(3.14f / 2, {0.0f, 1.0f, 0.0f});
-    
+
+    int tail_direction = 1;
+    float limit = 1.2;
+    float time_counter = limit;
+
     while (!w.shouldClose())
     {
 
         // DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
         // DirectionalLight dl(dla);
         // s.setDirectionalLight(dl);
-        
+
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
+        time_counter -= deltaTime;
+        if(time_counter < 0)
+        {
+            time_counter = limit;
+            tail_direction *= -1;
+        }
+        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction*rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         parent.rotateLocal(rotationSpeed * deltaTime * 0.1, {0.0f, 1.0f, 0.0f});
 
-        foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
+        //foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
 
         //apply different transformations to entities
         skybox.setPosition({0.0f, 1.0f, 1.0f});
@@ -373,7 +380,7 @@ int main()
         /*  rendering  */
 
         //c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
-    
+
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
     return 0;
