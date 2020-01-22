@@ -175,7 +175,7 @@ int main()
     float deltaTime;
     float lastFrame = 0.0f;
 
-    float rotationSpeed = 2.0f;
+    float rotationSpeed = 20.0f;
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
@@ -337,8 +337,10 @@ int main()
 
     // BARRELS ^^^
 
-   //tail_base_connector.rotate(20, glm::vec3(0.0f, 0.0f, 1.0f));
+    tail_base_connector.rotateRelative(foundation_root.getPosition(), 20, glm::vec3(0.0f, 0.0f, 1.0f));
 
+    foundation_root.setPosition({1.0f, root_h, 0.0f});
+    foundation_root.rotate(3.14f / 2, {0.0f, 1.0f, 0.0f});
     
     while (!w.shouldClose())
     {
@@ -351,8 +353,9 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        foundation_root.setPosition({1.0f, root_h, 0.0f});
-        parent.rotate(rotationSpeed * deltaTime * 0.1, {0.0f, 0.0f, 1.0f});
+        parent.rotateLocal(rotationSpeed * deltaTime * 0.1, {0.0f, 1.0f, 0.0f});
+
+        foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
 
         //apply different transformations to entities
         skybox.setPosition({0.0f, 1.0f, 1.0f});
