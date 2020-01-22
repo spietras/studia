@@ -334,12 +334,16 @@ int main()
     // BARRELS ^^^
 
     tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
-    tail_end.rotateRelative(foundation_root.getPosition(), 3.14/3, glm::vec3(0.0f, 1.0f, 0.0f));
+    tail_end.rotateRelative(foundation_root.getPosition(), 3.14 / 3, glm::vec3(0.0f, 1.0f, 0.0f));
     foundation_root.setPosition({1.0f, root_h, 0.0f});
 
     int tail_direction = 1;
     float limit = 1.2;
     float time_counter = limit;
+
+    float fall_time = 4;
+
+    float initial_time = glfwGetTime();
 
     while (!w.shouldClose())
     {
@@ -351,16 +355,25 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        float paddles_direction = 1; // controls the directon of moving paddles and of the fallen fan
+
+        if (currentFrame - initial_time > fall_time)
+        {
+            if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
+                parent.translate({0.0f, -0.001f, 0.0f});
+            else
+                parent.translate({-0.001f*paddles_direction, 0.0f, 0.0f});
+        }
 
         //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
         time_counter -= deltaTime;
-        if(time_counter < 0)
+        if (time_counter < 0)
         {
             time_counter = limit;
             tail_direction *= -1;
         }
-        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction*rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
-        parent.rotateLocal(rotationSpeed * deltaTime * 0.1, {0.0f, 1.0f, 0.0f});
+        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
+        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
 
         //foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
 

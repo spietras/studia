@@ -91,6 +91,8 @@ public:
     void scaleRelative(const glm::vec3 &pivot, float factor);
 
     void addChild(Entity* object);
+
+    void removeChild(Entity *object);
     };
 
 

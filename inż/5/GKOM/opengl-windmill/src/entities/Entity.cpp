@@ -133,6 +133,12 @@ void Entity::addChild(Entity *obj)
     children.push_back(obj);
 }
 
+void Entity::removeChild(Entity *obj)
+{
+    children.erase(std::remove(children.begin(), children.end(), obj), children.end());
+}
+
+
 void Entity::setRotationRelative(const glm::vec3 &pivot, float radianAngle, const glm::vec3 &axis)
 {
     setRotationRelative(pivot, glm::quat(axis * radianAngle));
