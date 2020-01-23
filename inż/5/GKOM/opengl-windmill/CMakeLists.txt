@@ -54,11 +54,16 @@ add_executable( ${TARGET}
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.cpp
                 ${SRCDIR}/rendering/shaders/SkyboxShaderProgram.h
                 ${SRCDIR}/entities/models/PlaneModel.h
-                ${SRCDIR}/entities/models/RectangleFrustum.h
+                ${SRCDIR}/entities/models/RectangularFrustum.h
                 ${SRCDIR}/utils/GeometryHelper.h
                 ${SRCDIR}/entities/models/Pyramid.h
                 ${SRCDIR}/entities/models/RegularPyramid.h
-                ${SRCDIR}/entities/models/CircularFrustum.h)
+                ${SRCDIR}/entities/models/CircularFrustum.h
+                ${SRCDIR}/entities/models/Cylinder.h
+                ${SRCDIR}/entities/models/Cone.h
+                ${SRCDIR}/entities/models/Tetrahedron.h
+                ${SRCDIR}/entities/models/RegularTetrahedron.h
+                ${SRCDIR}/entities/models/Sphere.h)
 
 target_link_libraries(  ${TARGET}
                         ${CMAKE_SOURCE_DIR}/${LIBDIR}/libSOIL.a

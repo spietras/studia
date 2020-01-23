@@ -2,9 +2,9 @@
 #define WIATRAK_PYRAMID_H
 
 
-#include "RectangleFrustum.h"
+#include "RectangularFrustum.h"
 
-class Pyramid : public RectangleFrustum
+class Pyramid : public RectangularFrustum
 {
 public:
     Pyramid(float width,
@@ -13,7 +13,7 @@ public:
             int positionLocation,
             int normalLocation,
             int textureLocation,
-            bool scaleTextures = true) : RectangleFrustum(width,
+            bool scaleTextures = true) : RectangularFrustum(width,
                                                           depth,
                                                           0.0f,
                                                           0.0f,

@@ -13,10 +13,15 @@
 #include "entities/models/Pyramid.h"
 #include "entities/models/RegularPyramid.h"
 #include "entities/models/CircularFrustum.h"
+#include "entities/models/Cylinder.h"
+#include "entities/models/Cone.h"
+#include "entities/models/Tetrahedron.h"
+#include "entities/models/RegularTetrahedron.h"
+#include "entities/models/Sphere.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
-Camera* cameraPtr;      //in order to change camera view we need access
+Camera *cameraPtr; //in order to change camera view we need access
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
@@ -78,7 +83,7 @@ int main()
     w.makeContextCurrent();
     w.setKeyCallback(keyCallback);
     w.setCursorCallback(cursorCallback);
-    
+
     Renderer r(BG_COLOR);
     AbsorberShaderProgram asp(absorberVertexShaderPath, absorberFragmentShaderPath);
     LightShaderProgram lsp(lightVertexShaderPath, lightFragmentShaderPath);
@@ -98,97 +103,272 @@ int main()
     Texture groundTexture("res/textures/sand.bmp");
 
     /*  stuff  */
-
     Scene s;
     Camera c;
     cameraPtr = &c;
 
     /*  models  */
-
     CubeModel cm(0.25f, 0, 1, 2);
     CubeModel cm2(0.05f, 0, 1, 2);
-    CubeModel ctree(0.15f, 0, 1, 2);
+    CubeModel ctree(0.05f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    CircularFrustum tm(2.0f, 1.0f, 1.0f, 10, 0, 1, 2);
+    RegularTetrahedron tm(2.0f, 0, 1, 2);
+    CubeModel small_light(0.01f, 0, 1, 2);
 
-    /*  materials  */
-
-    Material m1(ColorInt(48, 98, 114), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
-    Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 8.0f);
+    //materials
+    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
+    Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
-    /*  absorbers  */
-
-    Absorber cube(cm, m1);
-    Absorber atree(ctree, tree);
-    Absorber cube2(cm, m1, woodTexture);
-    Absorber cube3(cm, m1);
-    Absorber plane(planeM, m1, groundTexture);
-    Absorber test(tm, m1, woodTexture);
-
-    atree.setPosition({0.0f, 0.0f, -1.5f});
-    cube3.scale(10.0f);
-    cube3.setPosition({0.0f, -2.0f, 0.0f});
-    plane.setPosition({0.0f, -1.0f, 0.0f});
-    test.setPosition({5.0f, 0.0f, 0.0f});
-
     /*  skybox  */
-
     Skybox skybox(cm3, msky, skyboxTexture);
-
     skybox.setPosition({0.0f, 1.0f, 1.0f});
 
     /*  light attributes  */
-
     PointLightAttributes pla(ColorInt(255, 0, 0), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
     PointLightAttributes pla2(ColorInt(0, 0, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    DirectionalLightAttributes dla({1.0f, -2.0f, 0.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
+    PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    DirectionalLightAttributes dla({1.0f, -2.0f, 0.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
 
-    /*  lights  */
-
+    /* light */
+    PointLight light3(cm2, pla3);
     PointLight light(cm2, pla);
     PointLight light2(cm2, pla2);
     DirectionalLight dl(dla);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
     light2.setPosition({0.5f, 0.0f, -1.0f});
+    light3.setPosition({0.0f, 0.0f, 0.6f});
 
-    /*  adding to scene  */
+    /* absorbers */
 
+    Absorber plane(planeM, m2, groundTexture);
+    plane.setPosition({0.0f, 0.0f, 0.0f});
+
+    /* adding to scene */
+
+    s.addLight(light3);
     s.addAbsorber(plane);
-    s.addAbsorber(cube);
-    s.addAbsorber(atree);
-    s.addAbsorber(cube2);
-    s.addAbsorber(cube3);
-    s.addAbsorber(test);
-
     s.addSkybox(skybox);
     s.addLight(light);
     s.addLight(light2);
     s.setDirectionalLight(dl);
-
     s.turnOnShadows();
-
-    /*  animation params  */
 
     float deltaTime;
     float lastFrame = 0.0f;
 
-    float rotationSpeed = 2.0f;
+    float rotationSpeed = 20.0f;
     float circlingSpeed = 2.0f;
     float scalingSpeed = 5.0f;
 
-    /*  loop  */
+    // FOUNDATION VVV
+    float root_h = 0.8f;
+    float root_lr = 0.5f;
+    float root_fb = 0.0f;
 
+    Absorber foundation_root(ctree, tree, woodTexture);
+    foundation_root.setPosition({0.0f, root_h, 0.0f});
+    s.addAbsorber(foundation_root);
+
+    double angle_degrees = 6;
+    double angle = angle_degrees * 3.141592 / 180;
+
+    float plank_length = (root_h) / cos(angle);
+    float plank_width = 0.015f;
+    float plank_depth = 0.015f;
+
+    CuboidModel leg(plank_width, plank_length, plank_depth, 0, 1, 2);
+    Absorber legs(leg, tree, woodTexture);
+    std::vector<Absorber *> legs_v;
+    int no_of_legs = 4;
+    Absorber *obj2[4];
+    glm::vec3 leg_rotations[] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}};
+    glm::vec3 leg_positions[] = {{-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2},
+                                 {-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
+                                 {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
+                                 {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2}};
+    for (int i = 0; i < no_of_legs; i++)
+    {
+        obj2[i] = new Absorber(leg, tree, woodTexture);
+        legs_v.push_back(obj2[i]);
+        obj2[i]->rotate(angle, leg_rotations[i]);
+        obj2[i]->rotate(0.785, glm::vec3(0.0f, 1.0f, 0.0f));
+        s.addAbsorber(*obj2[i]);
+        obj2[i]->setPosition({leg_positions[i]});
+        foundation_root.addChild(obj2[i]);
+    }
+
+    // FOUNDATION ^^^
+
+    // PADDLES VVVVV
+    int no_paddles = 10;
+
+    float radius_of_paddles = 0.15f;
+    float pad_length = 0.15f;
+    float pad_width = 0.03f;
+    float pad_depth = 0.01f;
+
+    float con_length = radius_of_paddles;
+    float con_width = pad_width / 2;
+    float con_depth = pad_depth / 2;
+
+    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
+    CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
+    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);
+    Absorber parent(cylinder, tree, woodTexture);
+    parent.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+    parent.setPosition({0.0f, 0.0f, -2.0f});
+    s.addAbsorber(parent);
+    std::vector<Absorber *> vec_paddles;
+    std::vector<Absorber *> vec_connectors;
+    Absorber *obj[100];
+    Absorber *con[100];
+    for (int i = 0; i < no_paddles; i++)
+    {
+        obj[i] = new Absorber(child, tree, woodTexture);
+        con[i] = new Absorber(connector, tree, woodTexture);
+        vec_paddles.push_back(obj[i]);
+        vec_connectors.push_back(con[i]);
+        parent.addChild(obj[i]);
+        parent.addChild(con[i]);
+    }
+    double i = 0;
+    for (auto el : vec_paddles)
+    {
+        el->setPosition({radius_of_paddles * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
+        el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
+        s.addAbsorber(*el);
+        i++;
+    }
+
+    for (auto el : vec_connectors)
+    {
+        el->setPosition({radius_of_paddles * 0.5 * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * 0.5 * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
+        el->rotate(2 * 3.1416 * i / double(no_paddles) + 3.14, {0.0f, 0.0f, -1.0f});
+        s.addAbsorber(*el);
+        i++;
+    }
+
+    float base_pad_connector_length = 0.1f;
+    CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
+    Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
+    s.addAbsorber(base_pad_con_abs);
+    base_pad_con_abs.setPosition(foundation_root.getPosition());
+    base_pad_con_abs.setPosition(foundation_root.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length / 2}));
+    foundation_root.addChild(&base_pad_con_abs);
+
+    parent.setPosition(foundation_root.getPosition());
+    parent.setPosition(parent.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
+    foundation_root.addChild(&parent);
+
+    //light
+    PointLight light4(small_light, pla3);
+    s.addLight(light4);
+    light4.setPosition(parent.getPosition());
+    parent.addChild(&light4);
+
+    // PADDLES ^^^^
+
+    // TAIL VVV
+
+    float cm_tail_length = 0.17f;
+    CuboidModel cm_tail(cm_tail_length, 0.10f, 0.005f, 0, 1, 2);
+    Absorber tail(cm_tail, tree, woodTexture);
+    s.addAbsorber(tail);
+
+    float con_tail_length = 0.2f;
+    CuboidModel cm_tb_con(con_tail_length, 0.01f, 0.005f, 0, 1, 2);
+    Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
+    s.addAbsorber(tail_base_connector);
+
+    CuboidModel cm_tail_end(0.01f, 0.01f, 0.01f, 0, 1, 2);
+    Absorber tail_end(cm_tail_end, tree, woodTexture);
+    s.addAbsorber(tail_end);
+
+    tail_end.translate({-(con_tail_length) / 2, 0.0f, 0.0f});
+    tail_end.addChild(&tail_base_connector);
+    tail_end.setPosition(tail_end.getPosition() + glm::vec3(-(cm_tail_length + con_tail_length) / 2, 0.0f, 0.0f));
+    tail_base_connector.addChild(&tail);
+    tail_end.setPosition(foundation_root.getPosition() - glm::vec3(0.0f, 0.0f, 0.0f));
+
+    foundation_root.addChild(&tail_end);
+
+    // TAIL ^^^
+
+    // BARRELS VVV
+    float barrel_h = 0.105;
+    float barrel_r = 0.025;
+    Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
+
+    Absorber barrel1(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel1);
+    barrel1.setPosition({-((plank_length)*sin(angle) * 1.4 + barrel_r * 2), barrel_h / 2, 0.0f});
+    foundation_root.addChild(&barrel1);
+
+    Absorber barrel2(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel2);
+    barrel2.setPosition({(plank_length)*sin(angle) * 1.4 + barrel_r * 2, barrel_h / 2, (plank_length)*sin(angle) * 1.6 + barrel_r * 2});
+    foundation_root.addChild(&barrel2);
+
+    Absorber barrel3(barrel_c, tree, woodTexture);
+    s.addAbsorber(barrel3);
+    barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+    barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
+    barrel3.translate({0.0f, -barrel_h / 2 + barrel_r, 0.0f});
+    foundation_root.addChild(&barrel3);
+
+    // BARRELS ^^^
+
+    tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
+    tail_end.rotateRelative(foundation_root.getPosition(), 3.14 / 3, glm::vec3(0.0f, 1.0f, 0.0f));
+    foundation_root.setPosition({1.0f, root_h, 0.0f});
+
+    int tail_direction = 1;
+    float limit = 1.2;
+    float time_counter = limit;
+
+    float fall_time = 4;
+
+    float initial_time = glfwGetTime();
+    foundation_root.rotate(0.9f, {0.0f, 1.0f, 0.0f});
     while (!w.shouldClose())
     {
+
+        // DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
+        // DirectionalLight dl(dla);
+        // s.setDirectionalLight(dl);
+
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
 
-        /*  animation  */
+        if (currentFrame - initial_time > fall_time)
+        {
+            if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
+                parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
+            else
+                parent.translate(foundation_root.getRotation() * glm::vec3(-0.6 * deltaTime * paddles_direction, 0.0f, 0.0f));
+        }
 
+        //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
+        time_counter -= deltaTime;
+        if (time_counter < 0)
+        {
+            time_counter = limit;
+            tail_direction *= -1;
+        }
+        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
+        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
+
+        //foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
+
+        //apply different transformations to entities
+        skybox.setPosition({0.0f, 1.0f, 1.0f});
+        /*
+        // skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
         cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
         float circleTheta = currentFrame * circlingSpeed;
         cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
@@ -200,8 +380,9 @@ int main()
 
         /*  rendering  */
 
-        w.draw(r, s, dsp, asp, lsp, sbsp, c);
+        //c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
 
+        w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
     return 0;
 }
