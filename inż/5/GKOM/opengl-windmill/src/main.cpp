@@ -200,7 +200,7 @@ int main()
 
     // FOUNDATION VVV
     //height of the windmill
-    float root_h = 1.8f;
+    float root_h = 0.8f;
 
     //creating root
     Absorber foundation_root(ctree, tree, woodTexture);
