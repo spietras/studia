@@ -25,9 +25,9 @@ Camera *cameraPtr; //in order to change camera view we need access
 
 bool drop_fan = 0;
 float rotationSpeed = 20.0f;
-DirectionalLight* sunlight;
-std::vector<PointLight*> groundLights;
-std::vector<PointLight*> windmillLights;
+DirectionalLight *sunlight;
+std::vector<PointLight *> groundLights;
+std::vector<PointLight *> windmillLights;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
@@ -66,28 +66,27 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 
     float lightChangeSpeed = 0.1f;
 
-    if(key == GLFW_KEY_1 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_1 && (action == GLFW_PRESS || action == GLFW_REPEAT))
         sunlight->setIntensity(sunlight->getAttributes().globalIntensity + lightChangeSpeed);
 
-    if(key == GLFW_KEY_2 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_2 && (action == GLFW_PRESS || action == GLFW_REPEAT))
         sunlight->setIntensity(sunlight->getAttributes().globalIntensity - lightChangeSpeed);
 
-    if(key == GLFW_KEY_3 && (action == GLFW_PRESS || action == GLFW_REPEAT))
-        for(auto groundLight : groundLights)
+    if (key == GLFW_KEY_3 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for (auto groundLight : groundLights)
             groundLight->setIntensity(groundLight->getAttributes().globalIntensity + lightChangeSpeed);
 
-    if(key == GLFW_KEY_4 && (action == GLFW_PRESS || action == GLFW_REPEAT))
-        for(auto groundLight : groundLights)
+    if (key == GLFW_KEY_4 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for (auto groundLight : groundLights)
             groundLight->setIntensity(groundLight->getAttributes().globalIntensity - lightChangeSpeed);
 
-    if(key == GLFW_KEY_5 && (action == GLFW_PRESS || action == GLFW_REPEAT))
-        for(auto windmillLight : windmillLights)
+    if (key == GLFW_KEY_5 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for (auto windmillLight : windmillLights)
             windmillLight->setIntensity(windmillLight->getAttributes().globalIntensity + lightChangeSpeed);
 
-    if(key == GLFW_KEY_6 && (action == GLFW_PRESS || action == GLFW_REPEAT))
-        for(auto windmillLight : windmillLights)
+    if (key == GLFW_KEY_6 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for (auto windmillLight : windmillLights)
             windmillLight->setIntensity(windmillLight->getAttributes().globalIntensity - lightChangeSpeed);
-
 }
 
 void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
@@ -131,13 +130,13 @@ int main()
     SkyboxShaderProgram sbsp(skyboxVertexShaderPath, skyboxFragmentShaderPath);
 
     /*  textures  */
-
-    Texture skyboxTexture({"res/textures/skybox/ely_nevada/nevada_ft.tga",
-                           "res/textures/skybox/ely_nevada/nevada_bk.tga",
-                           "res/textures/skybox/ely_nevada/nevada_up.tga",
-                           "res/textures/skybox/ely_nevada/nevada_dn.tga",
-                           "res/textures/skybox/ely_nevada/nevada_rt.tga",
-                           "res/textures/skybox/ely_nevada/nevada_lf.tga"});
+    std::string skyboxTexturePathPrefix = "res/textures/skybox/hw_nightsky/nightsky";
+    Texture skyboxTexture({skyboxTexturePathPrefix + "_ft.tga",
+                           skyboxTexturePathPrefix + "_bk.tga",
+                           skyboxTexturePathPrefix + "_up.tga",
+                           skyboxTexturePathPrefix + "_dn.tga",
+                           skyboxTexturePathPrefix + "_rt.tga",
+                           skyboxTexturePathPrefix + "_lf.tga"});
 
     Texture woodTexture("res/textures/wood.bmp");
     Texture groundTexture("res/textures/sand.bmp");
@@ -256,9 +255,9 @@ int main()
     float con_width = pad_width / 2;
     float con_depth = pad_depth / 2;
 
-    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2); //paddle
+    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);     //paddle
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2); //connector
-    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20); //the center
+    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);                  //the center
 
     //creating the center
     Absorber parent(cylinder, tree, woodTexture);
@@ -327,24 +326,24 @@ int main()
     // PADDLES ^^^^
 
     // TAIL VVV
-        //the wide tail
+    //the wide tail
     float cm_tail_length = 0.17f;
     CuboidModel cm_tail(cm_tail_length, 0.10f, 0.005f, 0, 1, 2);
     Absorber tail(cm_tail, tree, woodTexture);
     s.addAbsorber(tail);
 
-        //the thin connector appended to tail
+    //the thin connector appended to tail
     float con_tail_length = 0.2f;
     CuboidModel cm_tb_con(con_tail_length, 0.01f, 0.005f, 0, 1, 2);
     Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
     s.addAbsorber(tail_base_connector);
 
-        //the other end of the connector
+    //the other end of the connector
     CuboidModel cm_tail_end(0.01f, 0.01f, 0.01f, 0, 1, 2);
     Absorber tail_end(cm_tail_end, tree, woodTexture);
     s.addAbsorber(tail_end);
 
-        //making relations between the objects
+    //making relations between the objects
     tail_end.translate({-(con_tail_length) / 2, 0.0f, 0.0f});
     tail_end.addChild(&tail_base_connector);
     tail_end.setPosition(tail_end.getPosition() + glm::vec3(-(cm_tail_length + con_tail_length) / 2, 0.0f, 0.0f));
@@ -400,21 +399,21 @@ int main()
         lastFrame = currentFrame;
 
         float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
- 
+
         //parameters for realistic fall physics
-        float fall_speed = 0.0; 
+        float fall_speed = 0.0;
         float fall_acceleration = 1.2;
 
         if (drop_fan)
         {
-            fall_speed += deltaTime*fall_acceleration; //acceleration during fall
+            fall_speed += deltaTime * fall_acceleration; //acceleration during fall
 
             //fall animation
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
                 parent.translate({0.0f, -fall_speed, 0.0f});
 
             //movement sideways during and after fall
-            parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles+pad_length/2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
+            parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles + pad_length / 2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
         }
 
         //rotating tail
@@ -426,7 +425,7 @@ int main()
         }
         tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         //rotating fans
-        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f}); 
+        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
 
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
