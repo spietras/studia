@@ -23,6 +23,8 @@
 
 Camera *cameraPtr; //in order to change camera view we need access
 
+bool drop_fan = 0;
+
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float speed = 0.25f;
@@ -48,6 +50,9 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
         glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) //close window
+        drop_fan = 1;
 }
 
 void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
@@ -329,23 +334,16 @@ int main()
     float limit = 1.2;
     float time_counter = limit;
 
-    float fall_time = 4;
-
-    float initial_time = glfwGetTime();
-    foundation_root.rotate(0.9f, {0.0f, 1.0f, 0.0f});
+    foundation_root.rotate(0.1f, {0.0f, 1.0f, 0.0f});
     while (!w.shouldClose())
     {
-
-        // DirectionalLightAttributes dla({0.0f, -1.0f, 1.0f}, ColorInt(255, 255, 255), 0.2f, 0.4f, 0.5f);
-        // DirectionalLight dl(dla);
-        // s.setDirectionalLight(dl);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
 
-        if (currentFrame - initial_time > fall_time)
+        if (drop_fan)
         {
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
                 parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
@@ -362,26 +360,7 @@ int main()
         }
         tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
-
-        //foundation_root.rotate(deltaTime, {0.0f, 1.0f, 0.0f});
-
-        //apply different transformations to entities
-        skybox.setPosition({0.0f, 1.0f, 1.0f});
-        /*
-        // skybox.rotate(rotationSpeed * deltaTime, {0.0f, 1.0f, 0.0f});
-        cube.rotate(rotationSpeed * deltaTime, {1.0f, -1.0f, 0.0f});
-        float circleTheta = currentFrame * circlingSpeed;
-        cube.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), 0.0f));
-
-        cube2.rotate(rotationSpeed * deltaTime, {0.0f, 2.0f, 1.0f});
-
-        float scaleDelta = currentFrame * scalingSpeed;
-        cube2.setScale({std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f, std::sin(scaleDelta) + 1.0f});
-
-        /*  rendering  */
-
-        //c.setPosition(glm::vec3(0.5f * std::cos(circleTheta), 0.5f * std::sin(circleTheta), -3.0f));
-
+        
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
     return 0;
