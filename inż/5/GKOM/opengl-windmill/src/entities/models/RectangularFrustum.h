@@ -23,9 +23,9 @@ class RectangularFrustum : public BaseObjectModel
         glm::vec3 surf1Normal = GeometryHelper::getSurfaceNormal(glm::vec3(-0.5f * downWidth,     -0.5f * height, -0.5f * downDepth   ),
                                                                  glm::vec3( 0.5f * upWidth,        0.5f * height, -0.5f * upDepth     ),
                                                                  glm::vec3( 0.5f * downWidth,     -0.5f * height, -0.5f * downDepth   ));
-        glm::vec3 surf2Normal = GeometryHelper::getSurfaceNormal(glm::vec3(-0.5f * downWidth,     -0.5f * height, -0.5f * downDepth   ),
-                                                                 glm::vec3( 0.5f * upWidth,        0.5f * height, -0.5f * upDepth     ),
-                                                                 glm::vec3( 0.5f * downWidth,     -0.5f * height, -0.5f * downDepth   ));
+        glm::vec3 surf2Normal = GeometryHelper::getSurfaceNormal(glm::vec3(-0.5f * downWidth,     -0.5f * height,  0.5f * downDepth   ),
+                                                                 glm::vec3( 0.5f * downWidth,     -0.5f * height,  0.5f * downDepth   ),
+                                                                 glm::vec3( 0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ));
         glm::vec3 surf3Normal = GeometryHelper::getSurfaceNormal(glm::vec3(-0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ),
                                                                  glm::vec3(-0.5f * upWidth,        0.5f * height, -0.5f * upDepth     ),
                                                                  glm::vec3(-0.5f * downWidth,     -0.5f * height, -0.5f * downDepth   ));
@@ -49,8 +49,8 @@ class RectangularFrustum : public BaseObjectModel
                 Vertex(glm::vec3(-0.5f * upWidth,        0.5f * height, -0.5f * upDepth     ),         surf1Normal, glm::vec2(0.0f * scaleUpX,       1.0f * scaleY)),
 
                 Vertex(glm::vec3(-0.5f * downWidth,     -0.5f * height,  0.5f * downDepth   ),         surf2Normal, glm::vec2(0.0f * scaleDownX,     0.0f * scaleY)),
-                Vertex(glm::vec3( 0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ),         surf2Normal, glm::vec2(1.0f * scaleUpX,       1.0f * scaleY)),
                 Vertex(glm::vec3( 0.5f * downWidth,     -0.5f * height,  0.5f * downDepth   ),         surf2Normal, glm::vec2(1.0f * scaleDownX,     0.0f * scaleY)),
+                Vertex(glm::vec3( 0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ),         surf2Normal, glm::vec2(1.0f * scaleUpX,       1.0f * scaleY)),
                 Vertex(glm::vec3( 0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ),         surf2Normal, glm::vec2(1.0f * scaleUpX,       1.0f * scaleY)),
                 Vertex(glm::vec3(-0.5f * downWidth,     -0.5f * height,  0.5f * downDepth   ),         surf2Normal, glm::vec2(0.0f * scaleDownX,     0.0f * scaleY)),
                 Vertex(glm::vec3(-0.5f * upWidth,        0.5f * height,  0.5f * upDepth     ),         surf2Normal, glm::vec2(0.0f * scaleUpX,       1.0f * scaleY)),
