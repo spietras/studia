@@ -178,7 +178,7 @@ int main()
     float scalingSpeed = 5.0f;
 
     // FOUNDATION VVV
-    float root_h = 3.8f;
+    float root_h = 0.8f;
     float root_lr = 0.5f;
     float root_fb = 0.0f;
 
@@ -346,7 +346,7 @@ int main()
     float fall_time = 4;
 
     float initial_time = glfwGetTime();
-
+    foundation_root.rotate(0.9f, {0.0f, 1.0f, 0.0f});
     while (!w.shouldClose())
     {
 
@@ -364,7 +364,7 @@ int main()
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
                 parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
             else
-                parent.translate({-0.6 * deltaTime * paddles_direction, 0.0f, 0.0f});
+                parent.translate(foundation_root.getRotation() * glm::vec3(-0.6 * deltaTime * paddles_direction, 0.0f, 0.0f));
         }
 
         //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
