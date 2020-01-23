@@ -120,13 +120,10 @@ int main()
     cameraPtr = &c;
 
     /*  models  */
-    CubeModel cm(0.25f, 0, 1, 2);
     CubeModel cm2(0.05f, 0, 1, 2);
     CubeModel ctree(0.05f, 0, 1, 2);
     CubeModel cm3(30.0f, 0, 1, 2);
     PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
-    RegularTetrahedron tm(2.0f, 0, 1, 2);
-    CubeModel small_light(0.01f, 0, 1, 2);
 
     //materials
     Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
@@ -168,34 +165,37 @@ int main()
     s.setDirectionalLight(dl);
     s.turnOnShadows();
 
-    float deltaTime;
-    float lastFrame = 0.0f;
-
     // FOUNDATION VVV
+    //height of the windmill
     float root_h = 0.8f;
 
+    //creating root
     Absorber foundation_root(ctree, tree, woodTexture);
     foundation_root.setPosition({0.0f, root_h, 0.0f});
     s.addAbsorber(foundation_root);
 
+    //angle between height and legs (approx)
     double angle_degrees = 6;
     double angle = angle_degrees * 3.141592 / 180;
 
-    float plank_length = (root_h) / cos(angle);
+    //legs info
+    float plank_length = (root_h) / cos(angle); //needs to scale with height
     float plank_width = 0.015f;
     float plank_depth = 0.015f;
 
-    CuboidModel leg(plank_width, plank_length, plank_depth, 0, 1, 2);
-    Absorber legs(leg, tree, woodTexture);
-    std::vector<Absorber *> legs_v;
-    int no_of_legs = 4;
-    Absorber *obj2[4];
+    //settings for legs
     glm::vec3 leg_rotations[] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}};
     glm::vec3 leg_positions[] = {{-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2},
                                  {-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
                                  {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
                                  {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2}};
-    for (int i = 0; i < no_of_legs; i++)
+
+    //creating legs
+    CuboidModel leg(plank_width, plank_length, plank_depth, 0, 1, 2);
+    Absorber legs(leg, tree, woodTexture);
+    std::vector<Absorber *> legs_v;
+    Absorber *obj2[4];
+    for (int i = 0; i < 4; i++)
     {
         obj2[i] = new Absorber(leg, tree, woodTexture);
         legs_v.push_back(obj2[i]);
@@ -205,28 +205,35 @@ int main()
         obj2[i]->setPosition({leg_positions[i]});
         foundation_root.addChild(obj2[i]);
     }
-
     // FOUNDATION ^^^
 
-    // PADDLES VVVVV
-    int no_paddles = 10;
+    // PADDLES VVV
+    int no_paddles = 15;
 
+    //how far from the center the middle point of a paddle should be
     float radius_of_paddles = 0.15f;
+
+    //paddle info
     float pad_length = 0.15f;
     float pad_width = 0.03f;
     float pad_depth = 0.01f;
 
+    //connector between the center and a paddle
     float con_length = radius_of_paddles;
     float con_width = pad_width / 2;
     float con_depth = pad_depth / 2;
 
-    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);
-    CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2);
-    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);
+    CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2); //paddle
+    CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2); //connector
+    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20); //the center
+
+    //creating the center
     Absorber parent(cylinder, tree, woodTexture);
     parent.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
+
+    //creating paddles and connectors in a loop
     std::vector<Absorber *> vec_paddles;
     std::vector<Absorber *> vec_connectors;
     Absorber *obj[100];
@@ -240,6 +247,8 @@ int main()
         parent.addChild(obj[i]);
         parent.addChild(con[i]);
     }
+
+    //setting and rotating paddles and connectors
     double i = 0;
     for (auto el : vec_paddles)
     {
@@ -248,7 +257,6 @@ int main()
         s.addAbsorber(*el);
         i++;
     }
-
     for (auto el : vec_connectors)
     {
         el->setPosition({radius_of_paddles * 0.5 * sin(2 * 3.1416 * (i) / (no_paddles)), radius_of_paddles * 0.5 * cos(2 * 3.1416 * (i) / no_paddles), -2.0f});
@@ -257,42 +265,49 @@ int main()
         i++;
     }
 
+    //the connector between root(where legs join) and the center of the fan
     float base_pad_connector_length = 0.1f;
     CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
     Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
     s.addAbsorber(base_pad_con_abs);
+
+    //joining connector to root
     base_pad_con_abs.setPosition(foundation_root.getPosition());
     base_pad_con_abs.setPosition(foundation_root.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length / 2}));
     foundation_root.addChild(&base_pad_con_abs);
 
+    //joining the center to root
     parent.setPosition(foundation_root.getPosition());
     parent.setPosition(parent.getPosition() + (glm::vec3{0.0f, 0.0f, base_pad_connector_length}));
     foundation_root.addChild(&parent);
 
-    //light
+    //light in the middle od the fan
+    CubeModel small_light(0.01f, 0, 1, 2);
     PointLight light4(small_light, pla3);
     s.addLight(light4);
     light4.setPosition(parent.getPosition());
     parent.addChild(&light4);
-
-    // PADDLES ^^^^
+    // PADDLES ^^^
 
     // TAIL VVV
-
+        //the wide tail
     float cm_tail_length = 0.17f;
     CuboidModel cm_tail(cm_tail_length, 0.10f, 0.005f, 0, 1, 2);
     Absorber tail(cm_tail, tree, woodTexture);
     s.addAbsorber(tail);
 
+        //the thin connector appended to tail
     float con_tail_length = 0.2f;
     CuboidModel cm_tb_con(con_tail_length, 0.01f, 0.005f, 0, 1, 2);
     Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
     s.addAbsorber(tail_base_connector);
 
+        //the other end of the connector
     CuboidModel cm_tail_end(0.01f, 0.01f, 0.01f, 0, 1, 2);
     Absorber tail_end(cm_tail_end, tree, woodTexture);
     s.addAbsorber(tail_end);
 
+        //making relations between the objects
     tail_end.translate({-(con_tail_length) / 2, 0.0f, 0.0f});
     tail_end.addChild(&tail_base_connector);
     tail_end.setPosition(tail_end.getPosition() + glm::vec3(-(cm_tail_length + con_tail_length) / 2, 0.0f, 0.0f));
@@ -300,7 +315,6 @@ int main()
     tail_end.setPosition(foundation_root.getPosition() - glm::vec3(0.0f, 0.0f, 0.0f));
 
     foundation_root.addChild(&tail_end);
-
     // TAIL ^^^
 
     // BARRELS VVV
@@ -324,43 +338,55 @@ int main()
     barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
     barrel3.translate({0.0f, -barrel_h / 2 + barrel_r, 0.0f});
     foundation_root.addChild(&barrel3);
-
     // BARRELS ^^^
 
+    //initial positions of objects
     tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
     tail_end.rotateRelative(foundation_root.getPosition(), 3.14 / 3, glm::vec3(0.0f, 1.0f, 0.0f));
     foundation_root.setPosition({1.0f, root_h, 0.0f});
-
-    int tail_direction = 1;
-    float limit = 1.2;
-    float time_counter = limit;
-
     foundation_root.rotate(0.1f, {0.0f, 1.0f, 0.0f});
+
+    //moving tail paramteres
+    int tail_direction = 1;
+    float time_until_switch = 1.2;
+    float time_counter = time_until_switch;
+
+    //loop
     while (!w.shouldClose())
     {
-
+        // time calculations
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
         float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
+ 
+        //parameters for realistic fall physics
+        float fall_speed = 0.0; 
+        float fall_acceleration = 1.0;
 
         if (drop_fan)
         {
+            fall_speed += deltaTime*fall_acceleration; //acceleration during fall
+
+            //fall animation
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
-                parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
-            else
-                parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles+pad_length/2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
+                parent.translate({0.0f, -fall_speed, 0.0f});
+
+            //movement sideways during and after fall
+            parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles+pad_length/2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
         }
 
-        //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
+        //rotating tail
         time_counter -= deltaTime;
         if (time_counter < 0)
         {
-            time_counter = limit;
+            time_counter = time_until_switch;
             tail_direction *= -1;
         }
         tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
-        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
+        //rotating fans
+        parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f}); 
 
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
