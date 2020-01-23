@@ -78,8 +78,8 @@ float getShadow(vec4 fragPosLightSpace, vec3 norm, vec3 lightPosFromFrag)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
-    float BIAS_MIN = 0.005;
-    float BIAS_MAX = 0.05;
+    float BIAS_MIN = 0.0001;
+    float BIAS_MAX = 0.001;
 
     // bias to remove shadow acne
     float bias = max(BIAS_MAX * (1.0 - dot(norm, lightPosFromFrag)), BIAS_MIN);
