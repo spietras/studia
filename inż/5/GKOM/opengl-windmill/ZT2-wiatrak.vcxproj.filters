@@ -15,85 +15,148 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\entities\models\BaseObjectModel.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\main.cpp">
+        <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\entities\models\CuboidModel.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\rendering\Renderer.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\Window.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\entities\models\BaseObjectModel.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\shaders\ShaderProgram.cpp">
+        <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\entities\Entity.cpp">
-      <Filter>Source Files</Filter>
+        <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\ShaderProgram.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\rendering\Scene.cpp">
+        <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\rendering\shaders\LightShaderProgram.cpp">
-      <Filter>Source Files</Filter>
+        <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\rendering\shaders\AbsorberShaderProgram.cpp">
-      <Filter>Source Files</Filter>
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\shaders\LightShaderProgram.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\Camera.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\shaders\DepthShaderProgram.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\entities\lights\DirectionalLight.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\shaders\SkyboxShaderProgram.cpp">
+        <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rendering\shaders\SkyboxShaderProgram.h">
+        <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\entities\models\BaseObjectModel.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\entities\models\CubeModel.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\rendering\shaders\ShaderProgram.h">
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\models\CuboidModel.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\CubeModel.h">
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\Entity.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Color.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\ShaderProgram.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\rendering\Scene.h">
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\Vertex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\Window.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\rendering\shaders\LightShaderProgram.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\rendering\shaders\AbsorberShaderProgram.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\absorbers\Absorber.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\lights\PointLight.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\Material.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\PointLightAttributes.h">
-      <Filter>Header Files</Filter>
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\Camera.cpp">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\Camera.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\lights\DirectionalLight.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\DirectionalLightAttributes.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\shaders\DepthShaderProgram.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\skybox\Skybox.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Texture.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rendering\shaders\SkyboxShaderProgram.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\PlaneModel.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\RectangularFrustum.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\GeometryHelper.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\Pyramid.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\RegularPyramid.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\CircularFrustum.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\Cylinder.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\Cone.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\Tetrahedron.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\RegularTetrahedron.h">
+        <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\models\Sphere.h">
+        <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
