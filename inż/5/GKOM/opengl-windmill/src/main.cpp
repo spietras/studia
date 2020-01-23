@@ -24,28 +24,29 @@
 Camera *cameraPtr; //in order to change camera view we need access
 
 bool drop_fan = 0;
+float rotationSpeed = 20.0f;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float speed = 0.25f;
     if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera forward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * speed));
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera backward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() - cameraPtr->getViewDirection() * speed));
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the right
     {
-        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() + glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
     {
-        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
@@ -53,6 +54,12 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) //close window
         drop_fan = 1;
+
+    if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) //close window
+        rotationSpeed -= 1;
+
+    if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)) //close window
+        rotationSpeed += 1;
 }
 
 void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
@@ -164,14 +171,8 @@ int main()
     float deltaTime;
     float lastFrame = 0.0f;
 
-    float rotationSpeed = 20.0f;
-    float circlingSpeed = 2.0f;
-    float scalingSpeed = 5.0f;
-
     // FOUNDATION VVV
     float root_h = 0.8f;
-    float root_lr = 0.5f;
-    float root_fb = 0.0f;
 
     Absorber foundation_root(ctree, tree, woodTexture);
     foundation_root.setPosition({0.0f, root_h, 0.0f});
@@ -348,7 +349,7 @@ int main()
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
                 parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
             else
-                parent.translate(foundation_root.getRotation() * glm::vec3(-0.6 * deltaTime * paddles_direction, 0.0f, 0.0f));
+                parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles+pad_length/2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
         }
 
         //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
@@ -360,7 +361,7 @@ int main()
         }
         tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
-        
+
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
     return 0;
