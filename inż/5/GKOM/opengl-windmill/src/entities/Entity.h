@@ -68,6 +68,10 @@ public:
     void
     rotateLocal(const glm::quat &rotation); //apply rotation around model origin to current transformation
 
+    void setRotationLocal(float radianAngle, const glm::vec3 &axis);
+
+    void setRotationLocal(const glm::quat &rotation);
+
     glm::vec3 getScale() const;
 
     void setScale(const glm::vec3 &factor);

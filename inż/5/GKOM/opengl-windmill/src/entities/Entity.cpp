@@ -201,3 +201,19 @@ void Entity::rotateLocal(const glm::quat &rotation)
     rotate(rotation);
     rotate(currentRot);
 }
+
+void Entity::setRotationLocal(float radianAngle, const glm::vec3 &axis)
+{
+    setRotation(glm::quat(axis * radianAngle));
+}
+
+void Entity::setRotationLocal(const glm::quat &rotation)
+{
+    glm::quat currentRot = getRotation();
+    glm::quat reverseRotation = glm::conjugate(currentRot);
+
+    rotate(reverseRotation);
+    setRotation(rotation);
+    rotate(currentRot);
+}
+
