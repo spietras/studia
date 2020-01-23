@@ -21,43 +21,22 @@ Camera* cameraPtr;      //in order to change camera view we need access
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     float speed = 0.25f;
-    if (key == GLFW_KEY_UP && action == GLFW_REPEAT) //move camera forward
+    if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera forward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
     }
 
-    else if (key == GLFW_KEY_UP && action == GLFW_PRESS) //move camera forward
-    {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()+cameraPtr->getViewDirection()*speed));
-    }
-
-    if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) //move camera backward
+    if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera backward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
     }
 
-    else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) //move camera backward
-    {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition()-cameraPtr->getViewDirection()*speed));
-    }
-
-    if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) //move camera to the right
-    {
-        //cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-        cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
-    }
-
-    else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) //move camera to the right
+    if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the right
     {
         cameraPtr->setPosition(cameraPtr->getPosition()+glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
 
-    if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) //move camera to the left
-    {
-        cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
-    }
-
-    else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) //move camera to the left
+    if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
     {
         cameraPtr->setPosition(cameraPtr->getPosition()-glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
     }
