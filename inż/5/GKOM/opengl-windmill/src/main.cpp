@@ -25,6 +25,9 @@ Camera *cameraPtr; //in order to change camera view we need access
 
 bool drop_fan = 0;
 float rotationSpeed = 20.0f;
+DirectionalLight* sunlight;
+std::vector<PointLight*> groundLights;
+std::vector<PointLight*> windmillLights;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
@@ -60,6 +63,31 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 
     if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)) //close window
         rotationSpeed += 1;
+
+    float lightChangeSpeed = 0.1f;
+
+    if(key == GLFW_KEY_1 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        sunlight->setIntensity(sunlight->getAttributes().globalIntensity + lightChangeSpeed);
+
+    if(key == GLFW_KEY_2 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        sunlight->setIntensity(sunlight->getAttributes().globalIntensity - lightChangeSpeed);
+
+    if(key == GLFW_KEY_3 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for(auto groundLight : groundLights)
+            groundLight->setIntensity(groundLight->getAttributes().globalIntensity + lightChangeSpeed);
+
+    if(key == GLFW_KEY_4 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for(auto groundLight : groundLights)
+            groundLight->setIntensity(groundLight->getAttributes().globalIntensity - lightChangeSpeed);
+
+    if(key == GLFW_KEY_5 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for(auto windmillLight : windmillLights)
+            windmillLight->setIntensity(windmillLight->getAttributes().globalIntensity + lightChangeSpeed);
+
+    if(key == GLFW_KEY_6 && (action == GLFW_PRESS || action == GLFW_REPEAT))
+        for(auto windmillLight : windmillLights)
+            windmillLight->setIntensity(windmillLight->getAttributes().globalIntensity - lightChangeSpeed);
+
 }
 
 void cursorCallback(GLFWwindow *window, double xPosition, double yPosition)
@@ -152,6 +180,11 @@ int main()
     light.setPosition({-0.5f, 0.0f, -1.0f});
     light2.setPosition({0.5f, 0.0f, -1.0f});
     light3.setPosition({0.0f, 0.0f, 0.6f});
+
+    sunlight = &dl;
+    groundLights.push_back(&light);
+    groundLights.push_back(&light2);
+    groundLights.push_back(&light3);
 
     /* absorbers */
 
@@ -274,6 +307,8 @@ int main()
     s.addLight(light4);
     light4.setPosition(parent.getPosition());
     parent.addChild(&light4);
+
+    windmillLights.push_back(&light4);
 
     // PADDLES ^^^^
 

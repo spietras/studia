@@ -2,5 +2,5 @@
 
 void LightShaderProgram::setLightColor(const PointLight &light) const
 {
-    setUniformVec4(COLOR_UNIFORM_NAME, light.getAttributes().color.getVec4());
+    setUniformVec4(COLOR_UNIFORM_NAME, light.getAttributes().color.getVec4() * light.getAttributes().globalIntensity);
 }

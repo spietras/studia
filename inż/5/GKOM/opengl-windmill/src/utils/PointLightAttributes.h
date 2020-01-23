@@ -16,19 +16,23 @@ struct PointLightAttributes
     float linear;
     float quadratic;
 
+    float globalIntensity;
+
     PointLightAttributes(ColorFloat color,
                          float ambientIntensity,
                          float diffuseIntensity,
                          float specularIntensity,
                          float constant,
                          float linear,
-                         float quadratic) : color(color),
-                                            ambientIntensity(ambientIntensity),
-                                            diffuseIntensity(diffuseIntensity),
-                                            specularIntensity(specularIntensity),
-                                            constant(constant),
-                                            linear(linear),
-                                            quadratic(quadratic)
+                         float quadratic,
+                         float globalIntensity = 1.0f) : color(color),
+                                                         ambientIntensity(ambientIntensity),
+                                                         diffuseIntensity(diffuseIntensity),
+                                                         specularIntensity(specularIntensity),
+                                                         constant(constant),
+                                                         linear(linear),
+                                                         quadratic(quadratic),
+                                                         globalIntensity(globalIntensity)
     {}
 };
 

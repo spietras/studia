@@ -15,15 +15,19 @@ struct DirectionalLightAttributes
     float diffuseIntensity;
     float specularIntensity;
 
+    float globalIntensity;
+
     DirectionalLightAttributes(const glm::vec3 &direction,
                                ColorFloat color,
                                float ambientIntensity,
                                float diffuseIntensity,
-                               float specularIntensity) : direction(direction),
-                                                          color(color),
-                                                          ambientIntensity(ambientIntensity),
-                                                          diffuseIntensity(diffuseIntensity),
-                                                          specularIntensity(specularIntensity)
+                               float specularIntensity,
+                               float globalIntensity = 1.0f) : direction(direction),
+                                                               color(color),
+                                                               ambientIntensity(ambientIntensity),
+                                                               diffuseIntensity(diffuseIntensity),
+                                                               specularIntensity(specularIntensity),
+                                                               globalIntensity(globalIntensity)
     {}
 };
 

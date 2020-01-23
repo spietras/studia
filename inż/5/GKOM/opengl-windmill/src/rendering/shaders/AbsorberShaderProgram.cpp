@@ -34,11 +34,11 @@ void AbsorberShaderProgram::setLight(const PointLight &light, int lightIndex) co
     setUniformVec3(LIGHTS_UNIFORM_NAME + "[" + lightIndexString + "].color", light.getAttributes().color.getVec3());
 
     setUniformFloat(LIGHTS_UNIFORM_NAME + "[" + lightIndexString + "].ambientIntensity",
-                    light.getAttributes().ambientIntensity);
+                    light.getAttributes().ambientIntensity * light.getAttributes().globalIntensity);
     setUniformFloat(LIGHTS_UNIFORM_NAME + "[" + lightIndexString + "].diffuseIntensity",
-                    light.getAttributes().diffuseIntensity);
+                    light.getAttributes().diffuseIntensity * light.getAttributes().globalIntensity);
     setUniformFloat(LIGHTS_UNIFORM_NAME + "[" + lightIndexString + "].specularIntensity",
-                    light.getAttributes().specularIntensity);
+                    light.getAttributes().specularIntensity * light.getAttributes().globalIntensity);
 }
 
 void AbsorberShaderProgram::setDirectionallight(const DirectionalLight &light) const
@@ -46,9 +46,9 @@ void AbsorberShaderProgram::setDirectionallight(const DirectionalLight &light) c
     setUniformMat4(LIGHTSPACE_MATRIX_UNIFORM_NAME, light.getLightSpaceMatrix());
     setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".direction", light.getAttributes().direction);
     setUniformVec3(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".color", light.getAttributes().color.getVec3());
-    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".ambientIntensity", light.getAttributes().ambientIntensity);
-    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".diffuseIntensity", light.getAttributes().diffuseIntensity);
-    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".specularIntensity", light.getAttributes().specularIntensity);
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".ambientIntensity", light.getAttributes().ambientIntensity * light.getAttributes().globalIntensity);
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".diffuseIntensity", light.getAttributes().diffuseIntensity* light.getAttributes().globalIntensity);
+    setUniformFloat(DIRECTIONAL_LIGHT_UNIFORM_NAME + ".specularIntensity", light.getAttributes().specularIntensity* light.getAttributes().globalIntensity);
 }
 
 void AbsorberShaderProgram::setShadowsOn(bool on) const

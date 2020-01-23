@@ -9,6 +9,8 @@
 
 class DirectionalLight
 {
+    const float MIN_INTENSITY = 0.0f, MAX_INTENSITY = 5.0f;
+
     DirectionalLightAttributes attributes;
 
     //depth map
@@ -51,6 +53,13 @@ public:
 
     const glm::mat4 &getLightSpaceMatrix() const
     { return lightSpaceMatrix; }
+
+    void setIntensity(float intensity)
+    {
+        intensity = std::max(MIN_INTENSITY, std::min(intensity, MAX_INTENSITY));
+
+        attributes.globalIntensity = intensity;
+    }
 };
 
 
