@@ -131,7 +131,7 @@ int main()
     CubeModel small_light(0.01f, 0, 1, 2);
 
     //materials
-    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
     Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
@@ -178,7 +178,7 @@ int main()
     float scalingSpeed = 5.0f;
 
     // FOUNDATION VVV
-    float root_h = 0.7f;
+    float root_h = 3.8f;
     float root_lr = 0.5f;
     float root_fb = 0.0f;
 
@@ -199,10 +199,10 @@ int main()
     int no_of_legs = 4;
     Absorber *obj2[4];
     glm::vec3 leg_rotations[] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}};
-    glm::vec3 leg_positions[] = {{-(plank_length)*sin(angle) / 2, root_h / 2, (plank_length)*sin(angle) / 2},
-                                 {-(plank_length)*sin(angle) / 2, root_h / 2, -(plank_length)*sin(angle) / 2},
-                                 {(plank_length)*sin(angle) / 2, root_h / 2, -(plank_length)*sin(angle) / 2},
-                                 {(plank_length)*sin(angle) / 2, root_h / 2, (plank_length)*sin(angle) / 2}};
+    glm::vec3 leg_positions[] = {{-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2},
+                                 {-0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
+                                 {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, -0.7071 * (plank_length)*sin(angle) / 2},
+                                 {0.7071 * (plank_length)*sin(angle) / 2, root_h / 2, 0.7071 * (plank_length)*sin(angle) / 2}};
     for (int i = 0; i < no_of_legs; i++)
     {
         obj2[i] = new Absorber(leg, tree, woodTexture);
@@ -217,6 +217,7 @@ int main()
     // FOUNDATION ^^^
 
     // PADDLES VVVVV
+    int no_paddles = 10;
 
     float radius_of_paddles = 0.15f;
     float pad_length = 0.15f;
@@ -234,7 +235,6 @@ int main()
     parent.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
-    int no_paddles = 15;
     std::vector<Absorber *> vec_paddles;
     std::vector<Absorber *> vec_connectors;
     Absorber *obj[100];
@@ -312,7 +312,7 @@ int main()
     // TAIL ^^^
 
     // BARRELS VVV
-    float barrel_h = root_h / 7;
+    float barrel_h = 0.105;
     float barrel_r = 0.025;
     Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
 
@@ -330,7 +330,7 @@ int main()
     s.addAbsorber(barrel3);
     barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
-    barrel3.translate({0.0f, -barrel_h/2+barrel_r, 0.0f});
+    barrel3.translate({0.0f, -barrel_h / 2 + barrel_r, 0.0f});
     foundation_root.addChild(&barrel3);
 
     // BARRELS ^^^
@@ -357,14 +357,14 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        float paddles_direction = 1; // controls the directon of moving paddles and of the fallen fan
+        float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
 
         if (currentFrame - initial_time > fall_time)
         {
             if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
-                parent.translate({0.0f, -0.75*deltaTime, 0.0f});
+                parent.translate({0.0f, -0.75 * deltaTime, 0.0f});
             else
-                parent.translate({-0.6*deltaTime*paddles_direction, 0.0f, 0.0f});
+                parent.translate({-0.6 * deltaTime * paddles_direction, 0.0f, 0.0f});
         }
 
         //tail_base_connector.rotateRelative(foundation_root.getPosition(), rotationSpeed * 0.1, glm::vec3(0.0f, 0.2* sin(currentFrame / 100), 0.0f));
