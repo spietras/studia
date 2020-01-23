@@ -20,12 +20,10 @@
     <ClCompile Include="src\rendering\Scene.cpp" />
     <ClCompile Include="src\rendering\shaders\LightShaderProgram.cpp" />
     <ClCompile Include="src\rendering\shaders\AbsorberShaderProgram.cpp" />
-    <ClCompile Include="src\rendering\shaders\LightShaderProgram.cpp" />
     <ClCompile Include="src\rendering\Camera.cpp" />
     <ClCompile Include="src\rendering\shaders\DepthShaderProgram.cpp" />
     <ClCompile Include="src\entities\lights\DirectionalLight.cpp" />
     <ClCompile Include="src\rendering\shaders\SkyboxShaderProgram.cpp" />
-    <ClCompile Include="src\rendering\shaders\SkyboxShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\entities\models\BaseObjectModel.h" />
