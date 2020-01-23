@@ -167,7 +167,7 @@ int main()
 
     // FOUNDATION VVV
     //height of the windmill
-    float root_h = 0.8f;
+    float root_h = 1.8f;
 
     //creating root
     Absorber foundation_root(ctree, tree, woodTexture);
@@ -352,6 +352,8 @@ int main()
     float time_counter = time_until_switch;
 
     //loop
+    float deltaTime;
+    float lastFrame = 0.0f;
     while (!w.shouldClose())
     {
         // time calculations
@@ -363,7 +365,7 @@ int main()
  
         //parameters for realistic fall physics
         float fall_speed = 0.0; 
-        float fall_acceleration = 1.0;
+        float fall_acceleration = 1.2;
 
         if (drop_fan)
         {
