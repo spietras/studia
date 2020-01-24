@@ -51,7 +51,7 @@ uniform int mode;
 
 out vec4 FragColor;
 
-vec3 getDiffuseMaterial(Material material)
+vec3 getDiffuseMaterial()
 {
     if (mode == 0)
     {
@@ -103,19 +103,19 @@ float getShadow(vec4 fragPosLightSpace, vec3 norm, vec3 lightPosFromFrag)
     return shadow / ((X_RIGHT - X_LEFT + 1)*(Y_UP - Y_DOWN + 1));
 }
 
-vec3 getAmbient(Material material, vec3 lightColor, float ambientIntensity)
+vec3 getAmbient(vec3 lightColor, float ambientIntensity)
 {
-    return vec3(ambientIntensity) * lightColor * getDiffuseMaterial(material);
+    return vec3(ambientIntensity) * lightColor * getDiffuseMaterial();
 }
 
-vec3 getDiffuse(Material material, vec3 lightColor, float diffuseIntensity, vec3 norm, vec3 lightPosFromFrag)
+vec3 getDiffuse(vec3 lightColor, float diffuseIntensity, vec3 norm, vec3 lightPosFromFrag)
 {
     float diff = max(dot(norm, lightPosFromFrag), 0.0); // cosine of angle between norm and lightDir
 
-    return vec3(diffuseIntensity) * lightColor * diff * getDiffuseMaterial(material);
+    return vec3(diffuseIntensity) * lightColor * diff * getDiffuseMaterial();
 }
 
-vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, vec3 norm, vec3 lightPosFromFrag, vec3 viewDir)
+vec3 getSpecular(vec3 lightColor, float specularIntensity, vec3 norm, vec3 lightPosFromFrag, vec3 viewDir)
 {
     vec3 halfwayDir = normalize(lightPosFromFrag + viewDir); // Blinn-Phong halfway vector
     float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
@@ -123,13 +123,15 @@ vec3 getSpecular(Material material, vec3 lightColor, float specularIntensity, ve
     return vec3(specularIntensity) * lightColor * spec * material.specularColor;
 }
 
-vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm, vec3 viewDir, vec4 fragPosLightSpace)
+vec3 getDirectionalLighting(DirectionalLight light, vec3 norm, vec3 viewDir, vec4 fragPosLightSpace)
 {
     vec3 lightPosFromFrag = normalize(-light.direction);
 
-    vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
-    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightPosFromFrag);
-    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
+    vec3 ambient = getAmbient(light.color, light.ambientIntensity);
+    vec3 diffuse = getDiffuse(light.color, light.diffuseIntensity, norm, lightPosFromFrag);
+    vec3 specular = getSpecular(light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
+
+	return ambient;
 
     if(shadowsOn)
     {
@@ -141,13 +143,13 @@ vec3 getDirectionalLighting(DirectionalLight light, Material material, vec3 norm
     return (ambient + diffuse + specular);
 }
 
-vec3 getPointLighting(PointLight light, Material material, vec3 fragPos, vec3 norm, vec3 viewDir)
+vec3 getPointLighting(PointLight light, vec3 fragPos, vec3 norm, vec3 viewDir)
 {
     vec3 lightPosFromFrag = normalize(light.position - fragPos);
 
-    vec3 ambient = getAmbient(material, light.color, light.ambientIntensity);
-    vec3 diffuse = getDiffuse(material, light.color, light.diffuseIntensity, norm, lightPosFromFrag);
-    vec3 specular = getSpecular(material, light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
+    vec3 ambient = getAmbient(light.color, light.ambientIntensity);
+    vec3 diffuse = getDiffuse(light.color, light.diffuseIntensity, norm, lightPosFromFrag);
+    vec3 specular = getSpecular(light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
 
     // attenuation - light influence decreases with distance
     float distance = length(light.position - fragPos);
@@ -165,10 +167,10 @@ void main()
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragPos);
 
-    vec3 result = getDirectionalLighting(directionalLight, material, norm, viewDir, fragPosLightSpace);
+	vec3 result = getDirectionalLighting(directionalLight, norm, viewDir, fragPosLightSpace);
 
-    for(int i = 0; i < lightsNum; i++)
-        result += getPointLighting(pointLights[i], material, fragPos, norm, viewDir);
+	for(int i = 0; i < lightsNum; i++)
+        result += getPointLighting(pointLights[i], fragPos, norm, viewDir);
 
     FragColor = vec4(result, 1.0);
 }

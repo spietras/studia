@@ -1,4 +1,5 @@
 #define GLEW_STATIC
+#define _USE_MATH_DEFINES
 
 #include <cmath>
 #include "GL/glew.h"
@@ -137,7 +138,7 @@ int main()
                            skyboxTexturePathPrefix + "_dn.tga",
                            skyboxTexturePathPrefix + "_rt.tga",
                            skyboxTexturePathPrefix + "_lf.tga"});
-
+					 
     Texture woodTexture("res/textures/wood.bmp");
     Texture groundTexture("res/textures/sand.bmp");
 

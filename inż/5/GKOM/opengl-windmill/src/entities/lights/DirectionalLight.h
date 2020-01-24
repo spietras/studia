@@ -1,6 +1,7 @@
 #ifndef WIATRAK_DIRECTIONALLIGHT_H
 #define WIATRAK_DIRECTIONALLIGHT_H
 
+#define GLEW_STATIC
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>

@@ -1,6 +1,8 @@
 #ifndef WIATRAK_TEXTURE_H
 #define WIATRAK_TEXTURE_H
 
+#define GLEW_STATIC
+
 #include <string>
 #include <vector>
 #include <iostream>
