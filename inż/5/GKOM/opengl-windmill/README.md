@@ -1,7 +1,7 @@
 # Projekt wiatraka w OpenGL
 
 Celem projektu było zamodelowanie i stworzenie animacji wiatraka w stylu amerykańskim.
-Oprócz modelu i animacji skupiliśmy się na odpowiednim oświetleniu sceny oraz pasujących teksturach.
+Głównym zadaniem skupiliśmy się na odpowiednim oświetleniu sceny oraz pasujących teksturach.
 Aby ułatwić dostępu do różnych aspektów sceny dodaliśmy kamerę, która pozwala na swobodną obserwację.
 
 
@@ -27,6 +27,10 @@ A - ruch kamera w prawo
 
 D - ruch kamery w lewo
 
+X - podnoszenie kamery
+
+Z - opuszczanie kamery
+
 Poza tym kamera może się rozglądać dookoła przy użyciu myszki.
 
 
@@ -37,6 +41,8 @@ Q - obrót wiatraka w lewo
 E - obrót wiatraka w prawo
 
 Spacja - zjawisko przeciążenia wiatraka
+
+Esc - zamknięcie okna animacji
 
 
 # Sterowanie oświetleniem
