@@ -34,7 +34,6 @@ std::vector<PointLight *> windmillLights;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-    float speed = 0.1f;
     if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera forward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * cameraSpeed));
@@ -160,18 +159,17 @@ int main()
     cameraPtr = &c;
 
     /*  models  */
-    CubeModel cm2(0.05f, 0, 1, 2);
-    CubeModel ctree(0.05f, 0, 1, 2);
-    CubeModel cm3(30.0f, 0, 1, 2);
-    PlaneModel planeM(100.0f, 100.0f, 0, 1, 2);
+    CubeModel smallCube(0.05f, 0, 1, 2);
+    CubeModel bigCube(30.0f, 0, 1, 2);
+    PlaneModel planeModel(100.0f, 100.0f, 0, 1, 2);
 
     //materials
-    Material m2(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
-    Material tree(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
-    Material msky(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
+    Material groundMaterial(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
+    Material woodMaterial(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material skyboxMaterial(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     /*  skybox  */
-    Skybox skybox(cm3, msky, skyboxTexture);
+    Skybox skybox(bigCube, skyboxMaterial, skyboxTexture);
     skybox.setPosition({0.0f, 1.0f, 1.0f});
 
     /*  light attributes  */
@@ -181,33 +179,36 @@ int main()
     DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
 
     /* light */
-    PointLight light3(cm2, pla3);
-    PointLight light(cm2, pla);
-    PointLight light2(cm2, pla2);
-    DirectionalLight dl(dla);
+    PointLight light3(smallCube, pla3);
+    PointLight light(smallCube, pla);
+    PointLight light2(smallCube, pla2);
+    DirectionalLight directionalLight(dla);
 
     light.setPosition({-0.5f, 0.0f, -1.0f});
     light2.setPosition({0.5f, 0.0f, -1.0f});
     light3.setPosition({0.0f, 0.0f, 0.6f});
 
-    sunlight = &dl;
+    sunlight = &directionalLight;
     groundLights.push_back(&light);
     groundLights.push_back(&light2);
     groundLights.push_back(&light3);
 
     /* absorbers */
 
-    Absorber plane(planeM, m2, groundTexture);
+    Absorber plane(planeModel, groundMaterial, groundTexture);
     plane.setPosition({0.0f, 0.0f, 0.0f});
 
     /* adding to scene */
 
-    s.addLight(light3);
     s.addAbsorber(plane);
+
     s.addSkybox(skybox);
+
     s.addLight(light);
     s.addLight(light2);
-    s.setDirectionalLight(dl);
+    s.addLight(light3);
+    s.setDirectionalLight(directionalLight);
+
     s.turnOnShadows();
 
     // FOUNDATION VVV
@@ -215,7 +216,7 @@ int main()
     float root_h = 0.8f;
 
     //creating root
-    Absorber foundation_root(ctree, tree, woodTexture);
+    Absorber foundation_root(smallCube, woodMaterial, woodTexture);
     foundation_root.setPosition({0.0f, root_h, 0.0f});
     s.addAbsorber(foundation_root);
 
@@ -237,12 +238,12 @@ int main()
 
     //creating legs
     CuboidModel leg(plank_width, plank_length, plank_depth, 0, 1, 2);
-    Absorber legs(leg, tree, woodTexture);
+    Absorber legs(leg, woodMaterial, woodTexture);
     std::vector<Absorber *> legs_v;
     Absorber *obj2[4];
     for (int i = 0; i < 4; i++)
     {
-        obj2[i] = new Absorber(leg, tree, woodTexture);
+        obj2[i] = new Absorber(leg, woodMaterial, woodTexture);
         legs_v.push_back(obj2[i]);
         obj2[i]->rotate(angle, leg_rotations[i]);
         obj2[i]->rotate(0.785, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -273,7 +274,7 @@ int main()
     Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);                  //the center
 
     //creating the center
-    Absorber parent(cylinder, tree, woodTexture);
+    Absorber parent(cylinder, woodMaterial, woodTexture);
     parent.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     parent.setPosition({0.0f, 0.0f, -2.0f});
     s.addAbsorber(parent);
@@ -285,8 +286,8 @@ int main()
     Absorber *con[100];
     for (int i = 0; i < no_paddles; i++)
     {
-        obj[i] = new Absorber(child, tree, woodTexture);
-        con[i] = new Absorber(connector, tree, woodTexture);
+        obj[i] = new Absorber(child, woodMaterial, woodTexture);
+        con[i] = new Absorber(connector, woodMaterial, woodTexture);
         vec_paddles.push_back(obj[i]);
         vec_connectors.push_back(con[i]);
         parent.addChild(obj[i]);
@@ -313,7 +314,7 @@ int main()
     //the connector between root(where legs join) and the center of the fan
     float base_pad_connector_length = 0.1f;
     CuboidModel base_pad_con(0.01f, 0.01f, base_pad_connector_length, 0, 1, 2);
-    Absorber base_pad_con_abs(base_pad_con, tree, woodTexture);
+    Absorber base_pad_con_abs(base_pad_con, woodMaterial, woodTexture);
     s.addAbsorber(base_pad_con_abs);
 
     //joining connector to root
@@ -342,18 +343,18 @@ int main()
     //the wide tail
     float cm_tail_length = 0.17f;
     CuboidModel cm_tail(cm_tail_length, 0.10f, 0.005f, 0, 1, 2);
-    Absorber tail(cm_tail, tree, woodTexture);
+    Absorber tail(cm_tail, woodMaterial, woodTexture);
     s.addAbsorber(tail);
 
     //the thin connector appended to tail
     float con_tail_length = 0.2f;
     CuboidModel cm_tb_con(con_tail_length, 0.01f, 0.005f, 0, 1, 2);
-    Absorber tail_base_connector(cm_tb_con, tree, woodTexture);
+    Absorber tail_base_connector(cm_tb_con, woodMaterial, woodTexture);
     s.addAbsorber(tail_base_connector);
 
     //the other end of the connector
     CuboidModel cm_tail_end(0.01f, 0.01f, 0.01f, 0, 1, 2);
-    Absorber tail_end(cm_tail_end, tree, woodTexture);
+    Absorber tail_end(cm_tail_end, woodMaterial, woodTexture);
     s.addAbsorber(tail_end);
 
     //making relations between the objects
@@ -371,17 +372,17 @@ int main()
     float barrel_r = 0.025;
     Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
 
-    Absorber barrel1(barrel_c, tree, woodTexture);
+    Absorber barrel1(barrel_c, woodMaterial, woodTexture);
     s.addAbsorber(barrel1);
     barrel1.setPosition({-((plank_length)*sin(angle) * 1.4 + barrel_r * 2), barrel_h / 2, 0.0f});
     foundation_root.addChild(&barrel1);
 
-    Absorber barrel2(barrel_c, tree, woodTexture);
+    Absorber barrel2(barrel_c, woodMaterial, woodTexture);
     s.addAbsorber(barrel2);
     barrel2.setPosition({(plank_length)*sin(angle) * 1.4 + barrel_r * 2, barrel_h / 2, (plank_length)*sin(angle) * 1.6 + barrel_r * 2});
     foundation_root.addChild(&barrel2);
 
-    Absorber barrel3(barrel_c, tree, woodTexture);
+    Absorber barrel3(barrel_c, woodMaterial, woodTexture);
     s.addAbsorber(barrel3);
     barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
@@ -402,8 +403,11 @@ int main()
     float time_counter = time_until_switch;
 
     Ufo ufo(1.0f, 0, 1, 2);
-    ufo.translate({0.0f, 3.0f, 0.0f});
     s.addCompositeEntity(ufo);
+
+    float ufoRadius = 6.0f;
+    float ufoSpeed = 0.5f;
+    float ufoHeight = 5.0f;
 
     //loop
     float deltaTime;
@@ -443,6 +447,8 @@ int main()
         tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         //rotating fans
         parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
+
+        ufo.setPosition({foundation_root.getPosition().x + ufoRadius * std::cos(ufoSpeed * currentFrame), ufoHeight, foundation_root.getPosition().z + ufoRadius * std::sin(ufoSpeed * currentFrame)});
 
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
