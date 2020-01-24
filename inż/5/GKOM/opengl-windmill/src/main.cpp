@@ -165,7 +165,7 @@ int main()
 
     //materials
     Material groundMaterial(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 1024.0f);
-    Material woodMaterial(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
+    Material woodMaterial(ColorInt(120, 120, 120), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material skyboxMaterial(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
     /*  skybox  */
@@ -258,7 +258,7 @@ int main()
 
     CuboidModel child(pad_width, pad_length, pad_depth, 0, 1, 2);     //paddle
     CuboidModel connector(con_width, con_length, con_depth, 0, 1, 2); //connector
-    Cylinder cylinder(0.025f, 0.025f, 20, 0, 1, 20);                  //the center
+    Cylinder cylinder(0.025f, 0.025f, 100, 0, 1, 20);                  //the center
 
     //creating the center
     Absorber parent(cylinder, woodMaterial, woodTexture);
@@ -361,19 +361,19 @@ int main()
     // BARRELS VVV
     float barrel_h = 0.105;
     float barrel_r = 0.025;
-    Cylinder barrel_c(barrel_r, barrel_h, 20, 0, 1, 20);
+    Cylinder barrel_c(barrel_r, barrel_h, 100, 0, 1, 20);
 
-    Absorber barrel1(barrel_c, woodMaterial, woodTexture);
+    Absorber barrel1(barrel_c, woodMaterial);
     s.addAbsorber(barrel1);
     barrel1.setPosition({-((plank_length)*sin(angle) * 1.4 + barrel_r * 2), barrel_h / 2, 0.0f});
     foundation_root.addChild(&barrel1);
 
-    Absorber barrel2(barrel_c, woodMaterial, woodTexture);
+    Absorber barrel2(barrel_c, woodMaterial);
     s.addAbsorber(barrel2);
     barrel2.setPosition({(plank_length)*sin(angle) * 1.4 + barrel_r * 2, barrel_h / 2, (plank_length)*sin(angle) * 1.6 + barrel_r * 2});
     foundation_root.addChild(&barrel2);
 
-    Absorber barrel3(barrel_c, woodMaterial, woodTexture);
+    Absorber barrel3(barrel_c, woodMaterial);
     s.addAbsorber(barrel3);
     barrel3.rotate(3.14 / 2, glm::vec3(1.0f, 0.0f, 0.0f));
     barrel3.setPosition({-((plank_length)*sin(angle) * 1.3 + barrel_r * 2), barrel_h / 2, (plank_length)*sin(angle) * 2 + barrel_r * 2});
