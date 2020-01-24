@@ -19,6 +19,8 @@ class Camera
 public:
     Camera();
 
+    Camera(const unsigned int &SCR_WIDTH, const unsigned int &SCR_HEIGHT);
+
     glm::mat4 getViewMatrix() const;
 
     void updateMouse(const glm::vec2& newMousePosition);
