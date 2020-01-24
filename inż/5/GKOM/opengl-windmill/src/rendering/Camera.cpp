@@ -7,6 +7,11 @@ Camera::Camera() : position (0.0f, 0.5f, 3.0f ), viewDirection (0.0f, 0.0f, -1.0
 
 }
 
+Camera::Camera(const unsigned int &SCR_WIDTH, const unsigned int &SCR_HEIGHT) : position (0.0f, 0.5f, 3.0f ), viewDirection (0.0f, 0.0f, -1.0f), UP(0.0f, 1.0f, 0.0f), projection (glm::perspective(glm::radians(45.0f), (GLfloat)SCR_WIDTH/(GLfloat)SCR_HEIGHT, 0.1f, 100.0f))
+{
+
+}
+
 void Camera::updateMouse(const glm::vec2 &newMousePosition)
 {
     glm::vec2 mouseDelta = newMousePosition - oldMousePosition;

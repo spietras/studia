@@ -26,31 +26,41 @@ Camera *cameraPtr; //in order to change camera view we need access
 
 bool drop_fan = 0;
 float rotationSpeed = 20.0f;
+float cameraSpeed = 0.1f;
 DirectionalLight *sunlight;
 std::vector<PointLight *> groundLights;
 std::vector<PointLight *> windmillLights;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-    float speed = 0.25f;
     if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera forward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * cameraSpeed));
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera backward
     {
-        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() - cameraPtr->getViewDirection() * speed));
+        cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() - cameraPtr->getViewDirection() * cameraSpeed));
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the right
     {
-        cameraPtr->setPosition(cameraPtr->getPosition() + glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() + glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * cameraSpeed);
     }
 
     if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
     {
-        cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * speed);
+        cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * cameraSpeed);
+    }
+
+    if (key == GLFW_KEY_X && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
+    {
+        cameraPtr->setPosition(cameraPtr->getPosition() + cameraPtr->getUP() * cameraSpeed);
+    }
+
+    if (key == GLFW_KEY_Z && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
+    {
+        cameraPtr->setPosition(cameraPtr->getPosition() - cameraPtr->getUP() * cameraSpeed);
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
@@ -144,7 +154,7 @@ int main()
 
     /*  stuff  */
     Scene s;
-    Camera c;
+    Camera c(SCR_WIDTH, SCR_HEIGHT);
     cameraPtr = &c;
 
     /*  models  */
