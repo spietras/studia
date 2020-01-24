@@ -8,6 +8,7 @@
 #include "../entities/lights/PointLight.h"
 #include "../entities/lights/DirectionalLight.h"
 #include "../entities/skybox/Skybox.h"
+#include "../entities/CompositeEntity.h"
 
 class Scene
 {
@@ -33,6 +34,8 @@ public:
     const DirectionalLight *getDirectionalLight() const;
 
     void setDirectionalLight(const DirectionalLight &light);
+
+    void addCompositeEntity(const CompositeEntity &compositeEntity);
 
     bool isShadowsTurnedOn() const;
 

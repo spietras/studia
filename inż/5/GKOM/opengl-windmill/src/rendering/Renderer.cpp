@@ -24,9 +24,13 @@ void Renderer::drawSceneAbsorbersDepth(const Scene &scene, const DepthShaderProg
 
 void Renderer::drawEntity(const Entity &entity) const
 {
-    const BaseObjectModel &model = entity.getModel();
-    glBindVertexArray(model.getVAO());                      //bind model VAO
-    glDrawArrays(GL_TRIANGLES, 0, model.getVerticesSize()); //draw
+    const BaseObjectModel *model = entity.getModel();
+
+    if(model == nullptr)
+        return;
+
+    glBindVertexArray(model->getVAO());                      //bind model VAO
+    glDrawArrays(GL_TRIANGLES, 0, model->getVerticesSize()); //draw
     glBindVertexArray(0);
 }
 

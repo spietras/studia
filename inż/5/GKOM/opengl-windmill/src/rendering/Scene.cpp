@@ -33,6 +33,14 @@ void Scene::setDirectionalLight(const DirectionalLight &light)
     this->directionalLight = &light;
 }
 
+void Scene::addCompositeEntity(const CompositeEntity &compositeEntity)
+{
+    for(Absorber* a : compositeEntity.getCompositeAbsorbers())
+        this->addAbsorber(*a);
+    for(PointLight* l : compositeEntity.getCompositeLights())
+        this->addLight(*l);
+}
+
 bool Scene::isShadowsTurnedOn() const
 {
     return this->shadows;

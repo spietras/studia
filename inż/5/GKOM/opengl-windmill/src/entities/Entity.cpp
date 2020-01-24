@@ -1,6 +1,8 @@
 #include "Entity.h"
 
-Entity::Entity(const BaseObjectModel &model) : model(model)
+Entity::Entity(const BaseObjectModel &model) : model(&model) {}
+
+Entity::Entity(const BaseObjectModel *model) : model(model)
 {
     this->modelMatrix = glm::mat4(1.0f); //start with identity matrix
     this->currentScale = glm::vec3(1.0f);

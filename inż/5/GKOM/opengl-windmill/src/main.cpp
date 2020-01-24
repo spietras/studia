@@ -19,6 +19,7 @@
 #include "entities/models/Tetrahedron.h"
 #include "entities/models/RegularTetrahedron.h"
 #include "entities/models/Sphere.h"
+#include "entities/composites/Ufo.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -32,7 +33,7 @@ std::vector<PointLight *> windmillLights;
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-    float speed = 0.25f;
+    float speed = 0.1f;
     if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera forward
     {
         cameraPtr->setPosition(glm::vec3(cameraPtr->getPosition() + cameraPtr->getViewDirection() * speed));
@@ -388,6 +389,10 @@ int main()
     int tail_direction = 1;
     float time_until_switch = 1.2;
     float time_counter = time_until_switch;
+
+    Ufo ufo(1.0f, 0, 1, 2);
+    ufo.translate({0.0f, 3.0f, 0.0f});
+    s.addCompositeEntity(ufo);
 
     //loop
     float deltaTime;

@@ -13,7 +13,7 @@ class Entity
 {
     const float SCALE_EPS = 0.01f;
 
-    const BaseObjectModel &model; //geometry
+    const BaseObjectModel *model; //geometry
     glm::mat4 modelMatrix; //transformation from local space to world space
 
     glm::vec3 currentScale;
@@ -23,7 +23,9 @@ class Entity
 public:
     Entity(const BaseObjectModel &model);
 
-    const BaseObjectModel &getModel() const
+    Entity(const BaseObjectModel *model);
+
+    const BaseObjectModel *getModel() const
     { return model; }
 
     const glm::mat4 &getModelMatrix() const

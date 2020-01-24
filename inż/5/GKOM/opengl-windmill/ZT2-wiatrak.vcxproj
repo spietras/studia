@@ -58,6 +58,8 @@
     <ClInclude Include="src\entities\models\Tetrahedron.h" />
     <ClInclude Include="src\entities\models\RegularTetrahedron.h" />
     <ClInclude Include="src\entities\models\Sphere.h" />
+    <ClInclude Include="src\entities\CompositeEntity.h" />
+    <ClInclude Include="src\entities\composites\Ufo.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B00CDD07-BE64-4A86-8B73-FAC569267C9A}</ProjectGuid>
