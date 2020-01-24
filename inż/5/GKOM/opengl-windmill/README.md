@@ -1,7 +1,7 @@
-#Projekt - animacja wiatraka z użyciem OpenGL
+# Projekt - animacja wiatraka z użyciem OpenGL
 
 
-#Zespół projektowy
+# Zespół projektowy
 
 Wiktor Michalski
 
@@ -11,7 +11,7 @@ Sebastian Pietras
 
 Maciej Szulik
 
-#Podział zadań
+# Podział zadań
 
 Michalski - modele, animacja
 
