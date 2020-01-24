@@ -176,7 +176,7 @@ int main()
     PointLightAttributes pla(ColorInt(255, 0, 0), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
     PointLightAttributes pla2(ColorInt(0, 0, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
     PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    DirectionalLightAttributes dla({1.0f, -1.0f, 0.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
+    DirectionalLightAttributes dla({-1.0f, -1.0f, -1.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
 
     /* light */
     PointLight light3(smallCube, pla3);
@@ -394,8 +394,6 @@ int main()
     tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
     tail_end.rotateRelative(foundation_root.getPosition(), 3.14 / 3, glm::vec3(0.0f, 1.0f, 0.0f));
     foundation_root.setPosition({1.0f, root_h, 0.0f});
-    //foundation_root.rotate(0.1f, {0.0f, 1.0f, 0.0f});
-    foundation_root.rotate(-M_PI / 4.0f, {0.0f, 1.0f, 0.0f});
 
     //moving tail paramteres
     int tail_direction = 1;

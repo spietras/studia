@@ -21,7 +21,7 @@ class DirectionalLight
     unsigned int depthMap;
     ColorFloat borderColor = {1.0f, 1.0f, 1.0f};
 
-    const float PLANE_SIZE = 26.0f, NEAR_PLANE = 1.0f, FAR_PLANE = 25.0f;
+    const float PLANE_SIZE = 20.0f, NEAR_PLANE = 5.0f, FAR_PLANE = 35.0f;
     const float LIGHT_DISTANCE = 10.0f;
     glm::mat4 lightSpaceMatrix;
 
