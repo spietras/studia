@@ -53,12 +53,12 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
         cameraPtr->setPosition(cameraPtr->getPosition() - glm::normalize(glm::cross(cameraPtr->getViewDirection(), cameraPtr->getUP())) * cameraSpeed);
     }
 
-    if (key == GLFW_KEY_X && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
+    if (key == GLFW_KEY_X && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera up
     {
         cameraPtr->setPosition(cameraPtr->getPosition() + cameraPtr->getUP() * cameraSpeed);
     }
 
-    if (key == GLFW_KEY_Z && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera to the left
+    if (key == GLFW_KEY_Z && (action == GLFW_REPEAT || action == GLFW_PRESS)) //move camera down
     {
         cameraPtr->setPosition(cameraPtr->getPosition() - cameraPtr->getUP() * cameraSpeed);
     }
@@ -66,13 +66,13 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) //close window
         glfwSetWindowShouldClose(window, GL_TRUE);
 
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) //close window
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) //drop fan
         drop_fan = 1;
 
-    if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) //close window
+    if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) //speed up fan to the left
         rotationSpeed -= 1;
 
-    if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)) //close window
+    if (key == GLFW_KEY_E && (action == GLFW_REPEAT || action == GLFW_PRESS)) //speed up fan to the right
         rotationSpeed += 1;
 
     float lightChangeSpeed = 0.1f;
