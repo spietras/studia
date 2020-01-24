@@ -22,9 +22,9 @@ class Sphere : public BaseObjectModel
             {
                 float xSegment = (float)x / (float)segmentsHorizontal;
                 float ySegment = (float)y / (float)segmentsVertical;
-                float xPos = std::cos(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
-                float yPos = std::cos(ySegment * M_PI);
-                float zPos = std::sin(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
+                float xPos = radius * std::cos(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
+                float yPos = radius * std::cos(ySegment * M_PI);
+                float zPos = radius * std::sin(xSegment * 2.0f * M_PI) * std::sin(ySegment * M_PI);
 
                 positions.emplace_back(xPos, yPos, zPos);
                 uvs.emplace_back(xSegment * scale, ySegment * scale);
