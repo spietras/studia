@@ -164,7 +164,7 @@ int main()
     PlaneModel planeModel(100.0f, 100.0f, 0, 1, 2);
 
     //materials
-    Material groundMaterial(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 4.0f);
+    Material groundMaterial(ColorInt(241, 140, 142), ColorFloat(0.5f, 0.5f, 0.5f), 1024.0f);
     Material woodMaterial(ColorInt(0, 255, 0), ColorFloat(0.5f, 0.5f, 0.5f), 32.0f);
     Material skyboxMaterial(ColorInt(255, 255, 255), ColorFloat(0.5f, 0.5f, 0.5f), 0.0f);
 
@@ -173,25 +173,15 @@ int main()
     skybox.setPosition({0.0f, 1.0f, 1.0f});
 
     /*  light attributes  */
-    PointLightAttributes pla(ColorInt(255, 0, 0), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    PointLightAttributes pla2(ColorInt(0, 0, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
-    PointLightAttributes pla3(ColorInt(255, 255, 255), 0.2f, 0.75f, 1.0f, 1.0f, 0.22f, 0.2f);
+    PointLightAttributes groundLightAttributes(ColorInt(255, 0, 0), 0.2f, 0.4f, 0.4f, 1.0f, 0.22f, 0.2f);
+    PointLightAttributes windmillLightAttributes(ColorInt(255, 255, 255), 0.2f, 0.4f, 0.4f, 1.0f, 0.22f, 0.2f);
     DirectionalLightAttributes dla({-1.0f, -1.0f, -1.0f}, ColorInt(50, 50, 50), 0.2f, 0.4f, 0.5f);
 
     /* light */
-    PointLight light3(smallCube, pla3);
-    PointLight light(smallCube, pla);
-    PointLight light2(smallCube, pla2);
+
     DirectionalLight directionalLight(dla);
 
-    light.setPosition({-0.5f, 0.0f, -1.0f});
-    light2.setPosition({0.5f, 0.0f, -1.0f});
-    light3.setPosition({0.0f, 0.0f, 0.6f});
-
     sunlight = &directionalLight;
-    groundLights.push_back(&light);
-    groundLights.push_back(&light2);
-    groundLights.push_back(&light3);
 
     /* absorbers */
 
@@ -204,9 +194,6 @@ int main()
 
     s.addSkybox(skybox);
 
-    s.addLight(light);
-    s.addLight(light2);
-    s.addLight(light3);
     s.setDirectionalLight(directionalLight);
 
     s.turnOnShadows();
@@ -328,12 +315,16 @@ int main()
     foundation_root.addChild(&parent);
 
     //light in the middle od the fan
-    CubeModel small_light(0.01f, 0, 1, 2);
-    PointLight light4(small_light, pla3);
+
+
+    //CubeModel small_light(0.01f, 0, 1, 2);
+    Cylinder small_light(0.01f, 0.01f, 30, 0, 1, 2);
+    PointLight light4(small_light, windmillLightAttributes);
+    light4.rotate(M_PI / 2.0f, {1.0f, 0.0, 0.0f});
     s.addLight(light4);
     light4.setPosition(parent.getPosition());
+    light4.translate({0.0f, 0.0f, 0.025 * 0.5f + 0.001f});
     parent.addChild(&light4);
-    // PADDLES ^^^
 
     windmillLights.push_back(&light4);
 
@@ -400,6 +391,23 @@ int main()
     float time_until_switch = 1.2;
     float time_counter = time_until_switch;
 
+    int lightsNum = 6;
+    float pathRadius = 13.0f;
+    float radiusDiff = 2.0f;
+    glm::vec3 pathCenter = {foundation_root.getPosition().x, 0.0f, foundation_root.getPosition().z - pathRadius};
+
+    for(int i = 0; i < lightsNum; i++)
+    {
+        auto* lightLow = new PointLight(smallCube, groundLightAttributes);
+        auto* lightHigh = new PointLight(smallCube, groundLightAttributes);
+        lightLow->setPosition({pathCenter.x + (pathRadius - radiusDiff * 0.5f) * std::sin((float(i + 1) / (lightsNum + 1)) * M_PI / 2.0f), 0.0f, pathCenter.z + (pathRadius - radiusDiff * 0.5f) * std::cos((float(i + 1) / (lightsNum + 1)) * M_PI / 2.0f)});
+        lightHigh->setPosition({pathCenter.x + (pathRadius + radiusDiff * 0.5f) * std::sin((float(i + 1) / (lightsNum + 1)) * M_PI / 2.0f), 0.0f, pathCenter.z + (pathRadius + radiusDiff * 0.5f) * std::cos((float(i + 1) / (lightsNum + 1)) * M_PI / 2.0f)});
+        s.addLight(*lightLow);
+        s.addLight(*lightHigh);
+        groundLights.push_back(lightLow);
+        groundLights.push_back(lightHigh);
+    }
+
     Ufo ufo(1.0f, 0, 1, 2);
     s.addCompositeEntity(ufo);
 
@@ -450,5 +458,9 @@ int main()
 
         w.draw(r, s, dsp, asp, lsp, sbsp, c);
     }
+
+    for(auto* light : groundLights)
+        delete light;
+
     return 0;
 }

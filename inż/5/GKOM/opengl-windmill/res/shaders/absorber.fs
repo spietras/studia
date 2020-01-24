@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_POINT_LIGHTS 10 // needed to make a static array
+#define MAX_POINT_LIGHTS 30 // needed to make a static array
 
 struct Material {
     sampler2D diffuse;
