@@ -131,8 +131,6 @@ vec3 getDirectionalLighting(DirectionalLight light, vec3 norm, vec3 viewDir, vec
     vec3 diffuse = getDiffuse(light.color, light.diffuseIntensity, norm, lightPosFromFrag);
     vec3 specular = getSpecular(light.color, light.specularIntensity, norm, lightPosFromFrag, viewDir);
 
-	return ambient;
-
     if(shadowsOn)
     {
         float shadow = getShadow(fragPosLightSpace, norm, lightPosFromFrag);
