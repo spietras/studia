@@ -4,6 +4,7 @@ Celem projektu było zamodelowanie i stworzenie animacji wiatraka w stylu ameryk
 Głównym zadaniem skupiliśmy się na odpowiednim oświetleniu sceny oraz pasujących teksturach.
 Aby ułatwić dostępu do różnych aspektów sceny dodaliśmy kamerę, która pozwala na swobodną obserwację.
 
+![alt text](res/img/screenshot.png "Screenshot")
 
 # Zespół projektowy i podział zadań
 
@@ -53,7 +54,7 @@ Esc - zamknięcie okna animacji
 
 3 - zwiększanie jasności lamp podłoża
 
-4 - zmniejszanie jasnośći lamp podłoża
+4 - zmniejszanie jasności lamp podłoża
 
 5 - zwiększanie jasności światła na wiatraku
 
