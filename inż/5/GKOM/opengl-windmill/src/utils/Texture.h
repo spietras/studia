@@ -58,15 +58,16 @@ public:
         }
     }
 
-    // loads a cubemap texture from 6 individual texture faces
-    // order:
-    // +X (right)
-    // -X (left)
-    // +Y (top)
-    // -Y (bottom)
-    // +Z (front)
-    // -Z (back)
-    // -------------------------------------------------------
+
+	/* order:
+		ft
+		bk
+		up
+		dn
+		rt
+		lf
+		*/
+
     Texture(const std::vector<std::string> &faces) : textureID(-1)
     {
         glGenTextures(1, &textureID);

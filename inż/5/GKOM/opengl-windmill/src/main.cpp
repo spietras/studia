@@ -383,7 +383,7 @@ int main()
 
     //initial positions of objects
     tail_end.rotateRelative(foundation_root.getPosition(), 0.2, glm::vec3(0.0f, 0.0f, 1.0f));
-    tail_end.rotateRelative(foundation_root.getPosition(), 3.14 / 3, glm::vec3(0.0f, 1.0f, 0.0f));
+    tail_end.rotateRelative(foundation_root.getPosition(), 3.14, glm::vec3(0.0f, 1.0f, 0.0f));
     foundation_root.setPosition({1.0f, root_h, 0.0f});
 
     //moving tail paramteres
@@ -418,6 +418,7 @@ int main()
     //loop
     float deltaTime;
     float lastFrame = 0.0f;
+	float fall_speed = 0.0;
     while (!w.shouldClose())
     {
         // time calculations
@@ -428,19 +429,22 @@ int main()
         float paddles_direction = -1; // controls the directon of moving paddles and of the fallen fan
 
         //parameters for realistic fall physics
-        float fall_speed = 0.0;
-        float fall_acceleration = 1.2;
+        float fall_acceleration = 0.2;
 
         if (drop_fan)
         {
             fall_speed += deltaTime * fall_acceleration; //acceleration during fall
 
             //fall animation
-            if (parent.getPosition().y >= radius_of_paddles + pad_length / 2)
-                parent.translate({0.0f, -fall_speed, 0.0f});
+            if (parent.getPosition().y > radius_of_paddles + pad_length / 2)
+			{
+				parent.translate({ 0.0f, -fall_speed, 0.0f });
+				if (parent.getPosition().y < radius_of_paddles + pad_length / 2)
+					parent.setPosition({ parent.getPosition().x, radius_of_paddles + pad_length / 2, parent.getPosition().z });
+			}
 
             //movement sideways during and after fall
-            parent.translate(foundation_root.getRotation() * glm::vec3(-0.13 * (radius_of_paddles + pad_length / 2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
+            parent.translate(foundation_root.getRotation() * glm::vec3(-0.1 * (radius_of_paddles + pad_length / 2) * rotationSpeed * deltaTime * paddles_direction, 0.0f, 0.0f));
         }
 
         //rotating tail
@@ -450,7 +454,7 @@ int main()
             time_counter = time_until_switch;
             tail_direction *= -1;
         }
-        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * rotationSpeed * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
+        tail_end.rotateRelative(foundation_root.getPosition(), tail_direction * 20 * deltaTime * 0.03, glm::vec3(0.0f, 1.0f, 0.0f));
         //rotating fans
         parent.rotateLocal(rotationSpeed * deltaTime * 0.1 * paddles_direction, {0.0f, 1.0f, 0.0f});
 
