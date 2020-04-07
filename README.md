@@ -1,1 +1,1 @@
-SOI_Projekty
+SOI-projekty
