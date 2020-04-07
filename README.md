@@ -1,1 +1,1 @@
-AISDI_Projekty
+AISDI-projekty
