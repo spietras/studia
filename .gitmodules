@@ -1,3 +1,6 @@
 [submodule "inż/2/PROI/elka-quest"]
 	path = inż/2/PROI/elka-quest
 	url = https://github.com/spietras/elka-quest
+[submodule "inż/4/ARKO/x86"]
+	path = inż/4/ARKO/x86
+	url = https://github.com/spietras/huffman-coding-x86
