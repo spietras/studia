@@ -1,4 +1,4 @@
-# TIN-NetworkFileSystem
+# network-file-system
 
 Aplikacje klienta i serwera obsługujące prosty protokół NFS
 
