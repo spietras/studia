@@ -18,7 +18,7 @@ Test app for making predictions in some e-commerce site
 
 # How it works
 
-Server stores two models that predicts if given user would buy given product at given discount.
+Server stores two models that predict if given user would buy given product at given discount.
 
 Client logs in as some user and chooses some product. Server polls the model the user is assigned to with series of discounts and responds with the lowest one that got a positive response from the model.
 
@@ -48,4 +48,4 @@ Arguments:
 
 - ```port``` (optional) - port at which to run the server (defaults to 8080)
 
-- ```mode``` (optional) - to use basic model or to performe AB test (defaults to basic)
+- ```mode``` (optional) - to use basic model or to perform AB test (defaults to basic)
