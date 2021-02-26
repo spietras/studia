@@ -10,3 +10,6 @@
 [submodule "inż/6/IUM/eShopping"]
 	path = inż/6/IUM/eShopping
 	url = https://github.com/spietras/eshoppping
+[submodule "inż/6/TIN/NFS"]
+	path = inż/6/TIN/NFS
+	url = https://github.com/spietras/network-file-system
