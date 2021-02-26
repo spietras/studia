@@ -16,3 +16,6 @@
 [submodule "inż/6/TKOM/timon-interpreter"]
 	path = inż/6/TKOM/timon-interpreter
 	url = https://github.com/spietras/timon-interpreter
+[submodule "inż/7/ALHE/antcolony"]
+	path = inż/7/ALHE/antcolony
+	url = https://github.com/spietras/antcolony
