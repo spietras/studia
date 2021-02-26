@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.beryx.runtime' version '1.1.6'
+}
+
+group 'com.spietras.picgallery'
+version '1.0'
+
+sourceCompatibility = JavaVersion.VERSION_11
+
+mainClassName = "com.spietras.picgallery.MainApp"
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.2"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.2"
+    testCompile "junit:junit:4.12"
+    testRuntime "org.junit.vintage:junit-vintage-engine:5.4.2"
+    testCompile "org.mockito:mockito-core:2.+"
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
+    compile group: 'org.controlsfx', name: 'controlsfx', version: '11.0.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.spietras.picgallery.Launcher'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+javafx {
+    version = "12.0.1"
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.swing']
+}
+
+runtime {
+    addOptions '--strip-debug', '--no-header-files', '--no-man-pages'
+    targetPlatform('linux-x64', '/usr/lib/jvm/jdk_linux-x64')
+    targetPlatform('windows-x64', '/usr/lib/jvm/jdk_windows-x64')
+}
