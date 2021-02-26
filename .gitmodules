@@ -4,3 +4,6 @@
 [submodule "inż/4/ARKO/x86"]
 	path = inż/4/ARKO/x86
 	url = https://github.com/spietras/huffman-coding-x86
+[submodule "inż/5/PSZT/perceptron"]
+	path = inż/5/PSZT/perceptron
+	url = https://github.com/spietras/perceptron
