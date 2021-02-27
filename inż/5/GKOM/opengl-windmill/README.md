@@ -8,13 +8,13 @@ Aby ułatwić dostępu do różnych aspektów sceny dodaliśmy kamerę, która p
 
 # Zespół projektowy i podział zadań
 
-Wiktor Michalski - modele, animacja
+[Wiktor Michalski](https://github.com/wmichalski) - modele, animacja
 
-Weronika Paszko  - kamera
+[Weronika Paszko](https://github.com/wpaszko)  - kamera
 
-Sebastian Pietras  - szkielet programu, oświetlenie
+[Sebastian Pietras](https://github.com/spietras)  - szkielet programu, oświetlenie
 
-Maciej Szulik - tekstury, skybox
+[Maciej Szulik](https://github.com/shoolic) - tekstury, skybox
 
 
 
