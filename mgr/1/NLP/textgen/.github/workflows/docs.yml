@@ -1,0 +1,69 @@
+name: Deploying docs
+
+on:
+  push:
+    # trigger only on main branch
+    branches:
+      - main
+    # trigger only on changes to the following files
+    paths:
+      - 'textgen/docs/**'
+      - 'environment.yml'
+      - 'textgen/poetry.lock'
+      - 'textgen/pyproject.toml'
+      - '.github/workflows/docs.yml'
+
+# env for all jobs
+env:
+  CONDA_CACHE_DIR: ~/conda_pkgs_dir
+  POETRY_CACHE_DIR: ~/.cache/pypoetry
+  PIP_CACHE_DIR: ~/.cache/pip
+  # increase this value to manually reset cache
+  CACHE_NUMBER: 0
+
+jobs:
+  deploy-docs:
+    name: Deploy docs
+    # better to use pinned version here
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        # necessary for conda to work
+        shell: bash -l {0}
+    steps:
+      - # get repository code
+        name: Checkout code
+        uses: actions/checkout@v2
+      - # get conda, poetry and pip cache (persistent between runs)
+        name: Cache packages
+        uses: actions/cache@v2
+        with:
+          
+          path: |
+            ${{ env.CONDA_CACHE_DIR }}
+            ${{ env.POETRY_CACHE_DIR }}
+            ${{ env.PIP_CACHE_DIR }}
+          key: ${{ runner.os }}-pkgs-${{ env.CACHE_NUMBER }} }}
+          
+      - # create and activate conda environment
+        name: Set up environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: textgen
+          environment-file: environment.yml
+          # necessary for caching to work
+          use-only-tar-bz2: true
+      - # set up directories for poetry and pip cache (by default they are different on linux and windows)
+        name: Set up poetry cache
+        
+        run: |
+          poetry config cache-dir ${{ env.POETRY_CACHE_DIR }}
+          pip config set global.cache-dir ${{ env.PIP_CACHE_DIR }}
+        
+      - name: Install docs tools
+        working-directory: textgen
+        # we need to install all base dependencies, waiting for https://github.com/python-poetry/poetry/issues/1644
+        run: poetry install --no-root --extras docs
+      - name: Deploy docs
+        working-directory: textgen/docs
+        run: mkdocs gh-deploy --force
