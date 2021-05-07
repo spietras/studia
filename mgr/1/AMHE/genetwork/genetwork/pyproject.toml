@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "genetwork"
+version = "0.1.0"
+description = "Satisfying network demands using genetic algorithm."
+readme = 'README.md'
+authors = ["Konrad Opaliński", "Sebastian Pietras"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+repository = "https://github.com/spietras/genetwork"
+documentation = "https://spietras.github.io/genetwork"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.20"
+typer = { version = "^0.3", extras = ["all"] }
+
+# dev
+jupyterlab = { version = "^3", optional = true }
+
+# test
+pytest = { version = "^6", optional = true }
+
+# docs
+mkdocs-material = { version = "^7", optional = true }
+
+[tool.poetry.extras]
+# need to do it that way until poetry supports dependency groups: https://github.com/python-poetry/poetry/issues/1644
+dev = ["jupyterlab", "pytest", "mkdocs-material"]
+test = ["pytest"]
+docs = ["mkdocs-material"]
+
+[tool.poetry.scripts]
+# cli entry point
+genetwork = "genetwork.__main__:cli"
+
+[build-system]
+# this should be there, see https://python-poetry.org/docs/pyproject/#poetry-and-pep-517
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
