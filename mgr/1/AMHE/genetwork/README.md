@@ -13,9 +13,26 @@ This ```README``` provides info about the development process.
 
 For more info about the package itself see ```genetwork/README.md``` or [docs](https://spietras.github.io/genetwork).
 
+## Quickstart (on Ubuntu)
+
+```sh
+$ apt update && apt install curl git python3 python3-pip python3-venv
+$ python3 -m pip install pipx && pipx install poetry
+$ pipx ensurepath && exec bash
+$ curl -sSL https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh -o miniconda.sh
+$ bash miniconda.sh && exec bash
+(base) $ git clone https://github.com/spietras/genetwork
+(base) $ cd genetwork
+(base) $ conda env create -f environment.yml
+(base) $ conda activate genetwork
+(genetwork) $ cd genetwork
+(genetwork) $ poetry install --extras dev
+(genetwork) $ genetwork
+```
+
 ## Environment management
 
-We are using [```conda```](https://conda.io) for environment management (and for installing ```poetry```). 
+We are using [```conda```](https://conda.io) for environment management (but you can as well use any other tool, e.g. ```pyenv + venv```). 
 The major reason is that ```conda``` lets you specify ```python``` version and will install that version in the environment.
 This ensures consistency between different instances (developers, CI, deployment).
 
@@ -44,7 +61,7 @@ conda env update -f environment.yml
 ## Package management
 
 We are using [```poetry```](https://python-poetry.org) to manage our package and its dependencies. 
-It's already installed in the environment.
+You need to have it installed outside our environment (I recommend to use [```pipx```](https://pipxproject.github.io/pipx) for that).
 
 To install the package, you need to ```cd``` into ```genetwork``` directory and run:
 
@@ -52,7 +69,7 @@ To install the package, you need to ```cd``` into ```genetwork``` directory and 
 poetry install --extras dev
 ```
 
-This will download and install all package dependencies (including optional development ones) and install the package in editable mode.
+This will download and install all package dependencies (including optional development ones) and install the package in editable mode into the activate environment.
 
 Editable mode means that you don't have to reinstall the package if you change something in the code.
 The changes are reflected automatically. 
@@ -144,17 +161,3 @@ jupyter lab
 ```
 
 The developed package is installed in the environment so we can import it in the notebooks as any other package.
-
-## Disclaimer: ```conda``` + ```poetry```
-
-```poetry``` detects that it is inside a virtual environment and install all packages to that environment.
-That's cool but on the other hand ```conda``` is not supervising any further modifications to the environment.
-This means that ```poetry``` can change package versions that have been already accepted by ```conda``` and possibly break some constraints.
-
-For example we install ```poetry``` in the environment (managed by ```conda```) and ```poetry``` depends on package ```X```, versions ```1.5``` and above.
-Now let's say our package (managed by ```poetry```) also needs package ```X```, this time version ```1.4.0``` exclusively.
-```poetry``` doesn't know about any constraints managed by ```conda``` and will happily install package ```X``` in version ```1.4.0```, thus breaking the constraints.
-This can lead to ```poetry``` not working.
-
-Fortunately the only "packages" on ```conda``` side are ```python``` and ```poetry``` and they have a rather small number of very specific dependencies.
-The constraints are rather loose and hard to break in practice. Nevertheless, there is a risk.
