@@ -30,6 +30,15 @@ $ bash miniconda.sh && exec bash
 (textgen) $ textgen
 ```
 
+## Quickerstart
+
+If you just want to try it out and don't care about polluting your environment:
+
+```sh
+$ python3 -m pip install ./textgen
+$ textgen
+```
+
 ## Environment management
 
 We are using [```conda```](https://conda.io) for environment management (but you can as well use any other tool, e.g. ```pyenv + venv```). 
