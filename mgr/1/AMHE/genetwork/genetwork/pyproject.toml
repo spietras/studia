@@ -15,6 +15,9 @@ documentation = "https://spietras.github.io/genetwork"
 python = "^3.9"
 numpy = "^1.20"
 typer = { version = "^0.3", extras = ["all"] }
+networkx = "^2.5"
+matplotlib = "^3.4"
+beautifulsoup4 = { version = "^4.9", extras = ["lxml"] }
 
 # dev
 jupyterlab = { version = "^3", optional = true }
@@ -34,6 +37,7 @@ docs = ["mkdocs-material"]
 [tool.poetry.scripts]
 # cli entry point
 genetwork = "genetwork.__main__:cli"
+sndlib-draw = "genetwork.draw:cli"
 
 [build-system]
 # this should be there, see https://python-poetry.org/docs/pyproject/#poetry-and-pep-517
