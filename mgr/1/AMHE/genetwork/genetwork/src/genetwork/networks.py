@@ -340,3 +340,23 @@ class SndlibNetworkXMLParser(SndlibNetworkParser[H, R]):
                              SndlibNode(demand.target.pyval),
                              demand.demandValue.pyval,
                              get_paths(demand, graph)) for demand in root.demands.demand]
+
+
+class SndlibTransponderType:
+    def __init__(self, capacity: Real, cost: Real) -> None:
+        super().__init__()
+        self.capacity = capacity
+        self.cost = cost
+
+    def __hash__(self) -> int:
+        return hash(self.capacity)
+
+
+class SndlibTranspondersPlacement:
+    def __init__(self, path: SndlibPath, quantity_dict: Dict[SndlibTransponderType, int]) -> None:
+        super().__init__()
+        self.path = path
+        self.quantity_dict = quantity_dict
+
+    def quantity_of(self, transponder_type: SndlibTransponderType):
+        return self.quantity_dict[transponder_type]
