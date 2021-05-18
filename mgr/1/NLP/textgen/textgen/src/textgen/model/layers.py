@@ -1,11 +1,12 @@
 import math
+from typing import Optional
 
 import torch
-from torch import nn
+from torch import nn, Tensor
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self, d_model, d_ff, num_heads, d_k, drop_out_rate):
+    def __init__(self, d_model: int, d_ff: int, num_heads: int, d_k: int, drop_out_rate: float) -> None:
         super().__init__()
         self.layer_norm_1 = LayerNormalization(d_model)
         self.multihead_attention = MultiheadAttention(d_model, num_heads, d_k, drop_out_rate)
@@ -15,7 +16,7 @@ class EncoderLayer(nn.Module):
         self.feed_forward = FeedFowardLayer(d_model, d_ff, drop_out_rate)
         self.drop_out_2 = nn.Dropout(drop_out_rate)
 
-    def forward(self, x, e_mask):
+    def forward(self, x: Tensor, e_mask: Optional[Tensor] = None) -> Tensor:
         x_1 = self.layer_norm_1(x)  # (B, L, d_model)
         x = x + self.drop_out_1(self.multihead_attention(x_1, x_1, x_1, mask=e_mask))  # (B, L, d_model)
         x_2 = self.layer_norm_2(x)  # (B, L, d_model)
@@ -25,7 +26,7 @@ class EncoderLayer(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self, d_model, d_ff, num_heads, d_k, drop_out_rate):
+    def __init__(self, d_model: int, d_ff: int, num_heads: int, d_k: int, drop_out_rate: float) -> None:
         super().__init__()
         self.layer_norm_1 = LayerNormalization(d_model)
         self.masked_multihead_attention = MultiheadAttention(d_model, num_heads, d_k, drop_out_rate)
@@ -39,7 +40,8 @@ class DecoderLayer(nn.Module):
         self.feed_forward = FeedFowardLayer(d_model, d_ff, drop_out_rate)
         self.drop_out_3 = nn.Dropout(drop_out_rate)
 
-    def forward(self, x, e_output, e_mask, d_mask):
+    def forward(self, x: Tensor, e_output: Tensor,
+                e_mask: Optional[Tensor] = None, d_mask: Optional[Tensor] = None) -> Tensor:
         x_1 = self.layer_norm_1(x)  # (B, L, d_model)
         x = x + self.drop_out_1(self.masked_multihead_attention(x_1, x_1, x_1, mask=d_mask))  # (B, L, d_model)
         x_2 = self.layer_norm_2(x)  # (B, L, d_model)
@@ -51,13 +53,12 @@ class DecoderLayer(nn.Module):
 
 
 class MultiheadAttention(nn.Module):
-    def __init__(self, d_model, num_heads, d_k, drop_out_rate):
+    def __init__(self, d_model: int, num_heads: int, d_k: int, drop_out_rate: float) -> None:
         super().__init__()
         self.inf = 1e9
         self.d_model = d_model
         self.num_heads = num_heads
         self.d_k = d_k
-        self.drop_out_rate = drop_out_rate
 
         # W^Q, W^K, W^V in the paper
         self.w_q = nn.Linear(d_model, d_model)
@@ -70,13 +71,13 @@ class MultiheadAttention(nn.Module):
         # Final output linear transformation
         self.w_0 = nn.Linear(d_model, d_model)
 
-    def forward(self, q, k, v, mask=None):
-        input_shape = q.shape
+    def forward(self, q: Tensor, k: Tensor, v: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+        batch_size = len(q)
 
         # Linear calculation +  split into num_heads
-        q = self.w_q(q).view(input_shape[0], -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
-        k = self.w_k(k).view(input_shape[0], -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
-        v = self.w_v(v).view(input_shape[0], -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
+        q = self.w_q(q).view(batch_size, -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
+        k = self.w_k(k).view(batch_size, -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
+        v = self.w_v(v).view(batch_size, -1, self.num_heads, self.d_k)  # (B, L, num_heads, d_k)
 
         # For convenience, convert all tensors in size (B, num_heads, L, d_k)
         q = q.transpose(1, 2)
@@ -85,12 +86,12 @@ class MultiheadAttention(nn.Module):
 
         # Conduct self-attention
         attn_values = self.self_attention(q, k, v, mask=mask)  # (B, num_heads, L, d_k)
-        concat_output = attn_values.transpose(1, 2).contiguous().view(input_shape[0], -1, self.d_model)
-        # (B, L, d_model)
+        concat_output = attn_values.transpose(1, 2).contiguous().view(batch_size, -1,
+                                                                      self.d_model)  # (B, L, d_model)
 
         return self.w_0(concat_output)
 
-    def self_attention(self, q, k, v, mask=None):
+    def self_attention(self, q: Tensor, k: Tensor, v: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         # Calculate attention scores with scaled dot-product attention
         attn_scores = torch.matmul(q, k.transpose(-2, -1))  # (B, num_heads, L, L)
         attn_scores = attn_scores / math.sqrt(self.d_k)
@@ -110,14 +111,14 @@ class MultiheadAttention(nn.Module):
 
 
 class FeedFowardLayer(nn.Module):
-    def __init__(self, d_model, d_ff, drop_out_rate):
+    def __init__(self, d_model: int, d_ff: int, drop_out_rate: float) -> None:
         super().__init__()
         self.linear_1 = nn.Linear(d_model, d_ff, bias=True)
         self.relu = nn.ReLU()
         self.linear_2 = nn.Linear(d_ff, d_model, bias=True)
         self.dropout = nn.Dropout(drop_out_rate)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.relu(self.linear_1(x))  # (B, L, d_ff)
         x = self.dropout(x)
         x = self.linear_2(x)  # (B, L, d_model)
@@ -126,26 +127,23 @@ class FeedFowardLayer(nn.Module):
 
 
 class LayerNormalization(nn.Module):
-    def __init__(self, d_model, eps=1e-6):
+    def __init__(self, d_model: int, eps: float = 1e-6) -> None:
         super().__init__()
-        self.eps = eps
-        self.layer = nn.LayerNorm([d_model], elementwise_affine=True, eps=self.eps)
+        self.layer = nn.LayerNorm([d_model], elementwise_affine=True, eps=eps)
 
-    def forward(self, x):
-        x = self.layer(x)
-
-        return x
+    def forward(self, x: Tensor) -> Tensor:
+        return self.layer(x)
 
 
 class PositionalEncoder(nn.Module):
-    def __init__(self, parameters):
+    def __init__(self, d_model: int, max_seq_len: int) -> None:
         super().__init__()
-        self.d_model = parameters["d_model"]
+        self.d_model = d_model
         # Make initial positional encoding matrix with 0
-        pe_matrix = torch.zeros(parameters["max_seq_len"], parameters["d_model"])  # (L, d_model)
+        pe_matrix = torch.zeros(max_seq_len, d_model)  # (L, d_model)
 
         # Calculating position encoding values
-        for pos in range(parameters["max_seq_len"]):
+        for pos in range(max_seq_len):
             for i in range(self.d_model):
                 if i % 2 == 0:
                     pe_matrix[pos, i] = math.sin(pos / (10000 ** (2 * i / self.d_model)))
@@ -153,10 +151,10 @@ class PositionalEncoder(nn.Module):
                     pe_matrix[pos, i] = math.cos(pos / (10000 ** (2 * i / self.d_model)))
 
         pe_matrix = pe_matrix.unsqueeze(0)  # (1, L, d_model)
-        self.positional_encoding = pe_matrix.to(device=parameters["device"]).requires_grad_(False)
+        self.register_buffer("positional_encoding", pe_matrix)
 
-    def forward(self, x, offset=0):
+    def forward(self, x: Tensor, offset: int = 0) -> Tensor:
         x = x * math.sqrt(self.d_model)  # (B, L, d_model)
-        x = x + self.positional_encoding[:, offset : offset + x.shape[1], :]  # (B, L, d_model)
+        x = x + self.positional_encoding[:, offset: offset + x.shape[1], :]  # (B, L, d_model)
 
         return x

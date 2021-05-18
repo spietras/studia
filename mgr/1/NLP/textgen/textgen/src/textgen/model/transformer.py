@@ -1,77 +1,65 @@
+from typing import Optional, Tuple, Dict, Callable
+
 import torch
-from torch import nn
+import torchmetrics
+from pytorch_lightning import LightningModule
+from textgen.model.layers import PositionalEncoder, EncoderLayer, LayerNormalization, DecoderLayer
+from torch import nn, Tensor
 
-from transformer_model.layers import *
 
-
-class Transformer(nn.Module):
-    def __init__(self, parameters):
+class TransformerModel(nn.Module):
+    def __init__(self, src_vocab_size: int, trg_vocab_size: int,
+                 d_model: int, d_ff: int, num_heads: int, num_layers: int,
+                 drop_out_rate: float, max_seq_len: int,
+                 src_embedding: Optional[Tensor] = None, trg_embedding: Optional[Tensor] = None) -> None:
         super().__init__()
-        self.src_vocab_size = parameters["src_vocab_size"]
-        self.trg_vocab_size = parameters["trg_vocab_size"]
-        self.d_model = parameters["d_model"]
-        self.device = parameters["device"]
-        self.d_ff = parameters["d_ff"]
-        self.num_heads = parameters["num_heads"]
-        self.num_layers = parameters["num_layers"]
-        self.d_k = parameters["d_k"]
-        self.drop_out_rate = parameters["drop_out_rate"]
 
-        if parameters["src_embedding"] is not None and parameters["trg_embedding"] is not None:
-            self.src_embedding = nn.Embedding(self.src_vocab_size, self.d_model).from_pretrained(
-                parameters["src_embedding"], freeze=True
-            )
-            self.trg_embedding = nn.Embedding(self.trg_vocab_size, self.d_model).from_pretrained(
-                parameters["trg_embedding"], freeze=True
-            )
+        if src_embedding is not None and trg_embedding is not None:
+            self.src_embedding = nn.Embedding(src_vocab_size, d_model).from_pretrained(src_embedding, freeze=True)
+            self.trg_embedding = nn.Embedding(trg_vocab_size, d_model).from_pretrained(trg_embedding, freeze=True)
         else:
-            self.src_embedding = nn.Embedding(self.src_vocab_size, self.d_model)
-            self.trg_embedding = nn.Embedding(self.trg_vocab_size, self.d_model)
+            self.src_embedding = nn.Embedding(src_vocab_size, d_model)
+            self.trg_embedding = nn.Embedding(trg_vocab_size, d_model)
 
-        self.positional_encoder = PositionalEncoder(parameters)
-        self.encoder = Encoder(self.d_model, self.d_ff, self.num_heads, self.num_layers, self.d_k, self.drop_out_rate)
-        self.decoder = Decoder(self.d_model, self.d_ff, self.num_heads, self.num_layers, self.d_k, self.drop_out_rate)
-        self.output_linear = nn.Linear(self.d_model, self.trg_vocab_size)
+        self.positional_encoder = PositionalEncoder(d_model, max_seq_len)
+        self.encoder = Encoder(d_model, d_ff, num_heads, num_layers, d_model // num_heads, drop_out_rate)
+        self.decoder = Decoder(d_model, d_ff, num_heads, num_layers, d_model // num_heads, drop_out_rate)
+        self.output_linear = nn.Linear(d_model, trg_vocab_size)
         self.softmax = nn.LogSoftmax(dim=-1)
 
-    def forward(self, src_input, trg_input, e_mask=None, d_mask=None, training=False, limit=100):
+    def forward(self, src_input: Tensor, trg_input: Tensor,
+                e_mask: Optional[Tensor] = None, d_mask: Optional[Tensor] = None) -> Tensor:
         src_input = self.src_embedding(src_input)  # (B, L) => (B, L, d_model)
         trg_input = self.trg_embedding(trg_input)  # (B, L) => (B, L, d_model)
         src_input = self.positional_encoder(src_input)  # (B, L, d_model) => (B, L, d_model)
         trg_input = self.positional_encoder(trg_input)  # (B, L, d_model) => (B, L, d_model)
 
+        if e_mask is not None:
+            e_mask = e_mask.unsqueeze(1)  # (B, L) => (B, 1, L)
+        if d_mask is not None:
+            d_mask = d_mask.unsqueeze(1)  # (B, L) => (B, 1, L)
+            nopeak_mask = torch.ones([1, d_mask.shape[-1], d_mask.shape[-1]],
+                                     dtype=torch.bool, device=d_mask.device)  # (1, L, L)
+            nopeak_mask = torch.tril(nopeak_mask)  # (1, L, L) to triangular shape (look-ahead mask)
+            d_mask = d_mask & nopeak_mask  # (B, L, L) padding false
+
         e_output = self.encoder(src_input, e_mask)  # (B, L, d_model)
 
-        if training:
-            d_output = self.decoder(trg_input, e_output, e_mask, d_mask)  # (B, L, d_model)
-            return self.softmax(self.output_linear(d_output))  # (B, L, d_model) => # (B, L, trg_vocab_size)
-        else:
-            return self._predict(trg_input, e_output, e_mask, limit)
-
-    def _predict(self, trg_input, e_output, e_mask, len_lim):
-        predictions = torch.tensor([]).to(self.device)
-        for step in range(len_lim):
-            out = self.decoder(trg_input, e_output, e_mask, None)
-            out = self.softmax(self.output_linear(out))[:, -1:, :]
-            predictions = torch.cat((predictions, out), dim=1)
-            out = torch.argmax(out, dim=-1)
-            out = self.trg_embedding(out)
-            out = self.positional_encoder(out, step + 1)
-            trg_input = torch.cat((trg_input, out), dim=1)
-
-        return predictions
+        d_output = self.decoder(trg_input, e_output, e_mask, d_mask)  # (B, L, d_model)
+        return self.softmax(self.output_linear(d_output))  # (B, L, d_model) => # (B, L, trg_vocab_size)
 
 
 class Encoder(nn.Module):
-    def __init__(self, d_model, d_ff, num_heads, num_layers, d_k, drop_out_rate):
+    def __init__(self, d_model: int, d_ff: int, num_heads: int,
+                 num_layers: int, d_k: int, drop_out_rate: float) -> None:
         super().__init__()
         self.num_layers = num_layers
         self.layers = nn.ModuleList(
-            [EncoderLayer(d_model, d_ff, num_heads, d_k, drop_out_rate) for i in range(num_layers)]
+            [EncoderLayer(d_model, d_ff, num_heads, d_k, drop_out_rate) for _ in range(num_layers)]
         )
         self.layer_norm = LayerNormalization(d_model)
 
-    def forward(self, x, e_mask):
+    def forward(self, x: Tensor, e_mask: Optional[Tensor] = None) -> Tensor:
         for i in range(self.num_layers):
             x = self.layers[i](x, e_mask)
 
@@ -79,16 +67,70 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, d_model, d_ff, num_heads, num_layers, d_k, drop_out_rate):
+    def __init__(self, d_model: int, d_ff: int, num_heads: int,
+                 num_layers: int, d_k: int, drop_out_rate: float) -> None:
         super().__init__()
         self.num_layers = num_layers
         self.layers = nn.ModuleList(
-            [DecoderLayer(d_model, d_ff, num_heads, d_k, drop_out_rate) for i in range(num_layers)]
+            [DecoderLayer(d_model, d_ff, num_heads, d_k, drop_out_rate) for _ in range(num_layers)]
         )
         self.layer_norm = LayerNormalization(d_model)
 
-    def forward(self, x, e_output, e_mask, d_mask):
+    def forward(self, x: Tensor, e_output: Tensor,
+                e_mask: Optional[Tensor] = None, d_mask: Optional[Tensor] = None) -> Tensor:
         for i in range(self.num_layers):
             x = self.layers[i](x, e_output, e_mask, d_mask)
 
         return self.layer_norm(x)
+
+
+class Transformer(LightningModule):
+    """LightningModule for Transformer."""
+
+    def __init__(self, model: TransformerModel, pad_id: int,
+                 loss: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
+                 metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
+                 lr: float = 1e-3, betas: Tuple[float, float] = (0.9, 0.98)) -> None:
+        super().__init__()
+        self.model = model
+        self.loss = loss or nn.NLLLoss(ignore_index=pad_id)
+        self.metric = metric or torchmetrics.Accuracy(ignore_index=pad_id)
+        self.lr = lr
+        self.betas = betas
+
+    def forward(self, src: Tensor, trg: Tensor,
+                src_mask: Optional[Tensor] = None, trg_mask: Optional[Tensor] = None) -> Tensor:
+        return self.model(src, trg, src_mask, trg_mask)
+
+    def training_step(self,
+                      batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
+                      batch_idx: int) -> Tensor:
+        src, trg, src_mask, trg_mask, y = batch
+        pred = self.model(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
+        return self.loss(pred, y)
+
+    def validation_step(self,
+                        batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
+                        batch_idx: int) -> Dict[str, Tensor]:
+        src, trg, src_mask, trg_mask, y = batch
+        pred = self(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
+        loss = self.loss(pred, y)
+        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metrics = {'val_metric': metric, 'val_loss': loss}
+        self.log_dict(metrics)
+        return metrics
+
+    def test_step(self,
+                  batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
+                  batch_idx: int) -> Dict[str, Tensor]:
+        src, trg, src_mask, trg_mask, y = batch
+        pred = self(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
+        loss = self.loss(pred, y)
+        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metrics = {'test_metric': metric, 'test_loss': loss}
+        self.log_dict(metrics)
+        return metrics
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, betas=self.betas)
+        return optimizer
