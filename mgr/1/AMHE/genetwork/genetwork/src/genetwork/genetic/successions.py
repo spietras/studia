@@ -14,11 +14,10 @@ class Succession(ABC, Generic[T]):
 
 
 class BestOverallSuccession(Succession[T]):
-    def __init__(self, evaluator: Evaluator) -> None:
+    def __init__(self, evaluator: Evaluator[T]) -> None:
         self.evaluator = evaluator
 
     def pick(self, parents: List[Creature[T]], offspring: List[Creature[T]]) -> List[Creature[T]]:
         population = parents + offspring
         population.sort(key=lambda x: self.evaluator.evaluate_creature(x))
-        new_population = population[:len(parents)]
-        return new_population
+        return population[:len(parents)]

@@ -1,14 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import List, TypeVar, Generic
 
 from genetwork.networks import SndlibTranspondersPlacement
 
 
 class Gene(ABC):
-
-    @abstractmethod
-    def is_valid(self) -> bool:
-        return NotImplemented
+    """Just a marker for type bounds."""
+    pass
 
 
 T = TypeVar('T', bound=Gene)
@@ -26,6 +24,3 @@ class SndlibGene(Gene):
     def __init__(self, placements: List[SndlibTranspondersPlacement]) -> None:
         super().__init__()
         self.placements = placements
-
-    def is_valid(self) -> bool:
-        pass  # TODO

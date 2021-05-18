@@ -7,8 +7,6 @@ from genetwork.networks import SndlibTransponderType, SndlibDemand, SndlibTransp
 
 T = TypeVar('T', bound=Gene)
 
-MAX_TRANS_NB = 1
-
 
 class PopulationInitializer(ABC, Generic[T]):
     @abstractmethod
@@ -26,35 +24,19 @@ class RandomSndlibPopulationInitializer(SndlibPopulationInitializer):
     def __init__(self,
                  pop_size: int,
                  trans_types: List[SndlibTransponderType],
-                 demands: List[SndlibDemand]) -> None:
+                 demands: List[SndlibDemand],
+                 max_transponders: int = 0) -> None:
         self.pop_size = pop_size
         self.trans_types = trans_types
         self.demands = demands
+        self.max_transponders = max_transponders
 
     def init(self) -> List[Creature[SndlibGene]]:
-        population = []
-
-        for size in range(self.pop_size):
-            genes = []
-
-            for demand in self.demands:
-                gene = self.create_random_gene(demand)
-                genes.append(gene)
-
-            population.append(Creature(genes))
-
-        return population
+        return [Creature([self.create_random_gene(d) for d in self.demands]) for _ in range(self.pop_size)]
 
     def create_random_gene(self, demand: SndlibDemand) -> SndlibGene:
         placements = []
-
         for path in demand.admissible_paths:
-            rand_trans_types_nb = random.choices(range(0, MAX_TRANS_NB+1), k=len(self.trans_types))
-            quantity_dict = {}
-
-            for trans_type, nb in zip(self.trans_types, rand_trans_types_nb):
-                quantity_dict[trans_type] = nb
-
+            quantity_dict = {trans_type: random.randint(0, self.max_transponders) for trans_type in self.trans_types}
             placements.append(SndlibTranspondersPlacement(path, quantity_dict))
-
         return SndlibGene(placements)

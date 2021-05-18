@@ -10,6 +10,7 @@ Example usage:
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from itertools import islice
 from numbers import Real
 from typing import Hashable, TypeVar, Generic, Tuple, List, Dict, Any, Iterable, Union, Optional, TextIO
 
@@ -74,6 +75,10 @@ class TPath(Serializable, Generic[H]):
     @staticmethod
     def _check_path(edges: List[TEdge[H]]) -> bool:
         return all(e1.target == e2.source for e1, e2 in zip(edges, edges[1:]))
+
+    @classmethod
+    def from_nodes(cls, nodes: List[H]) -> 'TPath[H]':
+        return cls([TEdge[H](u, v) for u, v in zip(nodes, nodes[1:])])
 
     def has_node(self, n: H) -> bool:
         return n in self.nodes
@@ -186,6 +191,10 @@ class TGraph(Serializable, Graph, Generic[H]):
             path = path.nodes
         return all(map(self.has_edge, path, path[1:]))
 
+    def shortest_simple_paths(self, u: H, v: H) -> Iterable[TPath[H]]:
+        for path in nx.shortest_simple_paths(self, u, v):
+            yield TPath[H].from_nodes(path)
+
     def serialize(self) -> Dict:
         return {
             "name": self.name,
@@ -271,7 +280,7 @@ class SndlibGraph(TGraph[SndlibNode[H]]):
 
 class SndlibDemand(TDemand[SndlibNode[H], R]):
     def __init__(self, id: str, source: SndlibNode[H], target: SndlibNode[H], value: R,
-                 admissible_paths: Optional[List[SndlibPath[H]]] = None) -> None:
+                 admissible_paths: List[SndlibPath[H]]) -> None:
         super().__init__(source, target, value, admissible_paths)
         self.id = id
 
@@ -314,10 +323,14 @@ class SndlibNetworkParser(ABC, Generic[H, R]):
 
 
 class SndlibNetworkXMLParser(SndlibNetworkParser[H, R]):
+    def __init__(self, max_paths: int = 4) -> None:
+        super().__init__()
+        self.max_paths = max_paths
+
     def parse(self, source: TextIO) -> SndlibNetwork[H, R]:
         root = objectify.parse(source).getroot()
         graph = self._get_graph(root)
-        return SndlibNetwork(graph, self._get_demands(root, graph))
+        return SndlibNetwork(graph, self._get_demands(root, graph, self.max_paths))
 
     @staticmethod
     def _get_graph(root: ObjectifiedElement) -> SndlibGraph[H]:
@@ -326,20 +339,26 @@ class SndlibNetworkXMLParser(SndlibNetworkParser[H, R]):
                                        SndlibNode(link.target.pyval)) for link in root.networkStructure.links.link])
 
     @staticmethod
-    def _get_demands(root: ObjectifiedElement, graph: SndlibGraph[H]) -> List[SndlibDemand[H, R]]:
+    def _get_demands(root: ObjectifiedElement, graph: SndlibGraph[H], max_paths: int) -> List[SndlibDemand[H, R]]:
         def get_path(path_root: ObjectifiedElement, graph: SndlibGraph[H]) -> SndlibPath[H]:
             links_map = {link.id: link for link in graph.links}
             return SndlibPath(path_root.get("id"), [links_map[link_id.pyval] for link_id in path_root.linkId])
 
-        def get_paths(demand_root: ObjectifiedElement, graph: SndlibGraph[H]) -> Optional[List[SndlibPath[H]]]:
-            return [get_path(path, graph) for path
-                    in demand_root.admissiblePaths.admissiblePath] if hasattr(demand_root, "admissiblePaths") else None
+        def get_paths(demand_root: ObjectifiedElement, graph: SndlibGraph[H], max_paths: int) -> List[SndlibPath[H]]:
+            if hasattr(demand_root, "admissiblePaths"):
+                return [get_path(path, graph) for path in demand_root.admissiblePaths.admissiblePath]
+            else:
+                paths = islice(graph.shortest_simple_paths(SndlibNode(demand_root.source.pyval),
+                                                           SndlibNode(demand_root.target.pyval)), max_paths)
+                paths = [[SndlibLink(f"{demand_root.get('id')}_link_{i}", e.source, e.target) for e in p.edges]
+                         for i, p in enumerate(paths)]
+                return [SndlibPath(f"{demand_root.get('id')}_{i}", p) for i, p in enumerate(paths)]
 
         return [SndlibDemand(demand.get("id"),
                              SndlibNode(demand.source.pyval),
                              SndlibNode(demand.target.pyval),
                              demand.demandValue.pyval,
-                             get_paths(demand, graph)) for demand in root.demands.demand]
+                             get_paths(demand, graph, max_paths)) for demand in root.demands.demand]
 
 
 class SndlibTransponderType:

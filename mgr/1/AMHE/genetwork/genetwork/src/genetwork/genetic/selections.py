@@ -1,4 +1,3 @@
-import copy
 import random
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, List
@@ -16,13 +15,13 @@ class Selection(ABC, Generic[T]):
 
 
 class ThresholdSelection(Selection[T]):
-    def __init__(self, evaluator: Evaluator, threshold: int, size: int):
+    def __init__(self, evaluator: Evaluator[T], threshold: float, size_factor: float):
         self.evaluator = evaluator
         self.threshold = threshold
-        self.size = size
+        self.size_factor = size_factor
 
     def select(self, population: List[Creature[T]]) -> List[Creature[T]]:
-        population.sort(key=lambda x: self.evaluator.evaluate_creature(x))
-        new_pop_idx = random.choices(range(0, self.threshold), k=self.size)
-        new_pop = [copy.deepcopy(population[idx]) for idx in new_pop_idx]
-        return new_pop
+        population = sorted(population, key=lambda x: self.evaluator.evaluate_creature(x))
+        new_pop_idx = random.choices(range(0, int(self.threshold * len(population))),
+                                     k=int(self.size_factor * len(population)))
+        return [population[idx] for idx in new_pop_idx]
