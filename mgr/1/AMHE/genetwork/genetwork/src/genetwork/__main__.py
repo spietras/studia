@@ -65,7 +65,7 @@ def main(network_path: Path = typer.Argument(..., help="Path to graph definition
          beta: float = typer.Option(2.5, help="Beta parameter of the objective function (exceeding fiber capacity)"),
          lam: int = typer.Option(96, help="Maximum capacity of wavelengths (lambdas) in a single fiber"),
          max_paths: int = typer.Option(4, help="Maximum paths to generate if there are no admissiblePaths in XML"),
-         config_path: Optional[Path] = typer.Option(default=None, help="Path to configuration file"),
+         config_path: Optional[Path] = typer.Option(None, help="Path to configuration file"),
          out_path: Optional[Path] = typer.Option(None, help="Output file path, if None prints to stdout")
          ) -> Optional[int]:
     """Command line interface for genetwork."""

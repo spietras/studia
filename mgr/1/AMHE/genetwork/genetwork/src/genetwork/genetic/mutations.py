@@ -41,9 +41,9 @@ class DeltaMutation(SndlibMutation):
             for j, placement in enumerate(gene.placements):
                 for trans_type, nb in placement.quantity_dict.items():
                     if random.uniform(0, 1) < self.pm:
-                        c.chromosome = copy(creature.chromosome)
-                        c.chromosome[i] = copy(creature.chromosome[i])
-                        c.chromosome[i].placements = copy(creature.chromosome[i].placements)
-                        c.chromosome[i].placements[j] = deepcopy(creature.chromosome[i].placements[j])
+                        c.chromosome = copy(c.chromosome)
+                        c.chromosome[i] = copy(c.chromosome[i])
+                        c.chromosome[i].placements = copy(c.chromosome[i].placements)
+                        c.chromosome[i].placements[j] = deepcopy(c.chromosome[i].placements[j])
                         c.chromosome[i].placements[j].quantity_dict[trans_type] = max(0, nb + random.choice((-1, 1)))
         return c
