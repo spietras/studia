@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-from genetwork.genetic.creatures import Gene
+from genetwork.genetic.creatures import Gene, Creature
 from genetwork.genetic.crossovers import Crossover
 from genetwork.genetic.evaluators import Evaluator
 from genetwork.genetic.initializers import PopulationInitializer
@@ -36,6 +36,9 @@ class Evolution(Generic[T]):
         self.population = self.succession.pick(self.population, children)
         self.n_generation += 1
 
+    def best_creature(self) -> Creature[T]:
+        return self.population[0]
+
 
 class StoppingCriterion(ABC):
     @abstractmethod
@@ -67,4 +70,4 @@ class NoChangeStoppingCriterion(StoppingCriterion):
 
 class FirstValidStoppingCriterion(StoppingCriterion):
     def should_stop(self, e: Evolution) -> bool:
-        return e.evaluator.is_creature_valid(e.population[0])
+        return e.evaluator.is_creature_valid(e.best_creature())

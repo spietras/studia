@@ -11,5 +11,5 @@ class EvolutionLogger(ABC):
 
 class EvolutionConsoleLogger(EvolutionLogger):
     def log(self, evolution: Evolution):
-        score, valid = evolution.evaluator.evaluate(evolution.population[0])
+        score, valid = evolution.evaluator.evaluate(evolution.best_creature())
         print(f"Generation number: {evolution.n_generation}, best score: {score}, best valid: {valid}")
