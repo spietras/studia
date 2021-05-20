@@ -13,7 +13,9 @@ import pandas as pd
 
 import numpy as np
 from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader, Dataset, IterableDataset
+from torch.utils.data import DataLoader, Dataset, IterableDataset, random_split, Subset
+from torch.random import initial_seed, manual_seed
+from torch import Generator
 
 
 T = TypeVar('T', bound=Hashable)
@@ -44,21 +46,27 @@ class FSDK50K(ClassificationDataset[str]):
             data: (n_samples, n_channels) - sample values for each audio channel
         y: str - target class
     """
-    items=[]
+   
 
     def __init__(self, base_dir: Path) -> None:
         super().__init__()
+        self.items:List[Tuple[str,str]]=[]
         #sample_rate, samples = wavfile.read(base_dir.joinpath("237.wav"))
-        onlywavfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".wav")]
+        #onlywavfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".wav")]
         onlycsvfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".csv")]
         
-        opisy = pd.read_csv(base_dir.joinpath(onlycsvfiles[0]),sep=",")	
+        description = pd.read_csv(base_dir.joinpath(onlycsvfiles[0]),sep=",",quotechar="\"")	
         
-        for item in onlywavfiles:
-         sample_rate, samples = wavfile.read(base_dir.joinpath(item))
-         indeks = os.path.splitext(item)[0]
-         klucz=opisy[opisy['fname']==int(indeks)]
-         self.items.append(((sample_rate,np.array(samples)),str(klucz)))
+        for i in range(description.shape[0]-1):
+         
+         fname=str(description.iloc[i,0])
+         
+         if (str(description.iloc[i,1])=="nan"):
+          fname_parse_list=fname.split(",")
+          fname=str(fname_parse_list[0])
+          label=str(fname_parse_list[1])
+         else: label=str(description.iloc[i,1])
+         self.items.append((fname,label))
          
         self.base_dir = base_dir
 
@@ -77,7 +85,12 @@ class FSDK50K(ClassificationDataset[str]):
 
     def __getitem__(self, idx: int) -> Tuple[Tuple[int, np.ndarray], str]:
         pass  # TODO
-        return self.items[idx]
+        sample_rate, samples = wavfile.read(self.base_dir.joinpath(self.items[idx][0]+".wav"))
+        print(samples.ndim)
+        if (samples.ndim==1): samples = np.resize(samples,(5*sample_rate,))
+        else: samples = np.resize(samples,(5*sample_rate,samples.shape[1]))
+        print(samples.ndim)
+        return ((sample_rate,samples),self.items[idx][1])
 
 class FSDK50KSpectro(FSDK50K):
     """Dataset of FSD50K sound data as spectrograms.
@@ -160,15 +173,15 @@ class StandardSplit(LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.train_set)
+        return DataLoader(self.train_set)
         
     def val_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.val_set)
+        return DataLoader(self.val_set)
 
     def test_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.test_set)
+        return DataLoader(self.test_set)
 
 class RandomSplit(StandardSplit):
     """DataModule with data randomly divided into train/val/test sets."""
@@ -180,7 +193,7 @@ class RandomSplit(StandardSplit):
     @staticmethod
     def _get_indices(dataset: Dataset, test_ratio: float, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
         pass  # TODO- pewnie dwukrotnie u¿ycie from sklearn.model_selection import train_test_split tylko z jakas randomizacja
-
+        return random_split(dataset, [int(dataset.__len__()*(1-test_ratio -val_ratio)),int(dataset.__len__()*val_ratio),int(dataset.__len__()*test_ratio)], generator=Generator())
 
 class StandardSplitTrainingLimited(StandardSplit):
     """StandardSplit with limited number of examples per class in the training set."""

@@ -3,18 +3,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Tuple, List, Set, Dict, TypeVar, Hashable, Generic, Iterator
 
-from scipy import signal
-from scipy.io import wavfile
-from os import listdir
-from os.path import isfile, join
-import os
-import pandas as pd
-
-
 import numpy as np
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset, IterableDataset
-
 
 T = TypeVar('T', bound=Hashable)
 
@@ -44,40 +35,22 @@ class FSDK50K(ClassificationDataset[str]):
             data: (n_samples, n_channels) - sample values for each audio channel
         y: str - target class
     """
-    items=[]
 
     def __init__(self, base_dir: Path) -> None:
         super().__init__()
-        #sample_rate, samples = wavfile.read(base_dir.joinpath("237.wav"))
-        onlywavfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".wav")]
-        onlycsvfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".csv")]
-        
-        opisy = pd.read_csv(base_dir.joinpath(onlycsvfiles[0]),sep=",")	
-        
-        for item in onlywavfiles:
-         sample_rate, samples = wavfile.read(base_dir.joinpath(item))
-         indeks = os.path.splitext(item)[0]
-         klucz=opisy[opisy['fname']==int(indeks)]
-         self.items.append(((sample_rate,np.array(samples)),str(klucz)))
-         
+        # TODO
         self.base_dir = base_dir
 
     @property
     def targets(self) -> List[str]:
         pass  # TODO
-        test = [u[1] for u in self.items]
-        for k in test:
-         print(k)
-        return test
-        
 
     def __len__(self) -> int:
         pass  # TODO
-        return len(self.items)
 
     def __getitem__(self, idx: int) -> Tuple[Tuple[int, np.ndarray], str]:
         pass  # TODO
-        return self.items[idx]
+
 
 class FSDK50KSpectro(FSDK50K):
     """Dataset of FSD50K sound data as spectrograms.
@@ -89,8 +62,6 @@ class FSDK50KSpectro(FSDK50K):
 
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         (rate, samples), y = super().__getitem__(idx)
-        frequencies, times, spectrogram = signal.spectrogram(samples, rate)
-        return (spectrogram,y)
         pass  # TODO
 
 
@@ -154,21 +125,16 @@ class StandardSplit(LightningDataModule):
     def setup(self, stage: Optional[str] = None) -> None:
         # use train_ids, val_ids, test_ids to split
         pass  # TODO
-        self.train_set = Subset(self.dataset,self.train_ids)
-        self.val_set = Subset(self.dataset,self.val_ids)
-        self.test_set = Subset(self.dataset,self.test_ids)
 
     def train_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.train_set)
-        
+
     def val_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.val_set)
 
     def test_dataloader(self) -> DataLoader:
         pass  # TODO
-        return Dataloader(self.test_set)
+
 
 class RandomSplit(StandardSplit):
     """DataModule with data randomly divided into train/val/test sets."""
@@ -179,7 +145,7 @@ class RandomSplit(StandardSplit):
 
     @staticmethod
     def _get_indices(dataset: Dataset, test_ratio: float, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
-        pass  # TODO- pewnie dwukrotnie u¿ycie from sklearn.model_selection import train_test_split tylko z jakas randomizacja
+        pass  # TODO
 
 
 class StandardSplitTrainingLimited(StandardSplit):
@@ -191,7 +157,7 @@ class StandardSplitTrainingLimited(StandardSplit):
 
     @staticmethod
     def _get_indices(dataset: Dataset, k: int, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
-        pass  # TODO - pewnie dwukrotnie u¿ycie from sklearn.model_selection import train_test_split
+        pass  # TODO
 
 
 def class_split(dataset: ClassificationDataset,
