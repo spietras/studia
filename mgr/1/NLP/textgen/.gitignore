@@ -131,3 +131,5 @@ dmypy.json
 .idea/
 
 textgen/docs/site/
+
+lightning_logs/
