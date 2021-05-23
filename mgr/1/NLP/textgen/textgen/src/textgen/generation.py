@@ -17,18 +17,17 @@ class SentenceGenerator(ABC):
 class SentenceIndicesGenerator(SentenceGenerator):
     """Sentence generator that internally uses indices, instead of tokens."""
 
-    def __init__(self, sentences: SentenceCompletionDataset, separator: str = " ") -> None:
+    def __init__(self, sentences: SentenceCompletionDataset) -> None:
         super().__init__()
         self.sentences = sentences
-        self.separator = separator
 
     def generate(self, prompt: str) -> str:
-        prompt_tokens = self.sentences.sentences.word_tokenizer.tokenize(prompt)
-        prompt_indices = list(self.sentences.sentences.convert_to_indices(prompt_tokens))
+        prompt_tokens_it = self.sentences.sentences.word_tokenizer.tokenize(prompt)
+        prompt_tokens = list(prompt_tokens_it)
+        prompt_indices = list(self.sentences.sentences.convert_to_indices(prompt_tokens_it))
         new_indices = self.generate_indices(prompt_indices)
         new_tokens = list(self.sentences.sentences.convert_to_token(new_indices))
-        new_text = self.sentences.sentences.word_tokenizer.detokenize(new_tokens)
-        return prompt + self.separator + new_text
+        return self.sentences.sentences.word_tokenizer.detokenize(prompt_tokens + new_tokens)
 
     @abstractmethod
     def generate_indices(self, indices: List[int]) -> List[int]:
@@ -38,8 +37,8 @@ class SentenceIndicesGenerator(SentenceGenerator):
 class TransformerSentenceGenerator(SentenceIndicesGenerator):
     """Sentence generator that uses transformer model."""
 
-    def __init__(self, model: Transformer, sentences: SentenceCompletionDataset, separator: str = " ") -> None:
-        super().__init__(sentences, separator)
+    def __init__(self, model: Transformer, sentences: SentenceCompletionDataset) -> None:
+        super().__init__(sentences)
         self.model = model
 
     def generate_indices(self, indices: List[int]) -> List[int]:
