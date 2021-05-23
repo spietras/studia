@@ -1,3 +1,4 @@
+import random
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -64,3 +65,10 @@ class TransformerGreedySentenceGenerator(TransformerSentenceGenerator):
 
     def choose_token(self, predictions: Tensor) -> int:
         return predictions.argmax().long().item()
+
+
+class TransformerProbabilisticSentenceGenerator(TransformerSentenceGenerator):
+    """TransformerSentenceGenerator that picks index based on probability distribution."""
+
+    def choose_token(self, predictions: Tensor) -> int:
+        return random.choices(range(len(predictions)), predictions.exp())[0]
