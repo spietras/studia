@@ -1,11 +1,9 @@
 import random
-from copy import deepcopy
-from operator import iadd
 from typing import Iterator, List, TextIO, Optional, Tuple, Callable
 
 import numpy as np
 from ordered_set import OrderedSet
-from textgen.data.utils import Corpus, StreamGenerator, Tokenizer
+from textgen.data.utils import Corpus, StreamGenerator, Tokenizer, Counter
 from textgen.data.utils import StringStreamGenerator, PunktSentenceTokenizer, TreeBankWordTokenizer
 from torch.utils.data import IterableDataset
 
@@ -28,17 +26,17 @@ class Sentences(Corpus, IterableDataset):
                  n_sentences: Optional[int] = None,
                  eval_hooks: Optional[List[Callable[[List[str]], None]]] = None) -> None:
         v = vocabulary or OrderedSet()
-        ns = n_sentences or 0
+        ns = Counter(n_sentences or 0)
         if eval_hooks is not None or vocabulary is None or n_sentences is None:
             eval_hooks = eval_hooks or []
             self._evaluate(stream_generator.generate(), sentence_tokenizer, word_tokenizer,
                            eval_hooks + [(lambda _: None) if vocabulary else (lambda t: v.update(t)),
-                                         (lambda _: None) if n_sentences else (lambda _: iadd(ns, 1))])
+                                         (lambda _: None) if n_sentences else (lambda _: ns.inc())])
         super().__init__(v)
         self.stream_generator = stream_generator
         self.sentence_tokenizer = sentence_tokenizer
         self.word_tokenizer = word_tokenizer
-        self.n_sentences = ns
+        self.n_sentences = ns.count
 
     @staticmethod
     def _evaluate(streams: Iterator[TextIO],
@@ -86,7 +84,8 @@ class SentenceCompletionDataset(IterableDataset):
         self.pad_token = pad_token
         self.start_token = start_token
         self.end_token = end_token
-        sentences = deepcopy(sentences)
+        sentences = Sentences(sentences.stream_generator, sentences.sentence_tokenizer, sentences.word_tokenizer,
+                              sentences.tokens, sentences.n_sentences)
         sentences.add_extra_tokens([pad_token, start_token, end_token])
         self.pad_id = sentences.tokens_to_indices[pad_token]
         self.start_id = sentences.tokens_to_indices[start_token]

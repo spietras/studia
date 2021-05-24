@@ -9,6 +9,22 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer, TreebankWordTokenize
 from ordered_set import OrderedSet
 
 
+class Counter:
+    """Counter utility for mutable counting."""
+
+    def __init__(self, count: int = 0) -> None:
+        super().__init__()
+        self.count = count
+
+    def inc(self) -> 'Counter':
+        self.count += 1
+        return self
+
+    def dec(self) -> 'Counter':
+        self.count -= 1
+        return self
+
+
 class Tokenizer(ABC):
     """Two-way tokenizer base class."""
 
@@ -92,7 +108,7 @@ class FilesInDirectoryStreamGenerator(FilesStreamGenerator):
     """Generate streams from files in a directory using glob pattern."""
 
     def __init__(self, dir: Path, glob: str = '*') -> None:
-        super().__init__(dir.glob(glob))
+        super().__init__(dir.expanduser().resolve().glob(glob))
 
 
 class Corpus:

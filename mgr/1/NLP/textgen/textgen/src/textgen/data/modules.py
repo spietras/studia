@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from ordered_set import OrderedSet
 from pytorch_lightning import LightningDataModule
@@ -67,9 +67,11 @@ class SentenceCompletionIterableSplit(IterableSplit):
 class SentenceCompletionIterableSplitFromDir(SentenceCompletionIterableSplit):
     """DataModule with train/val/test split from subdirectories for sentence completion."""
 
-    def __init__(self, root_dir: Path,
+    def __init__(self, root_dir: Union[Path, str],
                  train_subdir: str = "train", val_subdir: str = "val", test_subdir: str = "test",
                  *args, **kwargs) -> None:
+        if isinstance(root_dir, str):
+            root_dir = Path(root_dir)
         train_dir = root_dir / train_subdir
         val_dir = root_dir / val_subdir
         test_dir = root_dir / test_subdir
