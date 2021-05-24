@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 from pathlib import Path
-from typing import Iterator, TextIO, Dict
+from typing import Iterator, TextIO, Dict, List
 
 import nltk
 from bidict import bidict
@@ -95,11 +95,11 @@ class StringStreamGenerator(StreamGenerator):
 class FilesStreamGenerator(StreamGenerator):
     """Generate streams from files."""
 
-    def __init__(self, files: Iterator[Path]) -> None:
+    def __init__(self, files: List[Path]) -> None:
         super().__init__()
         self.files = files
 
-    def generate(self) -> Iterator[TextIO]:
+    def generate(self) -> List[TextIO]:
         for file in self.files:
             yield open(file)
 
@@ -108,7 +108,7 @@ class FilesInDirectoryStreamGenerator(FilesStreamGenerator):
     """Generate streams from files in a directory using glob pattern."""
 
     def __init__(self, dir: Path, glob: str = '*') -> None:
-        super().__init__(dir.expanduser().resolve().glob(glob))
+        super().__init__(list(dir.expanduser().resolve().glob(glob)))
 
 
 class Corpus:

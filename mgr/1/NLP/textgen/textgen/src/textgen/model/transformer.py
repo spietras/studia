@@ -21,6 +21,7 @@ class TransformerModel(nn.Module):
             self.src_embedding = nn.Embedding(src_vocab_size, d_model)
             self.trg_embedding = nn.Embedding(trg_vocab_size, d_model)
 
+        self.drop_out_rate = drop_out_rate
         self.drop_out_enc_in = nn.Dropout(self.drop_out_rate)
         self.drop_out_dec_in = nn.Dropout(self.drop_out_rate)
 
@@ -112,7 +113,11 @@ class Transformer(LightningModule):
                       batch_idx: int) -> Tensor:
         src, trg, src_mask, trg_mask, y = batch
         pred = self.model(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
-        return self.loss(pred, y)
+        loss = self.loss(pred, y)
+        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metrics = {'train_metric': metric, 'train_loss': loss}
+        self.log_dict(metrics)
+        return loss
 
     def validation_step(self,
                         batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
