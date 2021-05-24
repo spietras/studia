@@ -1,4 +1,5 @@
 """Module for code related to data."""
+import random
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Tuple, List, Set, Dict, TypeVar, Hashable, Generic, Iterator
@@ -48,7 +49,7 @@ class FSDK50K(ClassificationDataset[str]):
     def __len__(self) -> int:
         pass  # TODO
 
-    def __getitem__(self, idx: int) -> Tuple[Tuple[int, np.ndarray], str]:
+    def __getitem__(self, idx: int) -> Tuple[int, np.ndarray]:
         pass  # TODO
 
 
@@ -60,8 +61,8 @@ class FSDK50KSpectro(FSDK50K):
         y: str - target class
     """
 
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
-        (rate, samples), y = super().__getitem__(idx)
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray]:
+        rate, samples = super().__getitem__(idx)
         pass  # TODO
 
 
@@ -93,19 +94,28 @@ class FewShotTasks(IterableDataset):
 
     Item:
         support: (n_classes, n_support, *) - support set
-        query: (n_classes, n_query, *) - query set
+        query: (n_query, *) - query set
+        y: (n_query) - true classes of query set
     """
 
     def __init__(self, base_dataset: ClassificationDataset, n_classes: int, n_support: int, n_query: int) -> None:
         super().__init__()
-        self.base_dataset = MinimumSamplesDataset(base_dataset, n_support + n_query)
+        self.base_dataset = MinimumSamplesDataset(base_dataset, n_support + 1)
         self.n_classes = n_classes
         self.n_support = n_support
         self.n_query = n_query
 
-    def __iter__(self) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
-        # yield random sampling
-        pass  # TODO
+    def __iter__(self) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        picked_classes = random.sample(self.base_dataset.classes, self.n_classes)
+        support_ids = [[random.sample(self.base_dataset.class_to_ids[c], self.n_support)]
+                       for c in picked_classes]
+        query_id_pool = [i for c in picked_classes for i in self.base_dataset.class_to_ids[c]
+                         if i not in {j for ids in support_ids for j in ids}]
+        query_ids = random.sample(query_id_pool, self.n_query)
+        support = np.array([[self.base_dataset[i] for i in ids] for ids in support_ids])
+        query = np.array([self.base_dataset[i] for i in query_ids])
+        y = np.array([self.base_dataset.targets[i] for i in query_ids])
+        yield support, query, y
 
 
 class StandardSplit(LightningDataModule):
