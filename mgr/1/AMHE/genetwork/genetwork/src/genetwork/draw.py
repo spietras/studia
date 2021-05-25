@@ -12,7 +12,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import networkx as nx
 import typer
-from genetwork.networks import SndlibNetworkXMLParser
+from genetwork.networks import SndlibNetworkXMLParser, SndlibNode
 
 cli = typer.Typer()  # this is actually callable and thus can be an entry point
 
@@ -29,7 +29,7 @@ def main(network_path: Path = typer.Argument(...,
     """Command line interface for drawing Sndlib networks."""
 
     with open(network_path) as n:
-        network = SndlibNetworkXMLParser[str, Real]().parse(n)
+        network = SndlibNetworkXMLParser[SndlibNode, float]().parse(n)
     nx.draw(network.graph, with_labels=True)
 
     if output_path is None:
