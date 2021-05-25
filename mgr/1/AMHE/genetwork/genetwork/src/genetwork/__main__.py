@@ -56,15 +56,19 @@ def get_output(evolution: Evolution[SndlibGene], network: SndlibNetwork) -> str:
 def main(network_path: Path = typer.Argument(..., help="Path to graph definition file"),
          max_iters: Optional[int] = typer.Option(None, help="Maximum iterations, if None stops when no changes occur"),
          pop_size: int = typer.Option(500, help="Initial population size"),
-         selection_threshold: float = typer.Option(0.5,
-                                                   help="Percent of population that will participate in selection"),
+         selection_threshold: float = typer.Option(0.75, help="Percent of population that will participate in "
+                                                              "selection"),
          selection_factor: float = typer.Option(2, help="Relative size of selected population"),
          pm: float = typer.Option(0.002, help="Probability of mutation"),
-         pc: float = typer.Option(1, help="Probability of crossover"),
-         alpha: float = typer.Option(10, help="Alpha parameter of the objective function (undersupplying)"),
-         beta: float = typer.Option(2.5, help="Beta parameter of the objective function (exceeding fiber capacity)"),
-         lam: int = typer.Option(96, help="Maximum capacity of wavelengths (lambdas) in a single fiber"),
+         pc: float = typer.Option(0.99, help="Probability of crossover"),
+         alpha: float = typer.Option(25, help="Alpha parameter of the objective function (undersupplying)"),
+         beta: float = typer.Option(7.5, help="Beta parameter of the objective function (exceeding fiber capacity)"),
+         lam: int = typer.Option(96, help="Maximum capacity of wavelengths (lambdas) in a single fiber"),  #
          max_paths: int = typer.Option(4, help="Maximum paths to generate if there are no admissiblePaths in XML"),
+         max_trans: int = typer.Option(1, help="Maximum number of transponder on a path that can be drawn during "
+                                               "initialization"),
+         succ_prob: float = typer.Option(0.9, help="Success probability used in geometric distribution while drawing "
+                                                   "the number of transponders on a path"),
          config_path: Optional[Path] = typer.Option(None, help="Path to configuration file"),
          out_path: Optional[Path] = typer.Option(None, help="Output file path, if None prints to stdout")
          ) -> Optional[int]:
@@ -78,7 +82,8 @@ def main(network_path: Path = typer.Argument(..., help="Path to graph definition
 
     transponders = [SndlibTransponderType(t["capacity"], t["cost"]) for t in config["transponders"]]
 
-    initializer = RandomSndlibPopulationInitializer(config["pop_size"], transponders, network.demands)
+    initializer = RandomSndlibPopulationInitializer(config["pop_size"], transponders, network.demands,
+                                                    max_trans, succ_prob)
     evaluator = TotalCostWithConstraintsSndlibEvaluator(network.demands, config["alpha"], config["beta"], config["lam"])
     selection = ThresholdSelection(evaluator, config["selection_threshold"], config["selection_factor"])
     crossover = SinglePointRandomCrossover(config["pc"])
