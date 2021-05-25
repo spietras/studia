@@ -2,7 +2,7 @@
 
 This ```README``` provides info about the development process.
 
-For more info about the package itself see ```textgen/README.md```.
+For more info about the package itself see ```elka-life/README.md```.
 
 ## Quickstart (on Ubuntu)
 
