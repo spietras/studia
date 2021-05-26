@@ -42,9 +42,11 @@ def train(dataset_path: Path = typer.Argument(..., file_okay=False, readable=Tru
           ) -> Optional[int]:
     """Command line interface for textgen-train."""
 
+    print("Evaluating dataset...")
     datamodule = SentenceCompletionIterableSplitFromDir(dataset_path, max_length=max_length, batch_size=batch_size,
                                                         num_workers=num_workers)
 
+    print("Creating model...")
     if ckpt_path is None:
         vocab_size = len(datamodule.config.corpus.vocabulary)
         model = TransformerModel(vocab_size, vocab_size, d_model, d_ff, num_heads, num_layers, drop_out_rate,
@@ -57,6 +59,7 @@ def train(dataset_path: Path = typer.Argument(..., file_okay=False, readable=Tru
     trainer = Trainer(max_epochs=max_epochs, gpus=num_gpus, resume_from_checkpoint=ckpt_path)
 
     # Train
+    print("Training...")
     trainer.fit(system, datamodule)
 
     # Test
