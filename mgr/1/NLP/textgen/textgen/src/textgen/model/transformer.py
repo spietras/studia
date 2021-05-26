@@ -101,16 +101,17 @@ class TransformerGenerator(ABC):
         super().__init__()
         self.config = config
 
-    def generate(self, src: Tensor, model: TransformerModel, device: str) -> Tuple[Tensor, Tensor]:
+    def generate(self, src: Tensor, model: TransformerModel, device: str, pad: bool = False) -> Tuple[Tensor, Tensor]:
         out_preds = []
         out_indices = []
         for batch in src:
-            preds, indices = self.generate_sentence(batch.unsqueeze(0), model, device)
+            preds, indices = self.generate_sentence(batch.unsqueeze(0), model, device, pad)
             out_preds.append(preds)
             out_indices.append(indices)
         return torch.stack(out_preds), torch.stack(out_indices)
 
-    def generate_sentence(self, src: Tensor, model: TransformerModel, device: str) -> Tuple[Tensor, Tensor]:
+    def generate_sentence(self, src: Tensor, model: TransformerModel, device: str,
+                          pad: bool = False) -> Tuple[Tensor, Tensor]:
         preds = []
         indices = []
         for i in range(self.config.max_length):
@@ -120,8 +121,9 @@ class TransformerGenerator(ABC):
             curr_pred = out[0][i]
             curr_out = self.choose_index(curr_pred)
             if curr_out == self.config.corpus.end_id:
-                preds.extend(repeat(curr_pred, self.config.max_length - i))
-                indices.extend(repeat(curr_out, self.config.max_length - i))
+                if pad:
+                    preds.extend(repeat(curr_pred, self.config.max_length - i))
+                    indices.extend(repeat(curr_out, self.config.max_length - i))
                 break
             preds.append(curr_pred)
             indices.append(curr_out)
@@ -160,6 +162,7 @@ class Transformer(LightningModule):
         self.metric = metric or torchmetrics.Accuracy(ignore_index=self.generator.config.corpus.pad_id)
         self.lr = lr
         self.betas = betas
+        self.save_hyperparameters()
 
     def forward(self, src: Tensor, trg: Tensor,
                 src_mask: Optional[Tensor] = None, trg_mask: Optional[Tensor] = None) -> Tensor:
@@ -180,7 +183,7 @@ class Transformer(LightningModule):
                         batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
                         batch_idx: int) -> Dict[str, Tensor]:
         src, _, _, _, y = batch
-        pred, _ = self.generator.generate(src, self.model, self.device)
+        pred, _ = self.generator.generate(src, self.model, self.device, True)
         pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
         metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
@@ -192,7 +195,7 @@ class Transformer(LightningModule):
                   batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
                   batch_idx: int) -> Dict[str, Tensor]:
         src, _, _, _, y = batch
-        pred, _ = self.generator.generate(src, self.model, self.device)
+        pred, _ = self.generator.generate(src, self.model, self.device, True)
         pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
         metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities

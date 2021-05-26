@@ -42,6 +42,6 @@ class TransformerSentenceIndicesGenerator(SentenceIndicesGenerator):
 
     def generate_indices(self, indices: List[int], device: str) -> List[int]:
         src = self.generator.config.padder.pad_with_index(indices)
-        src = Tensor([src]).long()
-        _, out = self.generator.generate_sentence(src, self.model, device)
+        src = Tensor([src]).long().to(device)
+        _, out = self.generator.generate_sentence(src, self.model, device, False)
         return out.tolist()

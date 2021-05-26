@@ -4,6 +4,7 @@ This module provides basic CLI entrypoint.
 
 """
 import os
+import pickle
 import sys
 from pathlib import Path
 from typing import Optional
@@ -35,10 +36,13 @@ def train(dataset_path: Path = typer.Argument(..., help="Path to dataset with tr
           drop_out_rate: float = typer.Option(0.1, help="Dropout rate.")) -> Optional[int]:
     """Command line interface for textgen-train."""
 
-    # Pytorch lightning components
     datamodule = SentenceCompletionIterableSplitFromDir(dataset_path, max_length=max_length, batch_size=batch_size,
                                                         num_workers=num_workers)
     vocab_size = len(datamodule.config.corpus.vocabulary)
+
+    # Save configuration
+    with open('resources/config.pickle', 'wb') as handle:
+        pickle.dump(datamodule.config, handle)
 
     model = TransformerModel(vocab_size, vocab_size, d_model, d_ff, num_heads, num_layers, drop_out_rate, max_length)
     generator = TransformerProbabilisticGenerator(datamodule.config)
