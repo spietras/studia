@@ -80,7 +80,7 @@ class SentenceCompletionDataset(IterableDataset):
 
     def __iter__(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         for sentence in self.indices:
-            split_point = random.randint(1, len(sentence) - 1)
+            split_point = random.randint(0, len(sentence))
             start = self.config.padder.pad_with_index([self.config.corpus.start_id] + sentence[:split_point])
             end = self.config.padder.pad_with_index([self.config.corpus.start_id] + sentence[split_point:] +
                                                     [self.config.corpus.end_id])
