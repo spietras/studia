@@ -133,3 +133,7 @@ dmypy.json
 textgen/docs/site/
 
 lightning_logs/
+
+data/
+
+out/

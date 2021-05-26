@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterator, TextIO, Dict, Any, Callable, List
 
 import nltk
+import truecase
 from nltk.tokenize.treebank import TreebankWordDetokenizer, TreebankWordTokenizer
 from ordered_set import OrderedSet
 
@@ -22,7 +23,25 @@ class Tokenizer(ABC):
         return NotImplemented
 
 
-class TreeBankWordTokenizer(Tokenizer):
+class WordTokenizer(Tokenizer):
+
+    def tokenize(self, text: str) -> Iterator[str]:
+        for token in self.tokenize_normalized(text):
+            yield token.lower()
+
+    @abstractmethod
+    def tokenize_normalized(self, text: str) -> Iterator[str]:
+        return NotImplemented
+
+    def detokenize(self, tokens: Iterator[str]) -> str:
+        return truecase.get_true_case(self.detokenize_normalized(tokens))
+
+    @abstractmethod
+    def detokenize_normalized(self, tokens: Iterator[str]) -> str:
+        return NotImplemented
+
+
+class TreeBankWordTokenizer(WordTokenizer):
     """Word-level tokenizer using nltk's Treebank."""
 
     def __init__(self) -> None:
@@ -30,10 +49,10 @@ class TreeBankWordTokenizer(Tokenizer):
         self.tokenizer = TreebankWordTokenizer()
         self.detokenizer = TreebankWordDetokenizer()
 
-    def tokenize(self, text: str) -> Iterator[str]:
+    def tokenize_normalized(self, text: str) -> Iterator[str]:
         return iter(self.tokenizer.tokenize(text))
 
-    def detokenize(self, tokens: Iterator[str]) -> str:
+    def detokenize_normalized(self, tokens: Iterator[str]) -> str:
         return self.detokenizer.detokenize(tokens)
 
 
