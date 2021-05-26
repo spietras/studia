@@ -145,7 +145,7 @@ class Transformer(LightningModule):
         src, trg, src_mask, trg_mask, y = batch
         pred = self.model(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
         metrics = {'train_metric': metric, 'train_loss': loss}
         self.log_dict(metrics)
         return loss
@@ -157,7 +157,7 @@ class Transformer(LightningModule):
         pred = self(src, trg, src_mask, trg_mask) if self.teacher_forcing_val else self.generate(src)[0]
         pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
         metrics = {'val_metric': metric, 'val_loss': loss}
         self.log_dict(metrics)
         return metrics
@@ -169,7 +169,7 @@ class Transformer(LightningModule):
         pred = self(src, trg, src_mask, trg_mask) if self.teacher_forcing_val else self.generate(src)[0]
         pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
         metrics = {'test_metric': metric, 'test_loss': loss}
         self.log_dict(metrics)
         return metrics
