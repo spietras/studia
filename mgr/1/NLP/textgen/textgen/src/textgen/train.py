@@ -12,7 +12,7 @@ import torch
 import typer
 from pytorch_lightning import Trainer
 from textgen.data.modules import SentenceCompletionIterableSplitFromDir
-from textgen.model.transformer import Transformer, TransformerModel
+from textgen.model.transformer import Transformer, TransformerModel, TransformerProbabilisticGenerator
 
 cli = typer.Typer()  # this is actually callable and thus can be an entry point
 
@@ -38,10 +38,11 @@ def train(dataset_path: Path = typer.Argument(..., help="Path to dataset with tr
     # Pytorch lightning components
     datamodule = SentenceCompletionIterableSplitFromDir(dataset_path, max_length=max_length, batch_size=batch_size,
                                                         num_workers=num_workers)
-    vocab_size = len(datamodule.train_dataset.sentences.tokens)
+    vocab_size = len(datamodule.config.corpus.vocabulary)
 
     model = TransformerModel(vocab_size, vocab_size, d_model, d_ff, num_heads, num_layers, drop_out_rate, max_length)
-    system = Transformer(model, datamodule.train_dataset.pad_id, lr=lr)
+    generator = TransformerProbabilisticGenerator(datamodule.config)
+    system = Transformer(model, generator, lr=lr)
 
     trainer = Trainer(max_epochs=max_epochs, gpus=num_gpus, resume_from_checkpoint=ckpt_path)
 
