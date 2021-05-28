@@ -19,12 +19,12 @@ class TestTextgen:
         return CliRunner()
 
     def test_textgen_returns_zero(self, runner):
-        result = runner.invoke(cli)
+        result = runner.invoke(cli, ["."])
         assert not result.exception
         assert result.exit_code == 0
 
     def test_textgen_prints_something(self, runner):
-        result = runner.invoke(cli)
+        result = runner.invoke(cli, ["."])
         assert result.output
 
     def test_textgen_prints_help(self, runner):

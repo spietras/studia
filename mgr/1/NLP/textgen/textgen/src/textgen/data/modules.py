@@ -1,11 +1,11 @@
+import itertools
 from pathlib import Path
-from typing import Optional
+from typing import Union
 
-from ordered_set import OrderedSet
 from pytorch_lightning import LightningDataModule
-from textgen.data.sets import StreamGenerator, Tokenizer, Sentences, SentenceCompletionDataset
-from textgen.data.utils import FilesInDirectoryStreamGenerator, StringStreamGenerator
-from textgen.data.utils import PunktSentenceTokenizer, TreeBankWordTokenizer
+from textgen.data.sets import StreamGenerator, Sentences, SentenceCompletionDataset, TokensInSentences
+from textgen.data.utils import CompletionCorpus, SentenceCompletionConfig, PunktSentenceTokenizer, TreeBankWordTokenizer
+from textgen.data.utils import FilesInDirectoryStreamGenerator, StringStreamGenerator, Tokenizer, CorpusEvaluator
 from torch.utils.data import DataLoader, IterableDataset
 
 
@@ -41,35 +41,33 @@ class SentenceCompletionIterableSplit(IterableSplit):
     def __init__(self,
                  train_generator: StreamGenerator, val_generator: StreamGenerator, test_generator: StreamGenerator,
                  max_length: int,
-                 batch_size: int = 1,
-                 num_workers: int = 0,
                  sentence_tokenizer: Tokenizer = PunktSentenceTokenizer(),
                  word_tokenizer: Tokenizer = TreeBankWordTokenizer(),
-                 vocabulary: Optional[OrderedSet[str]] = None,
-                 train_n_sentences: Optional[int] = None,
-                 val_n_sentences: Optional[int] = None,
-                 test_n_sentences: Optional[int] = None,
-                 pad_token: str = "<P>", start_token: str = "<S>", end_token: str = "<E>") -> None:
-        train_sentences = Sentences(train_generator, sentence_tokenizer, word_tokenizer, vocabulary, train_n_sentences)
-        val_sentences = Sentences(val_generator, sentence_tokenizer, word_tokenizer, vocabulary, val_n_sentences)
-        test_sentences = Sentences(test_generator, sentence_tokenizer, word_tokenizer, vocabulary, test_n_sentences)
-        if vocabulary is None:
-            vocabulary = train_sentences.tokens | val_sentences.tokens | test_sentences.tokens
-            train_sentences.change_tokens(vocabulary)
-            val_sentences.change_tokens(vocabulary)
-            test_sentences.change_tokens(vocabulary)
-        super().__init__(SentenceCompletionDataset(train_sentences, max_length, pad_token, start_token, end_token),
-                         SentenceCompletionDataset(val_sentences, max_length, pad_token, start_token, end_token),
-                         SentenceCompletionDataset(test_sentences, max_length, pad_token, start_token, end_token),
+                 batch_size: int = 1,
+                 num_workers: int = 0) -> None:
+        streams = itertools.chain(train_generator.generate(), val_generator.generate(), test_generator.generate())
+        corpus = CorpusEvaluator(sentence_tokenizer, word_tokenizer).evaluate(streams)
+        corpus = CompletionCorpus(corpus.vocabulary)
+        self.config = SentenceCompletionConfig(corpus, sentence_tokenizer, word_tokenizer, max_length)
+
+        train_tokens = TokensInSentences(Sentences(train_generator, sentence_tokenizer), word_tokenizer)
+        val_tokens = TokensInSentences(Sentences(val_generator, sentence_tokenizer), word_tokenizer)
+        test_tokens = TokensInSentences(Sentences(test_generator, sentence_tokenizer), word_tokenizer)
+
+        super().__init__(SentenceCompletionDataset(train_tokens, self.config),
+                         SentenceCompletionDataset(val_tokens, self.config),
+                         SentenceCompletionDataset(test_tokens, self.config),
                          batch_size, num_workers)
 
 
 class SentenceCompletionIterableSplitFromDir(SentenceCompletionIterableSplit):
     """DataModule with train/val/test split from subdirectories for sentence completion."""
 
-    def __init__(self, root_dir: Path,
+    def __init__(self, root_dir: Union[Path, str],
                  train_subdir: str = "train", val_subdir: str = "val", test_subdir: str = "test",
                  *args, **kwargs) -> None:
+        if isinstance(root_dir, str):
+            root_dir = Path(root_dir)
         train_dir = root_dir / train_subdir
         val_dir = root_dir / val_subdir
         test_dir = root_dir / test_subdir

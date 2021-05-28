@@ -1,9 +1,10 @@
+import itertools
 from abc import ABC, abstractmethod
 from typing import List
 
-from textgen.data.sets import SentenceCompletionDataset
+from textgen.data.utils import SentenceCompletionConfig
 from textgen.model.transformer import Transformer
-from torch import Tensor
+from torch import tensor
 
 
 class SentenceGenerator(ABC):
@@ -17,51 +18,34 @@ class SentenceGenerator(ABC):
 class SentenceIndicesGenerator(SentenceGenerator):
     """Sentence generator that internally uses indices, instead of tokens."""
 
-    def __init__(self, sentences: SentenceCompletionDataset, separator: str = " ") -> None:
+    def __init__(self, config: SentenceCompletionConfig) -> None:
         super().__init__()
-        self.sentences = sentences
-        self.separator = separator
+        self.config = config
 
     def generate(self, prompt: str) -> str:
-        prompt_tokens = self.sentences.sentences.word_tokenizer.tokenize(prompt)
-        prompt_indices = list(self.sentences.sentences.convert_to_indices(prompt_tokens))
-        new_indices = self.generate_indices(prompt_indices)
-        new_tokens = list(self.sentences.sentences.convert_to_token(new_indices))
-        new_text = self.sentences.sentences.word_tokenizer.detokenize(new_tokens)
-        return prompt + self.separator + new_text
+        prompt_tokens = list(self.config.word_tokenizer.tokenize(prompt))
+        try:
+            prompt_indices = list(self.config.corpus.convert_to_indices(prompt_tokens))
+        except KeyError as e:
+            raise ValueError(f"Invalid token: {e}")
+        new_indices = list(self.generate_indices(prompt_indices))
+        new_tokens = list(self.config.corpus.convert_to_token(new_indices))
+        return self.config.word_tokenizer.detokenize(prompt_tokens + new_tokens)
 
     @abstractmethod
     def generate_indices(self, indices: List[int]) -> List[int]:
         return NotImplemented
 
 
-class TransformerSentenceGenerator(SentenceIndicesGenerator):
-    """Sentence generator that uses transformer model."""
+class TransformerSentenceIndicesGenerator(SentenceIndicesGenerator):
+    """SentenceIndicesGenerator that uses TransformerGenerator to generate indices."""
 
-    def __init__(self, model: Transformer, sentences: SentenceCompletionDataset, separator: str = " ") -> None:
-        super().__init__(sentences, separator)
+    def __init__(self, model: Transformer) -> None:
+        super().__init__(model.config)
         self.model = model
 
     def generate_indices(self, indices: List[int]) -> List[int]:
-        src = self.sentences.pad([self.sentences.start_id] + indices)
-        src = Tensor([src]).long()
-        out_indices = []
-        for i in range(self.sentences.max_length):
-            trg = Tensor(self.sentences.pad([self.sentences.start_id] + out_indices)).long()
-            out = self.model(src, trg, src != self.sentences.pad_id, trg != self.sentences.pad_id)
-            out = self.choose_token(out[0][i])
-            if out == self.sentences.end_id:
-                break
-            out_indices.append(out)
-        return out_indices
-
-    @abstractmethod
-    def choose_token(self, out: Tensor) -> int:
-        return NotImplemented
-
-
-class TransformerGreedySentenceGenerator(TransformerSentenceGenerator):
-    """TransformerSentenceGenerator that always picks the most probable index."""
-
-    def choose_token(self, predictions: Tensor) -> int:
-        return predictions.argmax().long().item()
+        src = self.model.config.padder.pad_with_index(indices)
+        src = tensor([src], device=self.model.device)
+        _, out = self.model.generate(src)
+        return list(itertools.takewhile(lambda x: x != self.model.config.corpus.end_id, out[0].tolist()))

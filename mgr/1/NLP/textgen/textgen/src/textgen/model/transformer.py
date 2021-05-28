@@ -3,8 +3,10 @@ from typing import Optional, Tuple, Dict, Callable
 import torch
 import torchmetrics
 from pytorch_lightning import LightningModule
+from textgen.data.utils import SentenceCompletionConfig
 from textgen.model.layers import PositionalEncoder, EncoderLayer, LayerNormalization, DecoderLayer
-from torch import nn, Tensor
+from textgen.model.pickers import IndexPicker
+from torch import nn, Tensor, tensor
 
 
 class TransformerModel(nn.Module):
@@ -21,6 +23,7 @@ class TransformerModel(nn.Module):
             self.src_embedding = nn.Embedding(src_vocab_size, d_model)
             self.trg_embedding = nn.Embedding(trg_vocab_size, d_model)
 
+        self.drop_out_rate = drop_out_rate
         self.drop_out_enc_in = nn.Dropout(self.drop_out_rate)
         self.drop_out_dec_in = nn.Dropout(self.drop_out_rate)
 
@@ -92,35 +95,69 @@ class Decoder(nn.Module):
 class Transformer(LightningModule):
     """LightningModule for Transformer."""
 
-    def __init__(self, model: TransformerModel, pad_id: int,
+    def __init__(self, model: TransformerModel, config: SentenceCompletionConfig, index_picker: IndexPicker,
                  loss: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
                  metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
-                 lr: float = 1e-3, betas: Tuple[float, float] = (0.9, 0.98)) -> None:
+                 lr: float = 1e-3, betas: Tuple[float, float] = (0.9, 0.98),
+                 teacher_forcing_val: bool = False) -> None:
         super().__init__()
         self.model = model
-        self.loss = loss or nn.NLLLoss(ignore_index=pad_id)
-        self.metric = metric or torchmetrics.Accuracy(ignore_index=pad_id)
+        self.config = config
+        self.index_picker = index_picker
+        self.loss = loss or nn.NLLLoss(ignore_index=self.config.corpus.pad_id)
+        self.metric = metric or torchmetrics.Accuracy(ignore_index=self.config.corpus.pad_id)
         self.lr = lr
         self.betas = betas
+        self.teacher_forcing_val = teacher_forcing_val
+        self.save_hyperparameters()
 
     def forward(self, src: Tensor, trg: Tensor,
                 src_mask: Optional[Tensor] = None, trg_mask: Optional[Tensor] = None) -> Tensor:
         return self.model(src, trg, src_mask, trg_mask)
+
+    def generate(self, src: Tensor) -> Tuple[Tensor, Tensor]:
+        out = [self._generate_sentence(batch) for batch in src]
+        return torch.stack([x[0] for x in out]), torch.stack([x[1] for x in out])
+
+    def _generate_sentence(self, src: Tensor) -> Tuple[Tensor, Tensor]:
+        src = src.unsqueeze(0)
+        src_mask = src != self.config.corpus.pad_id
+        trg = tensor([self.config.padder.pad_with_index([])], device=self.device)
+        preds, indices = [], []
+        chosen = self.config.corpus.start_id
+        for i in range(self.config.max_length):
+            trg[0][i] = chosen
+            out = self(src, trg, src_mask, trg != self.config.corpus.pad_id)
+            pred = out[0][i]
+            chosen = self.index_picker.pick_index(pred)
+            preds.append(pred)
+            indices.append(chosen)
+            if chosen == self.config.corpus.end_id:
+                preds.extend([pred] * (self.config.max_length - 1 - i))
+                indices.extend([tensor(self.config.corpus.pad_id,
+                                       device=self.device)] * (self.config.max_length - 1 - i))
+                break
+        return torch.stack(preds), torch.stack(indices)
 
     def training_step(self,
                       batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
                       batch_idx: int) -> Tensor:
         src, trg, src_mask, trg_mask, y = batch
         pred = self.model(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
-        return self.loss(pred, y)
+        loss = self.loss(pred, y)
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
+        metrics = {'train_metric': metric, 'train_loss': loss}
+        self.log_dict(metrics)
+        return loss
 
     def validation_step(self,
                         batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
                         batch_idx: int) -> Dict[str, Tensor]:
         src, trg, src_mask, trg_mask, y = batch
-        pred = self(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
+        pred = self(src, trg, src_mask, trg_mask) if self.teacher_forcing_val else self.generate(src)[0]
+        pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
         metrics = {'val_metric': metric, 'val_loss': loss}
         self.log_dict(metrics)
         return metrics
@@ -129,9 +166,10 @@ class Transformer(LightningModule):
                   batch: Tuple[Tensor, Tensor, Optional[Tensor], Optional[Tensor], Tensor],
                   batch_idx: int) -> Dict[str, Tensor]:
         src, trg, src_mask, trg_mask, y = batch
-        pred = self(src, trg, src_mask, trg_mask).transpose(1, 2)  # (B, L, C) => (B, C, L)
+        pred = self(src, trg, src_mask, trg_mask) if self.teacher_forcing_val else self.generate(src)[0]
+        pred = pred.transpose(1, 2)  # (B, L, C) => (B, C, L)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)  # accuracy needs normal probabilities
         metrics = {'test_metric': metric, 'test_loss': loss}
         self.log_dict(metrics)
         return metrics
