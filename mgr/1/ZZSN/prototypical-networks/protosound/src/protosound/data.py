@@ -112,7 +112,7 @@ class FSDK50KSpectro(FSDK50K):
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         (rate, samples), y = super().__getitem__(idx)
         frequencies, times, spectrogram = signal.spectrogram(samples, rate)
-        return (spectrogram,y)
+        return (spectrogram[np.newaxis,...],y)
        
 
 

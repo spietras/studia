@@ -4,6 +4,8 @@ from typing import Tuple
 
 from pytorch_lightning import LightningModule
 from torch import Tensor
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 class SoundEmbedding(LightningModule):
@@ -19,9 +21,36 @@ class SoundEmbedding(LightningModule):
     def __init__(self, embedding_dim: int) -> None:
         super().__init__()
         self.embedding_dim = embedding_dim
+        self.network=nn.Sequential(nn.Conv2d(1, 32, kernel_size = 3, padding = 1),
+				   nn.ReLU(),
+				   nn.Conv2d(32,64, kernel_size = 3, stride = 1, padding = 1),
+				   nn.ReLU(),
+                                   nn.MaxPool2d(2,2),
+                                   nn.Conv2d(64, 128, kernel_size = 3, stride = 1, padding = 1),
+                                   nn.ReLU(),
+                                   nn.Conv2d(128 ,128, kernel_size = 3, stride = 1, padding = 1),
+                                   nn.ReLU(),
+                                   nn.MaxPool2d(2,2),
+                                   nn.Conv2d(128, 256, kernel_size = 3, stride = 1, padding = 1),
+                                   nn.ReLU(),
+                                   nn.Conv2d(256,embedding_dim, kernel_size = 3, stride = 1, padding = 1),
+                                   nn.ReLU(),
+                                   nn.MaxPool2d(2,2),
+                                   nn.AdaptiveAvgPool2d(1),
+                                   nn.Flatten()
+                                   )
 
     def forward(self, x: Tensor) -> Tensor:
-        pass  # TODO
+        return self.network(x)
+
+    def training_step(self, batch, batch_idx):
+        x,y = batch
+        y_hat = self(x)
+        loss = F.cross_entropy(y_hat, y)
+        return loss
+    
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)
 
 
 class SoundClassifier(LightningModule):
@@ -39,14 +68,25 @@ class SoundClassifier(LightningModule):
         super().__init__()
         self.embedding = embedding
         self.n_classes = n_classes
+        self.network = nn.Sequential(
+	                             nn.Linear(embedding.embedding_dim,n_classes),
+                                     nn.Softmax(1)
+                                     )
 
     def forward(self, x: Tensor) -> Tensor:
-        pass  # TODO
+        return self.network(x)
 
     def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
-        x, y = batch
         pass  # TODO
-
+    
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = F.cross_entropy(y_hat, y)
+        return loss
+    
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)
 
 class SoundClassifierWithTransfer(SoundClassifier):
     """SoundClassifier with frozen embedding."""
