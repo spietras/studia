@@ -13,7 +13,9 @@ import pandas as pd
 
 import numpy as np
 from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader, Dataset, IterableDataset
+from torch.utils.data import DataLoader, Dataset, IterableDataset, random_split, Subset
+from torch.random import initial_seed, manual_seed
+from torch import Generator
 
 
 T = TypeVar('T', bound=Hashable)
@@ -44,23 +46,42 @@ class FSDK50K(ClassificationDataset[str]):
             data: (n_samples, n_channels) - sample values for each audio channel
         y: str - target class
     """
-    items=[]
+   
 
-    def __init__(self, base_dir: Path) -> None:
+    def __init__(self, base_dir: Path, white_list: Path) -> None:
         super().__init__()
-        #sample_rate, samples = wavfile.read(base_dir.joinpath("237.wav"))
-        onlywavfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".wav")]
+        self.items:List[Tuple[str,str]]=[]
         onlycsvfiles = [f for f in listdir(base_dir) if isfile(base_dir.joinpath(f)) and f.endswith(".csv")]
-        
-        opisy = pd.read_csv(base_dir.joinpath(onlycsvfiles[0]),sep=",")	
-        
-        for item in onlywavfiles:
-         sample_rate, samples = wavfile.read(base_dir.joinpath(item))
-         indeks = os.path.splitext(item)[0]
-         klucz=opisy[opisy['fname']==int(indeks)]
-         self.items.append(((sample_rate,np.array(samples)),str(klucz)))
+        white_list= pd.read_csv(str(white_list), usecols=[0], names=['heading'])
+        white_list_set=set(white_list['heading'].unique())
+        description = pd.read_csv(base_dir.joinpath(onlycsvfiles[0]),sep=",",quotechar="\"")	
+        index_control=[] # for checking rejected samples
+        for i in range(description.shape[0]-1):
          
+         fname=str(description.iloc[i,0])
+         
+         if (str(description.iloc[i,1])=="nan"): # situation when description = [first,"second,third,fourth",last] -read csv does not work well = whole in deccription[i,0]
+          fname_parse_list=fname.split("\"")
+          fname=str(fname_parse_list[0][:-1])
+          label=str(fname_parse_list[1])  
+         else: label=str(description.iloc[i,1])
+         label_list=label.split(",")
+         already_found_index:Int = -1
+         duplicate: Boolean = False
+         
+         for j in range(len(label_list)):
+          if (label_list[j] in white_list_set):
+           if (already_found_index>=0):
+            duplicate=True
+            index_control.append((i,label_list[j]))
+            break
+           else:
+            already_found_index=j
+         if ((not duplicate) and (already_found_index>=0)): 
+          self.items.append((fname,label_list[already_found_index]))
+                  
         self.base_dir = base_dir
+        
 
     @property
     def targets(self) -> List[str]:
@@ -72,12 +93,13 @@ class FSDK50K(ClassificationDataset[str]):
         
 
     def __len__(self) -> int:
-        pass  # TODO
         return len(self.items)
 
     def __getitem__(self, idx: int) -> Tuple[Tuple[int, np.ndarray], str]:
-        pass  # TODO
-        return self.items[idx]
+        sample_rate, samples = wavfile.read(self.base_dir.joinpath(self.items[idx][0]+".wav"))
+        if (samples.ndim==1): samples = np.resize(samples,(5*sample_rate,))
+        else: samples = np.resize(samples,(5*sample_rate,samples.shape[1]))
+        return ((sample_rate,samples),self.items[idx][1])
 
 class FSDK50KSpectro(FSDK50K):
     """Dataset of FSD50K sound data as spectrograms.
@@ -91,7 +113,7 @@ class FSDK50KSpectro(FSDK50K):
         (rate, samples), y = super().__getitem__(idx)
         frequencies, times, spectrogram = signal.spectrogram(samples, rate)
         return (spectrogram,y)
-        pass  # TODO
+       
 
 
 class MinimumSamplesDataset(ClassificationDataset[T]):
@@ -144,43 +166,40 @@ class StandardSplit(LightningDataModule):
                  dataset: Dataset,
                  train_ids: List[int],
                  val_ids: List[int],
-                 test_ids: List[int]) -> None:
+                 test_ids: List[int],
+                 batch_size:int) -> None:
         super().__init__()
         self.dataset = dataset
         self.train_ids = train_ids
         self.val_ids = val_ids
         self.test_ids = test_ids
+        self.batch_size = batch_size
 
     def setup(self, stage: Optional[str] = None) -> None:
         # use train_ids, val_ids, test_ids to split
-        pass  # TODO
         self.train_set = Subset(self.dataset,self.train_ids)
         self.val_set = Subset(self.dataset,self.val_ids)
         self.test_set = Subset(self.dataset,self.test_ids)
 
     def train_dataloader(self) -> DataLoader:
-        pass  # TODO
-        return Dataloader(self.train_set)
+        return DataLoader(self.train_set,self.batch_size)
         
     def val_dataloader(self) -> DataLoader:
-        pass  # TODO
-        return Dataloader(self.val_set)
+        return DataLoader(self.val_set,self.batch_size)
 
     def test_dataloader(self) -> DataLoader:
-        pass  # TODO
-        return Dataloader(self.test_set)
+        return DataLoader(self.test_set,self.batch_size)
 
 class RandomSplit(StandardSplit):
     """DataModule with data randomly divided into train/val/test sets."""
 
-    def __init__(self, dataset: Dataset, test_ratio: float = 0.15, val_ratio: float = 0.05) -> None:
+    def __init__(self, dataset: Dataset, batch_size:int, test_ratio: float = 0.15, val_ratio: float = 0.05) -> None:
         train_ids, val_ids, test_ids = self._get_indices(dataset, test_ratio, val_ratio)
-        super().__init__(dataset, train_ids, val_ids, test_ids)
+        super().__init__(dataset, train_ids, val_ids, test_ids, batch_size)
 
     @staticmethod
     def _get_indices(dataset: Dataset, test_ratio: float, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
-        pass  # TODO- pewnie dwukrotnie u¿ycie from sklearn.model_selection import train_test_split tylko z jakas randomizacja
-
+        return random_split(dataset, [int(dataset.__len__()*(1-test_ratio -val_ratio)),int(dataset.__len__()*val_ratio),int(dataset.__len__()*test_ratio)], generator=Generator())
 
 class StandardSplitTrainingLimited(StandardSplit):
     """StandardSplit with limited number of examples per class in the training set."""
@@ -191,7 +210,7 @@ class StandardSplitTrainingLimited(StandardSplit):
 
     @staticmethod
     def _get_indices(dataset: Dataset, k: int, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
-        pass  # TODO - pewnie dwukrotnie u¿ycie from sklearn.model_selection import train_test_split
+        pass  # TODO
 
 
 def class_split(dataset: ClassificationDataset,
