@@ -2,11 +2,7 @@
 
 Text generation using machine learning.
 
-It lets you easily accomplish the following things:
-
-- [x] **nothing**
-
-But at least it shows some opinionated best practices about python projects.
+Write some initial words and the rest will be automatically generated.
 
 ## Installing
 

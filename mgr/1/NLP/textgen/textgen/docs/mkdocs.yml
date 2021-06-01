@@ -73,6 +73,5 @@ extra:
 
 nav:
   - Home: index.md
-  - Usage:
-      - Library: usage/library.md
-      - Command line tool: usage/cli.md
+  - Command line: cli.md
+  - Training: training.md

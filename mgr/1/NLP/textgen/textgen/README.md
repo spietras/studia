@@ -11,11 +11,7 @@
 
 Text generation using machine learning.
 
-It lets you easily accomplish the following things:
-
-- [x] **nothing**
-
-But at least it shows some opinionated best practices about python projects.
+Write some initial words and the rest will be automatically generated.
 
 ## Installing
 
@@ -27,20 +23,9 @@ pip install textgen
 
 <sup><sup>* assuming the authors bothered to release the package on PyPI...</sup></sup>
 
-## Usage as a library
-
-**Very** useful example:
-
-```python
-from textgen.subpackage.module import identity
-
-x = 1
-assert x is identity(x)
-```
-
 ## Usage as a command line tool
 
 ```sh
-$ textgen
-Hello World.
+$ textgen 'I am'
+I am alive.
 ```
