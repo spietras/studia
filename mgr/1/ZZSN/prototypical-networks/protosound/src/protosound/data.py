@@ -1,14 +1,14 @@
 """Module for code related to data."""
+
 import csv
 import random
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Tuple, List, Set, Dict, TypeVar, Hashable, Generic, Iterator, Union
 
+import librosa
 import numpy as np
 from pytorch_lightning import LightningDataModule
-from scipy import signal
-from scipy.io import wavfile
 from torch.utils.data import DataLoader, Dataset, IterableDataset, Subset
 
 T = TypeVar('T', bound=Hashable)
@@ -98,7 +98,7 @@ class FSD50K(ClassificationDataset[str]):
         return len(self.items)
 
     def __getitem__(self, idx: int) -> Tuple[Tuple[int, np.ndarray], str]:
-        sample_rate, samples = wavfile.read(self.base_dir / self.AUDIO_DIRNAME / self.items[idx][0])
+        samples, sample_rate = librosa.load(self.base_dir / self.AUDIO_DIRNAME / self.items[idx][0], sr=None)
         samples = np.resize(samples, (self.duration * sample_rate,))
         return (sample_rate, samples), self.items[idx][1]
 
@@ -111,10 +111,18 @@ class FSD50KSpectro(FSD50K):
         y: str - target class
     """
 
+    def __init__(self, base_dir: Union[str, Path], duration: float = 5,
+                 n_fft: int = 2048, hop_length: int = 1024) -> None:
+        super().__init__(base_dir, duration)
+        self.n_fft = n_fft
+        self.hop_length = hop_length
+
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, str]:
         (rate, samples), y = super().__getitem__(idx)
-        _, _, spectrogram = signal.spectrogram(samples, rate)
-        return spectrogram[np.newaxis, ...], y
+        spect = librosa.feature.melspectrogram(y=samples, sr=rate, n_fft=self.n_fft, hop_length=self.hop_length)
+        spect = librosa.power_to_db(spect, ref=np.max)
+        spect = librosa.util.normalize(spect)
+        return spect[np.newaxis, ...], y
 
 
 class MinimumSamplesDataset(ClassificationDataset[T]):
