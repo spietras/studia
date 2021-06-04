@@ -23,19 +23,13 @@ class SoundEmbedding(nn.Module):
     def __init__(self, embedding_dim: int) -> None:
         super().__init__()
         self.embedding_dim = embedding_dim
-        self.network = nn.Sequential(nn.Conv2d(1, 32, kernel_size=(3,), padding=(1,)),
-                                     nn.ReLU(),
-                                     nn.Conv2d(32, 64, kernel_size=(3,), stride=(1,), padding=(1,)),
+        self.network = nn.Sequential(nn.Conv2d(1, 32, kernel_size=3, padding=1),
                                      nn.ReLU(),
                                      nn.MaxPool2d(2, 2),
-                                     nn.Conv2d(64, 128, kernel_size=(3,), stride=(1,), padding=(1,)),
-                                     nn.ReLU(),
-                                     nn.Conv2d(128, 128, kernel_size=(3,), stride=(1,), padding=(1,)),
+                                     nn.Conv2d(32, 64, kernel_size=3, padding=1),
                                      nn.ReLU(),
                                      nn.MaxPool2d(2, 2),
-                                     nn.Conv2d(128, 256, kernel_size=(3,), stride=(1,), padding=(1,)),
-                                     nn.ReLU(),
-                                     nn.Conv2d(256, embedding_dim, kernel_size=(3,), stride=(1,), padding=(1,)),
+                                     nn.Conv2d(64, self.embedding_dim, kernel_size=3, padding=1),
                                      nn.ReLU(),
                                      nn.MaxPool2d(2, 2),
                                      nn.AdaptiveAvgPool2d(1),
@@ -56,20 +50,48 @@ class SoundClassifier(LightningModule):
         output: (batch_size, n_classes)
     """
 
-    def __init__(self, embedding: SoundEmbedding, n_classes: int) -> None:
+    def __init__(self, embedding: SoundEmbedding, n_classes: int,
+                 loss: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
+                 metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
+                 lr: float = 1e-3) -> None:
         super().__init__()
-        self.embedding = embedding
         self.n_classes = n_classes
         self.network = nn.Sequential(
+            embedding,
             nn.Linear(embedding.embedding_dim, n_classes),
-            nn.Softmax(1)
+            nn.LogSoftmax()
         )
+        self.loss = loss or NLLLoss()
+        self.metric = metric or Accuracy()
+        self.lr = lr
 
     def forward(self, x: Tensor) -> Tensor:
         return self.network(x)
 
+    def _metric_step(self, x: Tensor, y: Tensor,
+                     metric_label: str, loss_label: str) -> Dict[str, Tensor]:
+        pred = self(x)
+        loss = self.loss(pred, y)
+        metric = self.metric(pred.argmax(1), y)
+        metrics = {metric_label: metric, loss_label: loss}
+        self.log_dict(metrics, on_step=False, on_epoch=True)
+        return metrics
+
     def training_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Tensor:
-        pass  # TODO
+        x, y = batch
+        return self._metric_step(x, y, 'train_metric', 'train_loss')['train_loss']
+
+    def validation_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Dict[str, Tensor]:
+        x, y = batch
+        return self._metric_step(x, y, 'val_metric', 'val_loss')
+
+    def test_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> Dict[str, Tensor]:
+        x, y = batch
+        return self._metric_step(x, y, 'test_metric', 'test_loss')
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        return optimizer
 
 
 class SoundClassifierWithTransfer(SoundClassifier):
@@ -91,42 +113,43 @@ class ProtoFewShotClassifier(LightningModule):
     samples in each class (during inference) as a basis for classification.
 
     Shape (inference):
-        input: (batch_size, n_way, k_shot, 1, ?, ?),
-               (batch_size, n_query, 1, ?, ?)
+        input: (batch_size, n_way, k_shot, *),
+               (batch_size, n_query, *)
         output: (batch_size, n_query, n_way)
     Shape (train/val/test):
-        input: (batch_size, n_way, k_shot, 1, ?, ?),
-               (batch_size, n_way, n_query, 1, ?, ?)
+        input: (batch_size, n_way, k_shot, *),
+               (batch_size, n_way, n_query, *)
     """
 
     def __init__(self, embedding: nn.Module,
                  loss: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
-                 metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None) -> None:
+                 metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
+                 lr: float = 1e-3) -> None:
         super().__init__()
         self.embedding = embedding
         self.loss = loss or NLLLoss()
         self.metric = metric or Accuracy()
+        self.lr = lr
 
     def forward(self, support: Tensor, query: Tensor) -> Tensor:
         (batch_size, n_way, k_shot), n_query = support.shape[:3], query.shape[1]
-        support = self.embedding(support.flatten(0, 2)).unflatten(0, batch_size, n_way, k_shot)  # (B, N, K, Z)
+        support = self.embedding(support.flatten(0, 2)).unflatten(0, (batch_size, n_way, k_shot))  # (B, N, K, Z)
         query = self.embedding(query.flatten(0, 1)).unflatten(0, (batch_size, n_query))  # (B, Q, Z)
         prototypes = support.mean(2)  # (B, N, Z)
         return F.log_softmax(-torch.cdist(query, prototypes), -1)  # (B, Q, N)
 
-    def training_step(self, batch: Tuple[Tensor, Tensor, Tensor], batch_idx: int) -> Tensor:
-        support, query, y = batch
-        pred = self(support, query)
-        return self.loss(pred, y)
-
     def _metric_step(self, support: Tensor, query: Tensor, y: Tensor,
                      metric_label: str, loss_label: str) -> Dict[str, Tensor]:
-        pred = self(support, query)
+        pred = self(support, query).transpose(1, 2)
         loss = self.loss(pred, y)
-        metric = self.metric(pred.exp(), y)  # accuracy needs normal probabilities
+        metric = self.metric(pred.argmax(1), y)
         metrics = {metric_label: metric, loss_label: loss}
-        self.log_dict(metrics)
+        self.log_dict(metrics, on_step=False, on_epoch=True)
         return metrics
+
+    def training_step(self, batch: Tuple[Tensor, Tensor, Tensor], batch_idx: int) -> Tensor:
+        support, query, y = batch
+        return self._metric_step(support, query, y, 'train_metric', 'train_loss')['train_loss']
 
     def validation_step(self, batch: Tuple[Tensor, Tensor, Tensor], batch_idx: int) -> Dict[str, Tensor]:
         support, query, y = batch
@@ -136,11 +159,13 @@ class ProtoFewShotClassifier(LightningModule):
         support, query, y = batch
         return self._metric_step(support, query, y, 'test_metric', 'test_loss')
 
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        return optimizer
+
 
 class ProtoSoundFewShotClassifier(ProtoFewShotClassifier):
     """ProtoFewShotClassifier with SoundEmbedding for sound classification."""
 
-    def __init__(self, embedding: SoundEmbedding,
-                 loss: Optional[Callable[[Tensor, Tensor], Tensor]] = None,
-                 metric: Optional[Callable[[Tensor, Tensor], Tensor]] = None) -> None:
-        super().__init__(embedding, loss, metric)
+    def __init__(self, embedding: SoundEmbedding, *args, **kwargs) -> None:
+        super().__init__(embedding, *args, **kwargs)
