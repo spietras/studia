@@ -169,7 +169,8 @@ class StandardSplit(LightningDataModule):
                  val_ids: List[int],
                  test_ids: List[int],
                  batch_size: int = 1,
-                 shuffle: bool = True) -> None:
+                 shuffle: bool = True,
+                 num_workers: int = 0) -> None:
         super().__init__()
         self.dataset = dataset
         self.train_ids = train_ids
@@ -177,6 +178,7 @@ class StandardSplit(LightningDataModule):
         self.test_ids = test_ids
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.num_workers = num_workers
 
     def setup(self, stage: Optional[str] = None) -> None:
         self.train_set = Subset(self.dataset, self.train_ids)
@@ -184,22 +186,25 @@ class StandardSplit(LightningDataModule):
         self.test_set = Subset(self.dataset, self.test_ids)
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.train_set, batch_size=self.batch_size, shuffle=self.shuffle)
+        return DataLoader(self.train_set, batch_size=self.batch_size,
+                          shuffle=self.shuffle, num_workers=self.num_workers)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.val_set, batch_size=self.batch_size, shuffle=self.shuffle)
+        return DataLoader(self.val_set, batch_size=self.batch_size,
+                          shuffle=self.shuffle, num_workers=self.num_workers)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.test_set, batch_size=self.batch_size, shuffle=self.shuffle)
+        return DataLoader(self.test_set, batch_size=self.batch_size,
+                          shuffle=self.shuffle, num_workers=self.num_workers)
 
 
 class RandomSplit(StandardSplit):
     """DataModule with data randomly divided into train/val/test sets."""
 
-    def __init__(self, dataset: SizedDataset, batch_size: int = 1, shuffle: bool = True,
-                 test_ratio: float = 0.15, val_ratio: float = 0.05) -> None:
+    def __init__(self, dataset: SizedDataset, test_ratio: float = 0.15, val_ratio: float = 0.05,
+                 *args, **kwargs) -> None:
         train_ids, val_ids, test_ids = self._get_indices(len(dataset), test_ratio, val_ratio)
-        super().__init__(dataset, train_ids, val_ids, test_ids, batch_size, shuffle)
+        super().__init__(dataset, train_ids, val_ids, test_ids, *args, **kwargs)
 
     @staticmethod
     def _get_indices(length: int, test_ratio: float, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
@@ -212,18 +217,22 @@ class StandardSplitTrainingLimited(StandardSplit):
     """StandardSplit with limited number of examples per class in the training set."""
 
     def __init__(self, dataset: ClassificationDataset[T], k: int,
-                 batch_size: int = 1, shuffle: bool = True, val_ratio: float = 0.05) -> None:
-        train_ids, val_ids, test_ids = self._get_indices(dataset.targets, k, val_ratio)
-        super().__init__(dataset, train_ids, val_ids, test_ids, batch_size, shuffle)
+                 val_k: Optional[int] = None, test_k: Optional[int] = None,
+                 *args, **kwargs) -> None:
+        train_ids, val_ids, test_ids = self._get_indices(dataset.targets, k, val_k or k, test_k or k)
+        super().__init__(dataset, train_ids, val_ids, test_ids, *args, **kwargs)
 
     @staticmethod
-    def _get_indices(targets: List[T], k: int, val_ratio: float) -> Tuple[List[int], List[int], List[int]]:
+    def _get_indices(targets: List[T], k: int, val_k: int, test_k: int) -> Tuple[List[int], List[int], List[int]]:
         targets = np.array(targets)
         classes = np.unique(targets)
         train_ids = [i for c in classes for i in np.random.choice(np.nonzero(targets == c)[0], k, replace=False)]
-        free_ids = np.setdiff1d(np.arange(len(targets)), train_ids)
-        val_ids = np.random.choice(free_ids, int(val_ratio * len(targets)), replace=False).tolist()
-        test_ids = np.setdiff1d(free_ids, val_ids).tolist()
+        val_ids = [i for c in classes for i in np.random.choice(np.setdiff1d(np.nonzero(targets == c)[0],
+                                                                             train_ids),
+                                                                val_k, replace=False)]
+        test_ids = [i for c in classes for i in np.random.choice(np.setdiff1d(np.nonzero(targets == c)[0],
+                                                                              train_ids + val_ids),
+                                                                 test_k, replace=False)]
         return train_ids, val_ids, test_ids
 
 
@@ -255,6 +264,9 @@ class FewShotTasks(SizedIterableDataset):
         self.n_support = n_support
         self.n_query = n_query
         self.n_tasks = n_tasks or len(self.base_dataset.classes) // n_classes
+        if len(self.base_dataset.classes) < n_classes:
+            raise ValueError("Not enough classes in the dataset. "
+                             f"Need at least {n_classes}, but have {len(self.base_dataset.classes)}")
 
     def __len__(self) -> int:
         return self.n_tasks
@@ -284,7 +296,8 @@ class FewShotSplit(LightningDataModule):
                  n_tasks: int,
                  test_ratio: float = 0.15,
                  val_ratio: float = 0.05,
-                 batch_size: int = 1) -> None:
+                 batch_size: int = 1,
+                 num_workers: int = 0) -> None:
         super().__init__()
         self.dataset = dataset
         self.n_classes = n_classes
@@ -294,6 +307,7 @@ class FewShotSplit(LightningDataModule):
         self.test_ratio = test_ratio
         self.val_ratio = val_ratio
         self.batch_size = batch_size
+        self.num_workers = num_workers
 
     def setup(self, stage: Optional[str] = None) -> None:
         base, novel = class_split(self.dataset, self.test_ratio)
@@ -306,10 +320,10 @@ class FewShotSplit(LightningDataModule):
                                  int(self.n_tasks * self.test_ratio))
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.train, batch_size=self.batch_size)
+        return DataLoader(self.train, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.val, batch_size=self.batch_size)
+        return DataLoader(self.val, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.test, batch_size=self.batch_size)
+        return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers)
