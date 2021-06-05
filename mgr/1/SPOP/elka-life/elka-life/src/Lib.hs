@@ -8,6 +8,11 @@ data GameState = GameState
   {questScores :: [Maybe Int]
   } deriving Show
 
+checkQuestPassed :: GameState -> Int -> Bool
+checkQuestPassed state pos = case ((questScores state)!!pos) of 
+                                Nothing -> False
+                                _ -> True
+
 setScore :: [Maybe Int] -> Int -> Int -> [Maybe Int]
 setScore (x:xs) score pos = case pos of 
                                 0 -> Just score : xs
@@ -86,8 +91,11 @@ test state = do putStrLn "test"
                             test state
 
 questLab :: GameState -> IO GameState
-questLab state = do putStrLn "questLab"
-                    return (GameState (setScore (questScores state) 10 3))
+questLab state = if (checkQuestPassed state 3)
+                    then do putStrLn "Niestety, do laboratorium mogłeś podejść tylko raz. Niech to będzie dla Ciebie nauczka na przyszłość!"
+                            return state
+                    else do putStrLn "questLab"
+                            return (GameState (setScore (questScores state) 10 3))
 
 lab :: GameState -> IO ()
 lab state = do putStrLn "lab"
