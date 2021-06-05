@@ -14,7 +14,7 @@ setScore (x:xs) score pos = case pos of
                                 _ -> x : (setScore xs score (pos - 1))
 
 start :: IO ()
-start = faculty (GameState [Nothing, Nothing])
+start = dorm (GameState [Nothing, Nothing, Nothing, Nothing])
 
 questFaculty :: GameState -> IO GameState
 questFaculty state = do putStrLn "questFaculty"
@@ -29,12 +29,75 @@ faculty state = do putStrLn "faculty"
                                      print newState
                                      faculty newState
                        "dorm" -> dorm state
-                       _ -> do putStrLn "quest or dorm"
+                       "test" -> test state
+                       "lab" -> lab state
+                       _ -> do putStrLn "TODO: pomocy - co wpisac"
                                faculty state
 
 
-dorm :: GameState -> IO ()
-dorm state = do putStrLn "dorm" 
-                input <- getLine
-                faculty state
+questDorm :: GameState -> IO GameState
+questDorm state = do putStrLn "questDorm"
+                     return (GameState (setScore (questScores state) 10 0))
 
+dorm :: GameState -> IO ()
+dorm state = do putStrLn "dorm"
+                print state
+                input <- getLine
+                case input of
+                    "quest" -> do newState <- (questDorm state)
+                                  print newState
+                                  dorm newState
+                    "faculty" -> faculty state
+                    "project" -> project state
+                    _ -> do putStrLn "TODO: pomocy - co wpisac"
+                            dorm state
+
+questProject :: GameState -> IO GameState
+questProject state = do putStrLn "questProject"
+                        return (GameState (setScore (questScores state) 10 1))
+
+project :: GameState -> IO ()
+project state = do putStrLn "project"
+                   print state
+                   input <- getLine
+                   case input of
+                       "quest" -> do newState <- (questProject state)
+                                     print newState
+                                     project newState
+                       "dorm" -> dorm state
+                       _ -> do putStrLn "TODO: pomocy - co wpisac"
+                               project state
+
+questTest :: GameState -> IO GameState
+questTest state = do putStrLn "questTest"
+                     return (GameState (setScore (questScores state) 10 2))
+
+test :: GameState -> IO ()
+test state = do putStrLn "test"
+                print state
+                input <- getLine
+                case input of
+                    "quest" -> do newState <- (questTest state)
+                                  print newState
+                                  test newState
+                    "faculty" -> faculty state
+                    "lab" -> lab state
+                    _ -> do putStrLn "TODO: pomocy - co wpisac"
+                            test state
+
+questLab :: GameState -> IO GameState
+questLab state = do putStrLn "questLab"
+                    return (GameState (setScore (questScores state) 10 3))
+
+lab :: GameState -> IO ()
+lab state = do putStrLn "lab"
+               print state
+               input <- getLine
+               case input of
+                   "quest" -> do newState <- (questLab state)
+                                 print newState
+                                 lab newState
+                   "faculty" -> faculty state
+                   "test" -> test state
+                   _ -> do putStrLn "TODO: pomocy - co wpisac"
+                           lab state
