@@ -194,7 +194,7 @@ questLab8_2 cheats food = do    putStrLn "\nNiestety, trafiłeś do swojego star
                                 score <- case food of
                                         True -> do putStrLn "\nNie masz zielonego pojęcia jak rozwiązać zadania. Zerujesz wejściówkę."
                                                    putStrLn "Z labami też wyszło tak sobie, dobrze, że chociaż Twój kolega coś umiał."
-                                                   putStrLn "Dobrze, że przynajmniej wychodzisz najedzony."
+                                                   putStrLn "Najważniejsze, że wychodzisz najedzony."
                                                    return 13
                                         False -> do putStrLn "\nNa jedno pytanie udaje Ci się odpowiedzieć."
                                                     score <- case cheats of
