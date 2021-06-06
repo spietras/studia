@@ -15,7 +15,11 @@ extra-source-files:
 
 library
   exposed-modules:
-      Lib
+      Def
+      Engine
+      Map
+      Types
+      Utils
   other-modules:
       Paths_elka_life
   hs-source-dirs:
