@@ -60,14 +60,14 @@ labQuest2 = do putStrLn "Witaj, dzielny adepcie Technik Sygnałów i Informacji!
                putStrLn "Właśnie dziś będziesz miał szansę przekonać się o tym, z jakimiż to problemami musimy się mierzyć, dyskretyzując sygnał w czasie."
                putStrLn "Ale, ale! Nie tak szybko! Na laboratorium musisz wykonać pracę domową, a zostało Ci tylko trzy godziny!"
                putStrLn "Na dodatek akurat trwają ćwiczenia z tego właśnie przedmiotu, a prowadzący zajęcia zwraca szczególną uwagę na to, co w czasie zajęć robią jego studenci."
-               putStrLnLn "Piszesz pracę domową, czy uważasz? (i tak będziesz tylko udawał, nie oszukujmy się)"
+               putStrLnLn "Pisać pracę domową, czy uważać? (i tak będziesz tylko udawał, nie oszukujmy się)"
                input <- getLine
                putLn
                score <- case input of
-                    "PISZĘ PRACĘ DOMOWĄ" -> do res <- labQuest3 True
-                                               return (res + 5)
-                    "UWAŻAM" -> labQuest3 False
-                    _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZĘ PRACĘ DOMOWĄ, UWAŻAM"
+                    "PISZ PRACĘ DOMOWĄ" -> do res <- labQuest3 True
+                                              return (res + 5)
+                    "UWAŻAJ" -> labQuest3 False
+                    _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PRACĘ DOMOWĄ, UWAŻAJ"
                             labQuest2
                return score
 
@@ -87,9 +87,9 @@ labQuest4 hw = do putStrLn "No dobrze, ćwiczenia się skończyły, laboratorium
                   input <- getLine
                   putLn
                   score <- case input of
-                        "IDĘ JEŚĆ" -> labQuest5_1 True
-                        "UCZĘ SIĘ" -> labQuest5_2
-                        _ -> do putStrLnLn "Możliwe opcje do wyboru: IDĘ JEŚĆ, UCZĘ SIĘ"
+                        "IDŹ JEŚĆ" -> labQuest5_1 True
+                        "UCZ SIĘ" -> labQuest5_2
+                        _ -> do putStrLnLn "Możliwe opcje do wyboru: IDŹ JEŚĆ, UCZ SIĘ"
                                 labQuest4 hw
                   return score
 
@@ -100,21 +100,21 @@ labQuest5_1 hw = do putStrLn "Myślisz sobie - dość tego! Idę na spaghetti al
                     input <- getLine
                     putLn
                     score <- case input of
-                            "IDĘ SPAĆ" -> do labQuest6_1
+                            "IDŹ SPAĆ" -> do labQuest6_1
                                              let ret = case hw of
                                                         True -> (-5)
                                                         False -> 0
                                              return ret
                                           
-                            "IDĘ NA LABORATORIUM" -> labQuest6_2 False True
-                            _ -> do putStrLnLn "Możliwe opcje do wyboru: IDĘ SPAĆ, IDĘ NA LABORATORIUM"
+                            "IDŹ NA LABORATORIUM" -> labQuest6_2 False True
+                            _ -> do putStrLnLn "Możliwe opcje do wyboru: IDŹ SPAĆ, IDŹ NA LABORATORIUM"
                                     labQuest5_1 hw
                     return score
 
 labQuest5_2 :: IO Int
 labQuest5_2 = do putStrLn "Ty pracusiu! Wiele się nie nauczyłeś, ale zawsze lepsze to niż nic."
                  putStrLn "Zostało Ci jeszcze trochę czasu, myślisz - może warto napisać sobie ściągę... Czemu nie? Co tam uczciwość!"
-                 putStrLnLn "Piszesz ściągi na wejściówkę?"
+                 putStrLnLn "Pisać ściągi na wejściówkę?"
                  input <- getLine
                  putLn
                  score <- case input of
@@ -132,20 +132,20 @@ labQuest6_1 = do putStrLn "Wiadomo, opuszczenie jednego laboratorium to nie koni
 labQuest6_2 :: Bool -> Bool -> IO Int
 labQuest6_2 cheats food = do putStrLn "Docierasz na labkę. Wyjeżdżasz windą na piętro dwie minutki przed, wychodzisz, a tam masa ludzi tli się przy drzwiach wejściowych..."
                              putStrLn "Z kolei tu, gdzie jesteś, przy windzie, jest całkiem sporo miejsca!"
-                             putStrLnLn "Jesteś skonfundowany. Co wybierasz - idziesz pod drzwi czy zostajesz pod windą?"
+                             putStrLnLn "Jesteś skonfundowany. Co teraz - iść pod drzwi czy zostać pod windą?"
                              input <- getLine
                              putLn
                              score <- case input of
-                                 "IDĘ" -> labQuest7 cheats food True
-                                 "ZOSTAJĘ" -> labQuest7 cheats food False
-                                 _ -> do putStrLnLn "Możliwe opcje do wyboru: IDĘ, ZOSTAJĘ"
+                                 "IDŹ POD DRZWI" -> labQuest7 cheats food True
+                                 "ZOSTAŃ POD WINDĄ" -> labQuest7 cheats food False
+                                 _ -> do putStrLnLn "Możliwe opcje do wyboru: IDŹ POD DRZWI, ZOSTAŃ POD WINDĄ"
                                          labQuest6_2 cheats food
                              return score
 
 labQuest7 :: Bool -> Bool -> Bool -> IO Int
 labQuest7 cheats food door = do putStrLn "Drzwi się otwierają, i przypominasz sobie znajomą twarz - ostatnio ten prowadzący dał Ci popalić na labce..."
                                 putStrLn "Wszyscy idą do pierwszej sali, gdzie prowadzi ktoś nowy, wygląda na spoko gościa!"
-                                putStrLnLn "Próbujesz iść do lepszego prowadzącego?"
+                                putStrLnLn "Czy spróbować iść do nowego prowadzącego?"
                                 input <- getLine
                                 putLn
                                 score <- case input of 
@@ -173,7 +173,7 @@ labQuest8_2 cheats food = do    putStrLn "Niestety, trafiłeś do swojego stareg
                                                    return 13
                                         False -> do putStrLn "Na jedno pytanie udaje Ci się odpowiedzieć."
                                                     score <- case cheats of
-                                                        True -> do putStrLnLn "Ale masz ściągawki! Korzystasz z nich?"
+                                                        True -> do putStrLnLn "Ale masz ściągawki! Skorzystać z nich?"
                                                                    ret <- labQuest9
                                                                    return ret
                                                         False -> do putStrLn "Nie masz ściągawek, zostajesz z tym co masz, tyle wyszło z Twojej uczciwości..."
@@ -194,10 +194,10 @@ labQuest9 = do input <- getLine
 
 lab :: Place
 lab = Place 2
-            "Witaj przed salą laboratoryjną! Właśnie tutaj odbywają się laboratoria z Technik Sygnałów i Informacji.\nPODEJMUJESZ WYZWANIE? A może wracasz na wydział albo na kolokwium?"
-            "PODEJMUJĘ WYZWANIE"
+            "Witaj przed salą laboratoryjną! Właśnie tutaj odbywają się laboratoria z Technik Sygnałów i Informacji.\nPODJĄĆ WYZWANIE? A może wrócić na wydział albo na kolokwium?"
+            "PODEJMIJ WYZWANIE"
             labQuest
-            [("WRACAM NA WYDZIAŁ", faculty), ("WRACAM NA KOLOKWIUM", test)]
+            [("WRACAJ NA WYDZIAŁ", faculty), ("WRACAJ NA KOLOKWIUM", test)]
             []
 
 testQuest :: Quest
