@@ -90,7 +90,7 @@ questLab2 :: IO Int
 questLab2 = do putStrLn "Witaj, dzielny adepcie Technik Sygnałów i Informacji!"
                putStrLn "Właśnie dziś będziesz miał szansę przekonać się o tym, z jakimiż to problemami musimy się mierzyć, dyskretyzując sygnał w czasie."
                putStrLn "Ale, ale! Nie tak szybko! Na laboratorium musisz wykonać pracę domową, a zostało Ci tylko trzy godziny!"
-               putStrLn "Na dodatek akurat trwają ćwiczenia z tego właśnie przedmiotu, a prowadzący zajęcia o wschodnio brzmiących personaliach zwraca szczególną uwagę na to, co robią jego studienty."
+               putStrLn "Na dodatek akurat trwają ćwiczenia z tego właśnie przedmiotu, a prowadzący zajęcia zwraca szczególną uwagę na to, co w czasie zajęć robią jego studenci."
                putStrLn "Piszesz pracę domową, czy uważasz? (i tak będziesz tylko udawał, nie oszukujmy się)"
                input <- getLine
                score <- case input of
@@ -123,7 +123,7 @@ questLab4 hw = do putStrLn "No dobrze, ćwiczenia się skończyły, laboratorium
                   return score
 
 questLab5_1 :: Bool -> IO Int
-questLab5_1 hw = do putStrLn "Myślisz sobie - dość tego ruskiego! Idę na spaghetti alla carbonara!"
+questLab5_1 hw = do putStrLn "Myślisz sobie - dość tego! Idę na spaghetti alla carbonara!"
                     putStrLn "Najadłeś się, ale myślisz sobie, że w sumie to byś wrócił do pokoju i się przespał... W końcu zdrowie jest najważniejsze!"
                     putStrLn "Jaka decyzja?"
                     input <- getLine
@@ -158,7 +158,7 @@ questLab6_1 = do putStrLn "Wiadomo, opuszczenie jednego laboratorium to nie koni
 
 questLab6_2 :: Bool -> Bool -> IO Int
 questLab6_2 cheats food = do putStrLn "Docierasz na labkę. Wyjeżdżasz windą na piętro dwie minutki przed, wychodzisz, a tam masa ludzi tli się przy drzwiach wejściowych..."
-                             putStrLn "Z kolei tu gdzie jesteś, przy windzie, jest całkiem sporo miejsca!"
+                             putStrLn "Z kolei tu, gdzie jesteś, przy windzie, jest całkiem sporo miejsca!"
                              putStrLn "Jesteś skonfundowany. Co wybierasz - idziesz pod drzwi czy zostajesz pod windą?"
                              input <- getLine
                              score <- case input of
@@ -194,6 +194,7 @@ questLab8_2 cheats food = do    putStrLn "Niestety, trafiłeś do swojego stareg
                                 score <- case food of
                                         True -> do putStrLn "Nie masz zielonego pojęcia jak rozwiązać zadania. Zerujesz wejściówkę."
                                                    putStrLn "Z labami też wyszło tak sobie, dobrze, że chociaż Twój kolega coś umiał."
+                                                   putStrLn "Dobrze, że przynajmniej wychodzisz najedzony."
                                                    return 13
                                         False -> do putStrLn "Na jedno pytanie udaje Ci się odpowiedzieć."
                                                     score <- case cheats of
