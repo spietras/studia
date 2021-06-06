@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import           Engine
 
 main :: IO ()
-main = start
+main = startGame
