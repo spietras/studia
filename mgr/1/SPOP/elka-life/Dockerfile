@@ -16,10 +16,12 @@ RUN stack build \
 # copy binary only to smaller image (we need glibc, because it's linked, so ubuntu is used)
 FROM ubuntu:21.04
 
+# set polish locale
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
 WORKDIR /tmp/elka-life
 
 COPY --from=base /tmp/elka-life/bin/ ./
-
-ENV LANG C.UTF-8
 
 ENTRYPOINT ["./elka-life"]
