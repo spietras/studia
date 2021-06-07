@@ -1,4 +1,3 @@
-{-# LANGUAGE BlockArguments #-}
 -- Game scenario definitions
 
 module Def(start, welcome, help, quit, badInput, availableCommands) where
@@ -218,7 +217,7 @@ projectQuest4_2 :: IO Int
 projectQuest4_2 = do putStrLn "No cóż, projekt nie jest najważniejszą rzeczą w Twoim życiu. Po co się męczyć w nocy?"
                      putStrLn "Myjesz ząbki i idziesz grzecznie spać."
                      putStrLn "Już w łóżku, przed snem, za kultową czołówką Na dobre i na złe, podśpiewujesz:"
-                     putStrLnLn "Nie planuję, nie obliczam..." 
+                     putStrLnLn "Nie planuję, nie obliczam..."
                      putStrLn "Z przedmiotu dostajesz 2, a miesiąc później, w USOSie czeka na Ciebie drobny rachuneczek do opłacenia."
                      putStrLn "Cóż, ciężkie jest życie studenta..."
                      return 0
@@ -330,10 +329,10 @@ labQuest5_1 hw = do putStrLn "Myślisz sobie - dość tego! Idę na spaghetti al
                     score <- case input of
                             "IDŹ SPAĆ" -> do labQuest6_1
                                              let ret = case hw of
-                                                        True -> (-5)
+                                                        True  -> (-5)
                                                         False -> 0
                                              return ret
-                                          
+
                             "IDŹ NA LABORATORIUM" -> labQuest6_2 False True
                             _ -> do putStrLnLn "Możliwe opcje do wyboru: IDŹ SPAĆ, IDŹ NA LABORATORIUM"
                                     labQuest5_1 hw
@@ -376,7 +375,7 @@ labQuest7 cheats food door = do putStrLn "Drzwi się otwierają, i przypominasz 
                                 putStrLnLn "Czy spróbować iść do nowego prowadzącego?"
                                 input <- getLine
                                 putLn
-                                score <- case input of 
+                                score <- case input of
                                             "TAK" -> case door of
                                                         True -> labQuest8_1
                                                         False -> labQuest8_2 cheats food
@@ -405,10 +404,10 @@ labQuest8_2 cheats food = do    putStrLn "Niestety, trafiłeś do swojego stareg
                                                                    ret <- labQuest9
                                                                    return ret
                                                         False -> do putStrLn "Nie masz ściągawek, zostajesz z tym co masz, tyle wyszło z Twojej uczciwości..."
-                                                                    return 0 
+                                                                    return 0
                                                     putStrLn "Na szczęście na samej labce wiedza nie poszła w las. Nawet dobrze Ci poszło to laboratorium!"
                                                     return (score + 24)
-                                return score       
+                                return score
 
 labQuest9 :: IO Int
 labQuest9 = do input <- getLine
@@ -422,10 +421,11 @@ labQuest9 = do input <- getLine
 
 lab :: Place
 lab = Place 2
-            "Witaj przed salą laboratoryjną! Właśnie tutaj odbywają się laboratoria z Technik Sygnałów i Informacji.\nPODJĄĆ WYZWANIE? A może wrócić na wydział albo na kolokwium?"
+            "Witaj przed salą laboratoryjną! Właśnie tutaj odbywają się laboratoria z Technik Sygnałów i Informacji.\n\
+            \PODJĄĆ WYZWANIE? A może wrócić?"
             "PODEJMIJ WYZWANIE"
             labQuest
-            [("WRACAJ NA WYDZIAŁ", faculty), ("WRACAJ NA KOLOKWIUM", test)]
+            [("WRÓĆ NA KANAPĘ", faculty), ("IDŹ POD SALĘ WYKŁADOWĄ", test)]
             []
 
 testQuest :: Quest
@@ -438,7 +438,7 @@ testQuest state = if (questCompleted state 3)
                              print score
                              return (Just score)
 
-testQuest2 :: IO Int 
+testQuest2 :: IO Int
 testQuest2 = do putStrLn "Do kolokwium zostało jeszcze trochę czasu."
                 putLnStrLn "Możesz się pouczyć albo się zrelaksować."
                 input <- getLine
@@ -462,7 +462,7 @@ testQuest3 learn = do putStrLn "Punktualnie o 12:15 dostrzegasz w oddali po char
                                                        testQuest4 learn False
                                "WEPCHNIJ SIĘ" -> do putStrLnLn "Ahh mama pewnie nie byłaby dumna, ale ukryte miejsce za filarem przy oknie było tego warte!"
                                                     testQuest4 learn True
-                               _ -> do putStrLn "Możliwe opcje do wyboru: PRZEPUŚĆ INNYCH, WEPCHNIJ SIĘ"
+                               _ -> do putStrLnLn "Możliwe opcje do wyboru: PRZEPUŚĆ INNYCH, WEPCHNIJ SIĘ"
                                        testQuest3 learn
 
 testQuest4 :: Bool -> Bool -> IO Int
@@ -483,7 +483,7 @@ testQuest4 learn place = do putStrLn "Teraz jedynie pozostało czekać na kartk�
                                                                      \Twoi znajomi siedzący po drugiej stronie sali również próbowali tego manewru.\n\
                                                                      \Ich próba zakończyła się jendak fiaskiem, a prowadząca wydaje się od tego zdarzenia patrzeć im na ręce."
                                                           testQuest5 learn place False
-                                     _ -> do putStrLn "Możliwe opcje do wyboru: ZMIEŃ GRUPĘ, ZOSTAW GRUPĘ"
+                                     _ -> do putStrLnLn "Możliwe opcje do wyboru: ZMIEŃ GRUPĘ, ZOSTAW GRUPĘ"
                                              testQuest4 learn place
 
 testQuest5 :: Bool -> Bool -> Bool -> IO Int
@@ -493,7 +493,7 @@ testQuest5 learn place group = do putStrLnLn "Teraz jedyne na co możesz liczyć
                                   case input of
                                            "ŚCIĄGAJ" -> testQuest6_1 learn place group
                                            "PISZ UCZCIWIE" -> testQuest6_2 learn
-                                           _ -> do putStrLn "Możliwe opcje do wyboru: ŚCIĄGAJ, PISZ UCZCIWIE"
+                                           _ -> do putStrLnLn "Możliwe opcje do wyboru: ŚCIĄGAJ, PISZ UCZCIWIE"
                                                    testQuest5 learn place group
 
 testQuest6_1 :: Bool -> Bool -> Bool -> IO Int
@@ -537,7 +537,7 @@ test = Place 3
              \Może dzisiaj jest kolokwium?"
              "NAPISZ KOLOKWIUM"
              testQuest
-             [("WRÓĆ NA KANAPĘ", faculty), ("IDŹ NA LABOLATORIUM", lab)]
+             [("WRÓĆ NA KANAPĘ", faculty), ("IDŹ POD SALĘ LABORATORYJNĄ", lab)]
              [("POROZMAWIAJ ZE STUDENTAMI", "Próbujesz porozmawiać z grupą studentów. Nic nie rozumiesz, więc albo są z innego kierunku albo nic nie nauczyłeś się na kolokwium.")]
 
 facultyQuestPrintScore :: ScoreMap -> IO ()
@@ -562,7 +562,7 @@ facultyQuest state = if not (questsCompleted state [0, 1, 2, 3])
                                             \Wiem, że dzisiaj kończy Pan studia. Czy chce Pan rozpocząć przygodę w naszej Firmie?\""
                                  input <- getLine
                                  putLn
-                                 case input of 
+                                 case input of
                                      "TAK" -> facultyQuest2_1 state
                                      "NIE" -> facultyQuest2_2 state
                                      _ -> do putStrLnLn "Możliwe opcje do wyboru: TAK, NIE"
@@ -587,7 +587,7 @@ facultyQuest2_2 state = do putStrLnLn "Bez słowa odchodzisz, wiedząc, że czek
                                       \Co robisz?"
                            input <- getLine
                            putLn
-                           case input of 
+                           case input of
                                "ZOSTAŃ DOKTORANTEM" -> facultyQuest3_1 state
                                "ZAŁÓŻ STARTUP" -> facultyQuest3_2 state
                                _ -> do putStrLnLn "Możliwe opcje do wyboru: ZOSTAŃ DOKTORANTEM, ZAŁÓŻ STARTUP"
@@ -601,9 +601,9 @@ facultyQuest3_1 state = do putStrLnLn "Podążasz za głosem serca i wybierasz k
                                       \\"Ile to 2+2?\""
                            input <- getLine
                            putLn
-                           case input of 
+                           case input of
                                "4" -> facultyQuest4_1 state
-                               _ -> facultyQuest4_2 state
+                               _   -> facultyQuest4_2 state
 
 facultyQuest4_1 :: GameState -> IO ()
 facultyQuest4_1 (GameState scores) = do putStrLnLn "Dobrze! Zostajesz przyjęty!\
@@ -629,7 +629,7 @@ facultyQuest3_2 state = do putStrLnLn "Postanawiasz zaryzykować i założyć st
                                       \Co wybierasz?"
                            input <- getLine
                            putLn
-                           case input of 
+                           case input of
                               "PLAYSTATION" -> facultyQuest4_3 state
                               "XBOX" -> facultyQuest4_4 state
                               _ -> do putStrLnLn "Możliwe opcje do wyboru: PLAYSTATION, XBOX"
@@ -658,12 +658,12 @@ faculty :: Place
 faculty = Place 4
                 "Elka... Przypominają ci się wszystkie zarwane noce, stres, brak życia i niespełnione ambicje, przez co prawie mdlejesz.\n\
                 \Coś jednak pozwala ci przetrwać i iść dalej. Może to dobra kawa z automatów, może koledzy, a może po prostu syndrom sztokholmski?\n\
-                \Jesteś przed salą wykładową. W oddali widać grono studentów czekających przy sali laboratoryjnej.\n\
+                \Niedaleko ciebie jest sala wykładowa. W oddali widać grono studentów czekających przy sali laboratoryjnej.\n\
                 \Przechodzisz obok kosza na śmieci, który wygląda inaczej niż zwykle. Stawiasz plecak z laptopem i siadasz na kanapie.\n\
                 \Myślisz sobie: \"Może najwyższy czas skończyć te studia?\""
                 "ZAKOŃCZ STUDIA"
                 facultyQuest
-                [("WRÓĆ DO AKADEMIKA", dorm), ("WEJDŹ DO SALI WYKŁADOWEJ", test), ("PODEJDŹ DO SALI LABORATORYJNEJ", lab)]
+                [("WRÓĆ DO AKADEMIKA", dorm), ("PODEJDŹ DO SALI WYKŁADOWEJ", test), ("PODEJDŹ DO SALI LABORATORYJNEJ", lab)]
                 [("OTWÓRZ KOSZ", "Kosz na śmieci otwiera się bezdotykowo. A więc to na to idą pieniądze z warunków?"),
                  ("WYJMIJ LAPTOPA", "Wyjmujesz laptopa i udajesz że się uczysz.\nZbyt wiele to nie daje, bo wiadomo, że robisz to jedynie dla szpanu.")]
 
