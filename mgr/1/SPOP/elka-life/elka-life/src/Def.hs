@@ -277,7 +277,7 @@ labQuest state = if (questCompleted state 2)
                      then do putStrLn "Niestety, do laboratorium mogłeś podejść tylko raz. Niech to będzie dla Ciebie nauczka na przyszłość!"
                              return Nothing
                      else do score <- labQuest2
-                             putStrLn "Właśnie ukończyłeś moduł laboratorium!"
+                             putLnStrLn "Właśnie ukończyłeś moduł laboratorium!"
                              putStr "Uzyskany wynik: "
                              print score
                              return (Just score)
