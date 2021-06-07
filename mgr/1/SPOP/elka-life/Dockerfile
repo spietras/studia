@@ -20,4 +20,6 @@ WORKDIR /tmp/elka-life
 
 COPY --from=base /tmp/elka-life/bin/ ./
 
+ENV LANG C.UTF-8
+
 ENTRYPOINT ["./elka-life"]
