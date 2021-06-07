@@ -672,16 +672,16 @@ start :: Place
 start = dorm
 
 welcome :: String
-welcome = "Welcome to the game"
+welcome = "ELKA LIFE"
 
 help :: Action
-help = "HELP"
+help = "POMOCY"
 
 quit :: Action
-quit = "QUIT"
+quit = "WYJDŹ"
 
 badInput :: String
-badInput = "Bad input."
+badInput = "Złe polecenie. Użyj polecenia POMOCY, aby wyświetlić listę dostępnych poleceń."
 
 availableCommands :: [Action] -> String
-availableCommands cmds = "Available commands: " ++ (prettyStrings cmds)
+availableCommands cmds = "Dostępne polecenia: " ++ (prettyStrings cmds)
