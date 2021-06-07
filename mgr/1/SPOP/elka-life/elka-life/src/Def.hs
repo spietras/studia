@@ -35,7 +35,7 @@ projectQuest state = if (questCompleted state 1)
                      then do putStrLn "Dostałeś już ocenę z projektu. Chcesz go przechodzić jeszcze raz? Zapomnij! Może za semestr."
                              return Nothing
                      else do score <- projectQuest2
-                             putStrLn "Zakończyłeś projekt!"
+                             putLnStrLnLn "Zakończyłeś projekt!"
                              putStr "Uzyskany wynik: "
                              print score
                              return (Just score)
@@ -49,12 +49,11 @@ projectQuest2 = do putStrLnLn "GODZINA 20:00. 12 GODZIN DO ODDANIA PROJEKTU."
                    putStrLnLn "Pisać projekt, czy iść spać?"
                    input <- getLine
                    putLn
-                   score <- case input of
-                                "PISZ PROJEKT" -> projectQuest3_1
-                                "IDŹ SPAĆ" -> projectQuest3_2
-                                _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
-                                        projectQuest2
-                   return score
+                   case input of
+                            "PISZ PROJEKT" -> projectQuest3_1
+                            "IDŹ SPAĆ" -> projectQuest3_2
+                            _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
+                                    projectQuest2
 
 projectQuest3_1 :: IO Int
 projectQuest3_1 = do putStrLn "OK, próbujesz kontaktować się z pozostałymi czterema członkami drużyny. Jeden odpowiada i deklaruje pomoc."
@@ -65,13 +64,12 @@ projectQuest3_1 = do putStrLn "OK, próbujesz kontaktować się z pozostałymi c
                      putStrLnLn "Pisać projekt, czy jednak iść spać?"
                      input <- getLine
                      putLn
-                     score <- case input of
-                                "PISZ PROJEKT" -> do res <- projectQuest4_1 True
-                                                     return (res + 5)
-                                "IDŹ SPAĆ" -> projectQuest4_2
-                                _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
-                                        projectQuest3_2
-                     return score
+                     case input of
+                            "PISZ PROJEKT" -> do res <- projectQuest4_1 True
+                                                 return (res + 5)
+                            "IDŹ SPAĆ" -> projectQuest4_2
+                            _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
+                                    projectQuest3_1
 
 projectQuest3_2 :: IO Int
 projectQuest3_2 = do putStrLn "Brawo. Tak zachowuje się poważny człowiek. Studia, studiami, ale o zdrowie trzeba dbać."
@@ -82,12 +80,11 @@ projectQuest3_2 = do putStrLn "Brawo. Tak zachowuje się poważny człowiek. Stu
                      putStrLnLn "Pisać projekt, czy jednak iść spać?"
                      input <- getLine
                      putLn
-                     score <- case input of
-                                "PISZ PROJEKT" -> projectQuest4_1 False
-                                "IDŹ SPAĆ" -> projectQuest4_2
-                                _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
-                                        projectQuest3_2
-                     return score
+                     case input of
+                              "PISZ PROJEKT" -> projectQuest4_1 False
+                              "IDŹ SPAĆ" -> projectQuest4_2
+                              _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ PROJEKT, IDŹ SPAĆ"
+                                      projectQuest3_2
 
 projectQuest4_1 :: Bool -> IO Int
 projectQuest4_1 learningSession = do    case learningSession of
@@ -101,12 +98,11 @@ projectQuest4_1 learningSession = do    case learningSession of
                                         putStrLnLn "Pisać do kolegi, czy zerżnąć gotowy projekt z GitHuba?"
                                         input <- getLine
                                         putLn
-                                        score <- case input of
-                                                        "PISZ DO KOLEGI" -> projectQuest5_1
-                                                        "ZERŻNIJ Z GITHUBA" -> projectQuest5_2
-                                                        _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ DO KOLEGI, ZERŻNIJ Z GITHUBA"
-                                                                projectQuest4_1 learningSession
-                                        return score
+                                        case input of
+                                                 "PISZ DO KOLEGI" -> projectQuest5_1
+                                                 "ZERŻNIJ Z GITHUBA" -> projectQuest5_2
+                                                 _ -> do putStrLnLn "Możliwe opcje do wyboru: PISZ DO KOLEGI, ZERŻNIJ Z GITHUBA"
+                                                         projectQuest4_1 learningSession
 
 projectQuest4_2 :: IO Int
 projectQuest4_2 = do putStrLn "No cóż, projekt nie jest najważniejszą rzeczą w Twoim życiu. Po co się męczyć w nocy?"
@@ -114,7 +110,7 @@ projectQuest4_2 = do putStrLn "No cóż, projekt nie jest najważniejszą rzecz�
                      putStrLn "Już w łóżku, przed snem, za kultową czołówką Na dobre i na złe, podśpiewujesz:"
                      putStrLnLn "Nie planuję, nie obliczam..." 
                      putStrLn "Z przedmiotu dostajesz 2, a miesiąc później, w USOSie czeka na Ciebie drobny rachuneczek do opłacenia."
-                     putStrLnLn "Cóż, ciężkie jest życie studenta..."
+                     putStrLn "Cóż, ciężkie jest życie studenta..."
                      return 0
 
 projectQuest5_1 :: IO Int
@@ -125,25 +121,24 @@ projectQuest5_1 = do putStrLn "Twój kolega Janusz służy Ci pomocą. Udostępn
                      putStrLnLn "Zrozumieć kod, czy iść spać?"
                      input <- getLine
                      putLn
-                     score <- case input of
-                                        "ZROZUM KOD" -> do putStrLnLn "Zasiadasz więc przed kodem i próbujesz z trudem go zrozumieć, a nuż się zapyta co i jak."
-                                                           putStrLnLn "GODZINA 04:00. 4 GODZINY DO ODDANIA PROJEKTU."
-                                                           putStrLn "Z sukcesem kończysz rozumienie kodu. Za oknem już dnieje, a pierwsze kruki dają o sobie znać."
-                                                           putStrLnLn "Wykonałeś wszystko, co mogłeś. Zasypiasz jak długi w swoim łóżku."
-                                                           putStrLnLn "ODDANIE PROJEKTU."
-                                                           putStrLn "Na oddanie projektu przyszli oczywiście wszyscy członkowie Twojej grupy."
-                                                           putStrLn "Śpiewająco zaprezentowałeś całe swoje (no, powiedzmy) rozwiązanie. Prowadzący miał nieco wątpliwości, czy nie widział już czegoś podobnego, ale udało Ci się odwieść go od tej myśli."
-                                                           putStrLnLn "Zaliczacie projekt z dobrym wynikiem!"
-                                                           return 43
-                                        "IDŹ SPAĆ" -> do putStrLnLn "Koniec zabawy z dźwigiem. Zasypiasz."
-                                                         putStrLnLn "ODDANIE PROJEKTU."
-                                                         putStrLn "Na oddanie projektu przyszli oczywiście wszyscy członkowie Twojej grupy."
-                                                         putStrLn "Zmusili Cię do prezentacji tego projektu. Ty, niestety, nie wiedziałeś, jak działa shader, który odpowiada za oświetlenie punktowe sceny."
-                                                         putStrLnLn "Prowadzący, podejrzewając, że nie napisaliście tego projektu sami, daje Wam niewiele więcej punktów niż to, co potrzeba, żeby zdać projekt."
-                                                         return 11
-                                        _ -> do putStrLnLn "Możliwe opcje do wyboru: ZROZUM KOD, IDŹ SPAĆ"
-                                                projectQuest5_1
-                     return score
+                     case input of
+                              "ZROZUM KOD" -> do putStrLnLn "Zasiadasz więc przed kodem i próbujesz z trudem go zrozumieć, a nuż się zapyta co i jak."
+                                                 putStrLnLn "GODZINA 04:00. 4 GODZINY DO ODDANIA PROJEKTU."
+                                                 putStrLn "Z sukcesem kończysz rozumienie kodu. Za oknem już dnieje, a pierwsze kruki dają o sobie znać."
+                                                 putStrLnLn "Wykonałeś wszystko, co mogłeś. Zasypiasz jak długi w swoim łóżku."
+                                                 putStrLnLn "ODDANIE PROJEKTU."
+                                                 putStrLn "Na oddanie projektu przyszli oczywiście wszyscy członkowie Twojej grupy."
+                                                 putStrLn "Śpiewająco zaprezentowałeś całe swoje (no, powiedzmy) rozwiązanie. Prowadzący miał nieco wątpliwości, czy nie widział już czegoś podobnego, ale udało Ci się odwieść go od tej myśli."
+                                                 putStrLnLn "Zaliczacie projekt z dobrym wynikiem!"
+                                                 return 43
+                              "IDŹ SPAĆ" -> do putStrLnLn "Koniec zabawy z dźwigiem. Zasypiasz."
+                                               putStrLnLn "ODDANIE PROJEKTU."
+                                               putStrLn "Na oddanie projektu przyszli oczywiście wszyscy członkowie Twojej grupy."
+                                               putStrLn "Zmusili Cię do prezentacji tego projektu. Ty, niestety, nie wiedziałeś, jak działa shader, który odpowiada za oświetlenie punktowe sceny."
+                                               putStrLnLn "Prowadzący, podejrzewając, że nie napisaliście tego projektu sami, daje Wam niewiele więcej punktów niż to, co potrzeba, żeby zdać projekt."
+                                               return 11
+                              _ -> do putStrLnLn "Możliwe opcje do wyboru: ZROZUM KOD, IDŹ SPAĆ"
+                                      projectQuest5_1
 
 projectQuest5_2 :: IO Int
 projectQuest5_2 = do putStrLn "Po długim napastowaniu wyszukiwarki GitHuba udaje Ci się znaleźć coś podobnego."
@@ -155,15 +150,17 @@ projectQuest5_2 = do putStrLn "Po długim napastowaniu wyszukiwarki GitHuba udaj
                      putStrLn "Na oddanie projektu przyszli oczywiście wszyscy członkowie Twojej grupy."
                      putStrLn "Prowadzący, co ciekawe, nie zauważył większych problemów z Twoim dźwigiem. Zastanowiły go jednak linie w kodzie, które traktowały o taśmociągu."
                      putStrLn "Mocno naciskał, więc się przyznajesz do prawdy."
-                     putStrLnLn "Widząc wory pod Twoimi oczami, prowadzący lituje się nad Tobą i daje Waszej drużynie nawet dobry wynik!"
+                     putStrLn "Widząc wory pod Twoimi oczami, prowadzący lituje się nad Tobą i daje Waszej drużynie nawet dobry wynik!"
                      return 25
 
 project :: Place
 project = Place 1
-                "Witaj w pokoju, w którym przeżyjesz noc pełną wrażeń!\nW czasie projektu nauczysz się efektywnie planować czas, konsultować pomysły z grupą i korzystać z zewnętrznych źródeł.\nZAJĄĆ SIĘ PROJEKTEM? Czy wrócić do akademika?"
+                "Siadasz przy biurku, przy którym przeżyjesz noc pełną wrażeń!\n\
+                \W czasie projektu nauczysz się efektywnie planować czas, konsultować pomysły z grupą i korzystać z zewnętrznych źródeł.\n\
+                \ZAJĄĆ SIĘ PROJEKTEM? Czy odejść od biurka?"
                 "ZAJMIJ SIĘ PROJEKTEM"
                 projectQuest
-                [("WRACAJ DO AKADEMIKA", dorm)]
+                [("ODEJDŹ OD BIURKA", dorm)]
                 []
 
 labQuest :: Quest
