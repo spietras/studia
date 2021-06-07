@@ -73,8 +73,8 @@ dormQuest4 gringo bottle = do case bottle of
 
 
 dormQuest5 :: Bool-> IO Int
-dormQuest5 bottle = do putStrLn "Brawo! W końcu jesteś w klubie"
-                       putStrLn "Atmosfera jest na prawdę cudowna - muzyka, piękne dziewczny i duży asortyment baru."
+dormQuest5 bottle = do putStrLn "Brawo! W końcu jesteś w klubie."
+                       putStrLn "Atmosfera jest naprawdę cudowna - muzyka, piękne dziewczny i duży asortyment baru."
                        putStrLn "Właśnie ten ostatni aspekt zainteresował Twojego kolegę, który proponuję eksplorację baru."
                        putStrLnLn "Co robisz?"
                        input <- getLine
@@ -476,7 +476,7 @@ testQuest4 learn place = do putStrLn "Teraz jedynie pozostało czekać na kartk�
                             input <- getLine
                             putLn
                             case input of
-                                     "ZMIEŃ GRUPĘ" -> do putStrLnLn "Ahh próba zamiany grup to nie był dobry pomysł. Sąsiadowi też bardziej podobała się grupa B.\n\
+                                     "ZMIEŃ GRUPĘ" -> do putStrLnLn "Ahh próba zamiany grup to nie był dobry pomysł. Sąsiadowi też bardziej podobała się grupa A.\n\
                                                                     \Zrobiłeś tylko niepotrzebne zamieszanie, czym zwróciłeś uwagę prowadzącej."
                                                          testQuest5 learn place True
                                      "ZOSTAW GRUPĘ" -> do putStrLnLn "Nie tylko Tobie przemknęła przez myśl próba zamiany grupy.\n\
