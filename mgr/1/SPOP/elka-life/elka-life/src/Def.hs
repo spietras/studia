@@ -28,20 +28,20 @@ dormQuest state = if (questCompleted state 0)
 dormQuest2 :: IO Int
 dormQuest2 = do putStrLn "Zanim pójdziesz, trzeba wybrać jakieś ubranie..."
                 putStrLn "Z tego co wiesz, impreza miała być w stylu latino."
-                putStrLnLn "Ale czy chce ci się bawić w przebieranki?"
+                putStrLnLn "Ale czy chce Ci się bawić w przebieranki?"
                 input <- getLine
                 putLn
                 case input of
                     "ZAŁÓŻ HAWAJSKĄ KOSZULĘ" -> do putStrLnLn "WOW! Ta koszula jest serio cool!\n\
                                                               \Kompletujesz resztę stroju - nakładasz mokasyny, lniane spodnie i kwiecisty naszyjnik."
                                                    dormQuest3 True
-                    "ZOSTAŃ W BLUZIE" -> do putStrLnLn "Kompletujesz resztę stroju, ale czujesz że nie pasuje do klimatu imprezy. Trudno."
+                    "ZOSTAŃ W BLUZIE" -> do putStrLnLn "Kompletujesz resztę stroju, ale czujesz, że nie pasuje do klimatu imprezy. Trudno."
                                             dormQuest3 False
                     _ -> do putStrLnLn "Możliwe opcje do wyboru: ZAŁÓŻ HAWAJSKĄ KOSZULĘ, ZOSTAŃ W BLUZIE"
                             dormQuest2
 
 dormQuest3 :: Bool -> IO Int
-dormQuest3 gringo = do putStrLn "Przebieranki zajęły Ci troche czasu! Do imprezy zostało naprawdę niewiele czasu..."
+dormQuest3 gringo = do putStrLn "Przebieranki zajęły Ci trochę czasu! Do imprezy zostało naprawdę niewiele czasu..."
                        putStrLn "Wybiegasz z pokoju i zdzwaniasz się ze znajomymi z kierunku."
                        putStrLn "Są już w kolejce, więc obiecujesz zaraz do nich dołączyć."
                        putStrLn "Na szczęście do Remontu nie masz daleko i już po chwili widzisz znajomych."
@@ -56,16 +56,16 @@ dormQuest3 gringo = do putStrLn "Przebieranki zajęły Ci troche czasu! Do impre
                                    dormQuest3 gringo
 
 dormQuest4 :: Bool -> Bool -> IO Int
-dormQuest4 gringo bootle = do case bootle of
+dormQuest4 gringo bottle = do case bottle of
                                   True -> do putStrLn "Brrrr! Co to było.. Jeśli w piekle jest woda to smakuje właśnie tak."
-                                             putStrLn "Czujesz że wypity płyn szybko zaczyna działać i wprowadza Ciebie w zabawny nastój."
+                                             putStrLn "Czujesz, że wypity płyn szybko zaczyna działać i wprowadza Ciebie w zabawny nastrój."
                                   _ ->       putStrLn "Uff! Sądząc po reakcji znajomych chyba dobrze że odpuściłeś - napój wydaje się być bardzo mocny."
-                              putStrLn "Kolejka przed klubem topnieje i kolejni studenci znikają klubie."
-                              putStrLnLn "Już za chwilę wasza kolej! Bramkarz uważnie Ci się przygląda."
+                              putStrLn "Kolejka przed klubem topnieje i kolejni studenci znikają w klubie."
+                              putStrLnLn "Już za chwilę Wasza kolej! Bramkarz uważnie Ci się przygląda."
                               case gringo of
                                   True -> do putStrLn "A po chwili dodaje *Kozacki strój - w takim wchodzisz dziś za darmo*"
                                              putStrLn "Nieźle! Warto było zaszaleć - zawsze 20zł w kieszeni."
-                                             dormQuest5 bootle
+                                             dormQuest5 bottle
                                   False -> do putStrLn "A po chwili mówi Ci że w takim stroju nie wejdziesz do klubu."
                                               putStrLn "Protesty znajomych na nic się zdają i zmuszony jesteś wrócić do domu."
                                               putStrLn "Tracisz ochotę na zabawę i decydujesz się wrócić do domu - szkoda :("
@@ -73,29 +73,29 @@ dormQuest4 gringo bootle = do case bootle of
 
 
 dormQuest5 :: Bool-> IO Int
-dormQuest5 bootle = do putStrLn "Brawo! W końcu jesteś w klubie"
+dormQuest5 bottle = do putStrLn "Brawo! W końcu jesteś w klubie"
                        putStrLn "Atmosfera jest na prawdę cudowna - muzyka, piękne dziewczny i duży asortyment baru."
-                       putStrLn "Właśnie ten ostatni aspekt zainteresował twojego kolegę, który proponuję eksplorację baru."
+                       putStrLn "Właśnie ten ostatni aspekt zainteresował Twojego kolegę, który proponuję eksplorację baru."
                        putStrLnLn "Co robisz?"
                        input <- getLine
                        putLn
                        case input of
-                           "ZGÓDŹ SIĘ" -> dormQuest6 bootle True
+                           "ZGÓDŹ SIĘ" -> dormQuest6 bottle True
                            "ODMÓW" -> dormQuest7
                            _ -> do putStrLnLn "Możliwe opcje do wyboru: ZGÓDŹ SIĘ, ODMÓW"
-                                   dormQuest5 bootle
+                                   dormQuest5 bottle
 
 dormQuest6 :: Bool -> Bool-> IO Int
-dormQuest6 bootle more = do putStrLn "Na barze są świetne promocje. Kumpel z łatwością namawia Ciebie na zestaw 3 + 3."
+dormQuest6 bottle more = do putStrLn "Na barze są świetne promocje. Kumpel z łatwością namawia Ciebie na zestaw 3 + 3."
                             putStrLn "Napoje są idealnie schłodzone i dobrze smakują."
                             putStrLn "Ze smakiem (i prędkością bliską prędkości światła) opróżniasz napoje."
-                            case bootle of
+                            case bottle of
                                 True -> do putStrLn "Po chwili czujesz jak świat zaczyna wirować."
                                            putStrLn "Uff... chyba picie przed klubem nie było dobrym pomysłem."
-                                           putStrLnLn "Znajomi pomagają Ci wrócić do pokoju - trochę głupio co!?"
+                                           putStrLnLn "Znajomi pomagają Ci wrócić do pokoju - trochę głupio, co?!"
                                            putStrLn "Nastepnym razem uważaj i nie mieszaj alkoholi!"
                                            return 0
-                                False -> do putStrLn "A po chwili czujesz że płyny zaczynaja działać."
+                                False -> do putStrLn "A po chwili czujesz, że płyny zaczynają działać."
                                             putStrLn "Bardzo dobre - ale chyba już wystarczy."
                                             putStrLn "Pora rozejrzeć się po klubie."
                                             dormQuest7
@@ -121,11 +121,11 @@ dormQuest8 alone = do case alone of
                                       putStrLn "Chyba pora już lecieć!"
                                       return 20
                            False -> do putStrLn "Koleżanka od razu zgodziła się na taniec - chyba wpadłeś jej w oko."
-                                       putStrLn "Nic dziwnego - studenci EiTI to nielada przystajniaki."
-                                       putStrLn "Tańczy się wam naprawdę dobrze, a uśmiech nie schodzi z waszych twarzy."
+                                       putStrLn "Nic dziwnego - studenci EiTI to nielada przystojniaki."
+                                       putStrLn "Tańczy się Wam naprawdę dobrze, a uśmiech nie schodzi z Waszych twarzy."
                                        putStrLn "Może to nie pierwszy raz kiedy tak tańczycie? Kto wie..."
                                        putStrLn "Dzisiaj niestety musisz już lecieć, ale nie wychodzisz z pustymi rękami..."
-                                       putStrLn "W ręku masz kartkę z jej numerem - trochę oldschoolowe ale cóż - nie tylko twoje baterie są już rozładowane."
+                                       putStrLn "W ręku masz kartkę z jej numerem - trochę oldschoolowe, ale cóż - nie tylko twoje baterie są już rozładowane."
                                        return 40
 
 dorm :: Place
@@ -453,14 +453,14 @@ testQuest2 = do putStrLn "Do kolokwium zostało jeszcze trochę czasu."
 testQuest3 :: Bool -> IO Int
 testQuest3 learn = do putStrLn "Punktualnie o 12:15 dostrzegasz w oddali po charakterystycznym kroku swoją ulubioną prowadzącą."
                       putStrLn "Trzyma ona w ręku kartki - od których może zależeć twoja przyszłość, a także klucz do sali."
-                      putStrLn "Drzwi się otwierają, a ty stajesz przed arcytrudnym mornalnym dylematem..."
-                      putStrLnLn "Czy startegiczne miejsce w sali jest ceniejsze niż wierność zasadom savoir vivre?"
+                      putStrLn "Drzwi się otwierają, a ty stajesz przed arcytrudnym moralnym dylematem..."
+                      putStrLnLn "Czy strategiczne miejsce w sali jest cenniejsze niż wierność zasadom savoir vivre?"
                       input <- getLine
                       putLn
                       case input of
                                "PRZEPUŚĆ INNYCH" -> do putStrLnLn "Brawo gentlemanie! Chociaż miejsce w pierwszej ławce nie jest twoim wymarzonym..."
                                                        testQuest4 learn False
-                               "WEPCHNIJ SIĘ" -> do putStrLnLn "Ahh mama pewnie nie byłaby dumna, ale ukryte miejsce za filarem przy oknie było tego warte!"
+                               "WEPCHNIJ SIĘ" -> do putStrLnLn "Ahh, mama pewnie nie byłaby dumna, ale ukryte miejsce za filarem przy oknie było tego warte!"
                                                     testQuest4 learn True
                                _ -> do putStrLnLn "Możliwe opcje do wyboru: PRZEPUŚĆ INNYCH, WEPCHNIJ SIĘ"
                                        testQuest3 learn
@@ -468,7 +468,7 @@ testQuest3 learn = do putStrLn "Punktualnie o 12:15 dostrzegasz w oddali po char
 testQuest4 :: Bool -> Bool -> IO Int
 testQuest4 learn place = do putStrLn "Teraz jedynie pozostało czekać na kartkę z zadaniami."
                             putStrLn "Zasady kolokwium są standardowe - dwa zestawy zadań skłądające się z trzech pytań - 10 punktów za każde."
-                            putStrLn "Pani rozdaje kartki z zadanami, a ty niecierpilwie rozglądasz się po sali."
+                            putStrLn "Pani rozdaje kartki z zadanami, a ty niecierpliwie rozglądasz się po sali."
                             putStrLn "Wyostrzając wzrok, dostrzegsz zadania na kartkach osób siedzących przed tobą."
                             putStrLn "Grupa A wydaje się zdecydowanie łatwiejsza, jednak w twoich rękach ląduje wersja oznaczona literką B. Cóż, pech..."
                             putStrLn "Dostrzegasz jednak szansę na podmianę grup z sąsiadem."
@@ -477,9 +477,9 @@ testQuest4 learn place = do putStrLn "Teraz jedynie pozostało czekać na kartk�
                             putLn
                             case input of
                                      "ZMIEŃ GRUPĘ" -> do putStrLnLn "Ahh próba zamiany grup to nie był dobry pomysł. Sąsiadowi też bardziej podobała się grupa B.\n\
-                                                                    \Zrobiłeś tylko niepotrzebne zamieszanie czym zwróciłeś uwagę prowadzącej."
+                                                                    \Zrobiłeś tylko niepotrzebne zamieszanie, czym zwróciłeś uwagę prowadzącej."
                                                          testQuest5 learn place True
-                                     "ZOSTAW GRUPĘ" -> do putStrLnLn "Nie tylko Ci przemknęła przez myśl próba zamiany grupy.\n\
+                                     "ZOSTAW GRUPĘ" -> do putStrLnLn "Nie tylko Tobie przemknęła przez myśl próba zamiany grupy.\n\
                                                                      \Twoi znajomi siedzący po drugiej stronie sali również próbowali tego manewru.\n\
                                                                      \Ich próba zakończyła się jendak fiaskiem, a prowadząca wydaje się od tego zdarzenia patrzeć im na ręce."
                                                           testQuest5 learn place False
@@ -502,14 +502,14 @@ testQuest6_1 learn place group = do if group
                                                 putStrLn "Prowadząca ceremonialnie wyprasza Cię z sali i na kolokwium zaznacza okrąglutkie 0..."
                                                 return 0
                                         else if learn
-                                                    then do putStrLn "Rozglądasz się po kolegach, jednak wydaje Ci się że rozwiązują zadanie źle.."
+                                                    then do putStrLn "Rozglądasz się po kolegach, jednak wydaje Ci się, że rozwiązują zadanie źle..."
                                                             putStrLn "Decydujesz się polegać na swojej wiedzy - i słusznie. Nauka nie poszła w las."
                                                             putStrLn "Gdybyś nie tracił czasu na rozglądanie się byłoby jeszcz lepiej, ale i tak uzyskujesz bardzo dobry wynik."
                                                             return 25
                                                     else if place
-                                                            then do putStrLn "Zamiast odpoczywać mogłeś się pouczyć, albo chociaż przygotować jakieś sciągi..."
+                                                            then do putStrLn "Zamiast odpoczywać, mogłeś się pouczyć, albo chociaż przygotować jakieś ściągi..."
                                                                     putStrLn "Dobrze, że chociaż zająłeś dobre miejsce."
-                                                                    putStrLn "Rozglądasz się po sąsiadach i wykorzystując okazję przepisujesz kawałki zadań."
+                                                                    putStrLn "Rozglądasz się po sąsiadach i wykorzystując okazję, przepisujesz kawałki zadań."
                                                                     putStrLn "Niestety wszyscy piszą niewyraźnie i z trudem udaje Ci się przepisać zadania."
                                                                     putStrLn "Koledzy chyba średnio przyłożyli się do nauki."
                                                                     putStrLn "Mogłeś sam spróbować rozwiązać zadanie, a tak... no cóż - bywało znacznie lepiej."
@@ -533,7 +533,7 @@ testQuest6_2 learn = do putStrLn "Ahh wybór uczciwej ścieżki zasługuje na sz
 
 test :: Place
 test = Place 3
-             "Podchodzisz pod salę wykładową. Grupka studentów dziwnie na ciebie patrzy.\n\
+             "Podchodzisz pod salę wykładową. Grupka studentów dziwnie na Ciebie patrzy.\n\
              \Może dzisiaj jest kolokwium?"
              "NAPISZ KOLOKWIUM"
              testQuest
