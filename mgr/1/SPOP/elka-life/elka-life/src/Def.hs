@@ -216,21 +216,132 @@ test = Place 3
              []
 
 
+facultyQuestPrintScore :: ScoreMap -> IO ()
+facultyQuestPrintScore scores = let sumScores []          = 0
+                                    sumScores ((_, (QuestScore v)):xs) = v + (sumScores xs)
+                                in do putStr "Wynik ze studiów: "
+                                      print (sumScores scores)
+
+
 facultyQuest :: Quest
 facultyQuest state = if not (questsCompleted state [0, 1, 2, 3])
-                         then do putStrLn "Complete all the other quests first."
+                         then do putStrLn "Nie ma dróg na skróty. Najpierw musisz zasmakować studenckiego życia.\n\
+                                          \Wróć jak wykonasz wszystkie ważne czyności."
                                  return Nothing
-                         else do putStrLn "facultyQuest"
-                                 putStrLn "Game Over"
-                                 exitSuccess
+                         else do putStrLnLn "Po długiej drodze przez mękę nadszedł czas opuścić mury uczelni.\n\
+                                            \Ze łzami w oczach patrzysz prawdopodobnie ostatni raz na gmach ukochanego wydziału.\n\
+                                            \Wspomnienia wszystkich pięknych chwil powracają. Czas jednak uczynić kolejny krok.\n\n\
+                                            \Nagle ktoś kładzie ci dłoń na ramieniu.\n\
+                                            \Odwracasz się. Oślepia cię blask nieznajomego, którego potęga jaśnieje jak tysiące słońc.\n\
+                                            \Po chwili słyszysz aksamitny głos:\n\
+                                            \\"Dzień dobry. Jestem Prezesem Firmy ZIOMARCH. Obserwowałem Pana.\n\
+                                            \Wiem, że dzisiaj kończy Pan studia. Czy chce Pan rozpocząć przygodę w naszej Firmie?\""
+                                 input <- getLine
+                                 putLn
+                                 case input of 
+                                     "TAK" -> facultyQuest2_1 state
+                                     "NIE" -> facultyQuest2_2 state
+                                     _ -> do putStrLnLn "Możliwe opcje do wyboru: TAK, NIE"
+                                             _ <- facultyQuest state
+                                             return ()
+                                 return Nothing
+
+facultyQuest2_1 :: GameState -> IO ()
+facultyQuest2_1 (GameState scores) = do putStrLnLn "Wybrałeś drogę pracownika korporacji. Dobrze.\n\
+                                                   \Na twarzy Prezesa pojawia się szyderczy uśmiech.\n\
+                                                   \\"Kolejny student do kolekcji\" - mówi Prezes, zakładając ci kajdany na nogi.\n\n\
+                                                   \Wsiadacie do helikoptera Prezesa i odlatujecie do klimatyzowanego biura z open spacem.\n\n\
+                                                   \Koniec gry."
+                                        facultyQuestPrintScore scores
+                                        exitSuccess
+
+facultyQuest2_2 :: GameState -> IO ()
+facultyQuest2_2 state = do putStrLnLn "Bez słowa odchodzisz, wiedząc, że czeka na ciebie lepszy los.\n\
+                                      \W głowie pojawiają ci się dwa pomysły.\n\
+                                      \Możesz wspinać się dalej po akademickiej drabinie i zostać doktorantem.\n\
+                                      \Albo możesz założyć własny startup.\n\
+                                      \Co robisz?"
+                           input <- getLine
+                           putLn
+                           case input of 
+                               "ZOSTAŃ DOKTORANTEM" -> facultyQuest3_1 state
+                               "ZAŁÓŻ STARTUP" -> facultyQuest3_2 state
+                               _ -> do putStrLnLn "Możliwe opcje do wyboru: ZOSTAŃ DOKTORANTEM, ZAŁÓŻ STARTUP"
+                                       facultyQuest2_2 state
+
+
+facultyQuest3_1 :: GameState -> IO ()
+facultyQuest3_1 state = do putStrLnLn "Podążasz za głosem serca i wybierasz karierę akademicką.\n\
+                                      \Może wyrośnie nam kolejny Einstein!\n\
+                                      \Najpierw jednak musisz odpowiedzieć na pytanie kwalifikacyjne:\n\
+                                      \\"Ile to 2+2?\""
+                           input <- getLine
+                           putLn
+                           case input of 
+                               "4" -> facultyQuest4_1 state
+                               _ -> facultyQuest4_2 state
+
+facultyQuest4_1 :: GameState -> IO ()
+facultyQuest4_1 (GameState scores) = do putStrLnLn "Dobrze! Zostajesz przyjęty!\
+                                                   \Już w pierwszym miesiącu udaje ci się udowodnić, że P != NP.\n\
+                                                   \Dzięki temu zyskujesz wieczną chwałę dla siebie i wydziału.\n\n\
+                                                   \Koniec gry"
+                                        facultyQuestPrintScore scores
+                                        exitSuccess
+
+facultyQuest4_2 :: GameState -> IO ()
+facultyQuest4_2 (GameState scores) = do putStrLnLn "Niestety nie jest to poprawna odpowiedź.\n\
+                                                   \Od absolwenta tego wydziału oczekuje się przynajmniej podstaw arytmetyki.\n\
+                                                   \Twój dyplom zostaje unieważniony. Musisz powtórzyć studia.\n\
+                                                   \Najlepiej zaczynając od szkoły podstawowej...\n\n\
+                                                   \Koniec gry"
+                                        facultyQuestPrintScore scores
+                                        exitSuccess
+
+facultyQuest3_2 :: GameState -> IO ()
+facultyQuest3_2 state = do putStrLnLn "Postanawiasz zaryzykować i założyć startup.\n\
+                                      \Widzisz jak z nieba już sypią się pieniądze od inwestorów.\n\
+                                      \Najpierw jednak musisz zdecydować czy kupisz za nie Playstation czy Xboxa do game roomu.\n\
+                                      \Co wybierasz?"
+                           input <- getLine
+                           putLn
+                           case input of 
+                              "PLAYSTATION" -> facultyQuest4_3 state
+                              "XBOX" -> facultyQuest4_4 state
+                              _ -> do putStrLnLn "Możliwe opcje do wyboru: PLAYSTATION, XBOX"
+                                      facultyQuest3_2 state
+
+facultyQuest4_3 :: GameState -> IO ()
+facultyQuest4_3 (GameState scores) = do putStrLnLn "Playstation! Dobry wybór. Widać, że jesteś człowiekiem kultury.\n\
+                                                   \Twój biznes działa, produkt sprzedaje się w ogromnych nakładach.\n\
+                                                   \Inwestorzy próbują się do ciebie dobić drzwiami i oknami.\n\
+                                                   \Dorobiłeś się fortuny i nie musisz już pracować nawet dnia w swoim życiu.\n\n\
+                                                   \Koniec gry"
+                                        facultyQuestPrintScore scores
+                                        exitSuccess
+
+facultyQuest4_4 :: GameState -> IO ()
+facultyQuest4_4 (GameState scores) = do putStrLnLn "Xbox? OK, każdy ma prawo się mylić.\n\
+                                                   \Twój startup upada i lądujesz na ulicy. Całe studia na marne...\n\
+                                                   \W poszukiwaniu jedzenia przeglądasz pobliskie śmietniki.\n\
+                                                   \Jedyne co znajdujesz to stare Playstation.\n\
+                                                   \Na zawsze będzie ci już ono przypominało o twojej porażce.\n\n\
+                                                   \Koniec gry"
+                                        facultyQuestPrintScore scores
+                                        exitSuccess
 
 faculty :: Place
 faculty = Place 4
-                "Faculty"
-                "quest"
+                "Elka... Przypominają ci się wszystkie zarwane noce, stres, brak życia i niespełnione ambicje, przez co prawie mdlejesz.\n\
+                \Coś jednak pozwala ci przetrwać i iść dalej. Może to dobra kawa z automatów, może koledzy, a może po prostu syndrom sztokholmski?\n\
+                \Jesteś przed salą wykładową. W oddali widać grono studentów czekających przy sali laboratoryjnej.\n\
+                \Przechodzisz obok kosza na śmieci, który wygląda inaczej niż zwykle. Stawiasz plecak z laptopem i siadasz na kanapie.\n\
+                \Myślisz sobie: \"Może najwyższy czas skończyć te studia?\""
+                "ZAKOŃCZ STUDIA"
                 facultyQuest
-                [("D", dorm), ("T", test), ("L", lab)]
-                []
+                [("WRÓĆ DO AKADEMIKA", dorm), ("WEJDŹ DO SALI WYKŁADOWEJ", test), ("PODEJDŹ DO SALI LABORATORYJNEJ", lab)]
+                [("OTWÓRZ KOSZ", "Kosz na śmieci otwiera się bezdotykowo. A więc to na to idą pieniądze z warunków?"),
+                 ("WYJMIJ LAPTOPA", "Wyjmujesz laptopa i udajesz że się uczysz.\nZbyt wiele to nie daje, bo wiadomo, że robisz to jedynie dla szpanu.")]
 
 
 start :: Place
