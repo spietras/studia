@@ -440,7 +440,7 @@ testQuest state = if (questCompleted state 3)
 
 testQuest2 :: IO Int
 testQuest2 = do putStrLn "Do kolokwium zostało jeszcze trochę czasu."
-                putLnStrLn "Możesz się pouczyć albo się zrelaksować."
+                putLnStrLnLn "Możesz się pouczyć albo się zrelaksować."
                 input <- getLine
                 putLn
                 case input of
