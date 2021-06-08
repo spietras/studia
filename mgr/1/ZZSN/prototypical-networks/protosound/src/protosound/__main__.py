@@ -3,6 +3,7 @@
 This module provides basic CLI entrypoint.
 
 """
+
 import os
 import sys
 from pathlib import Path
@@ -33,7 +34,7 @@ def classic(dataset_path: Path = typer.Argument(..., file_okay=False, readable=T
                                                      help="Maximum number of training epochs"),
             lr: float = typer.Option(0.001, help="Learning rate"),
             seed: Optional[int] = typer.Option(None, "--seed", "-r", help="Seed for reproducibility")
-            ) -> Optional[int]:
+            ):
     if seed is not None:
         seed_everything(seed, workers=True)
 
@@ -80,7 +81,7 @@ def limited(dataset_path: Path = typer.Argument(..., file_okay=False, readable=T
                                                      help="Maximum number of training epochs"),
             lr: float = typer.Option(0.001, help="Learning rate"),
             seed: Optional[int] = typer.Option(None, "--seed", "-r", help="Seed for reproducibility")
-            ) -> Optional[int]:
+            ):
     if seed is not None:
         seed_everything(seed, workers=True)
 
@@ -130,7 +131,7 @@ def proto(dataset_path: Path = typer.Argument(..., file_okay=False, readable=Tru
                                                    help="Maximum number of training epochs"),
           lr: float = typer.Option(0.001, help="Learning rate"),
           seed: Optional[int] = typer.Option(None, "--seed", "-r", help="Seed for reproducibility")
-          ) -> Optional[int]:
+          ):
     if seed is not None:
         seed_everything(seed, workers=True)
 
