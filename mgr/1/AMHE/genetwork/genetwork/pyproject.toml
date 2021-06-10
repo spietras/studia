@@ -18,6 +18,7 @@ typer = { version = "^0.3", extras = ["all"] }
 networkx = "^2.5"
 matplotlib = "^3.4"
 beautifulsoup4 = { version = "^4.9", extras = ["lxml"] }
+scipy = "^1.6"
 
 # dev
 jupyterlab = { version = "^3", optional = true }
