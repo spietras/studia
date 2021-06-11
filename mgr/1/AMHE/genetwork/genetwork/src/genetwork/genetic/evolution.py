@@ -62,7 +62,7 @@ class NoChangeStoppingCriterion(StoppingCriterion):
         self.previous = []
 
     def should_stop(self, e: Evolution) -> bool:
-        score = e.evaluator.evaluate_creature(e.population[0])
+        score = e.evaluator.evaluate_creature(e.best_creature())
         self.previous = self.previous if len(self.previous) < self.over else self.previous[1:]
         self.previous = self.previous + [score]
         return len(self.previous) == self.over and all(x == score for x in self.previous)

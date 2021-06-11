@@ -53,24 +53,33 @@ def get_output(evolution: Evolution[SndlibGene], network: SndlibNetwork) -> str:
 
 
 @cli.command()
-def main(network_path: Path = typer.Argument(..., help="Path to graph definition file"),
-         max_iters: Optional[int] = typer.Option(None, help="Maximum iterations, if None stops when no changes occur"),
-         pop_size: int = typer.Option(500, help="Initial population size"),
-         selection_threshold: float = typer.Option(0.75, help="Percent of population that will participate in "
-                                                              "selection"),
-         selection_factor: float = typer.Option(2, help="Relative size of selected population"),
-         pm: float = typer.Option(0.002, help="Probability of mutation"),
-         pc: float = typer.Option(0.99, help="Probability of crossover"),
-         alpha: float = typer.Option(25, help="Alpha parameter of the objective function (undersupplying)"),
-         beta: float = typer.Option(7.5, help="Beta parameter of the objective function (exceeding fiber capacity)"),
-         lam: int = typer.Option(96, help="Maximum capacity of wavelengths (lambdas) in a single fiber"),  #
-         max_paths: int = typer.Option(4, help="Maximum paths to generate if there are no admissiblePaths in XML"),
-         max_trans: int = typer.Option(1, help="Maximum number of transponder on a path that can be drawn during "
-                                               "initialization"),
-         succ_prob: float = typer.Option(0.9, help="Success probability used in geometric distribution while drawing "
-                                                   "the number of transponders on a path"),
-         config_path: Optional[Path] = typer.Option(None, help="Path to configuration file"),
-         out_path: Optional[Path] = typer.Option(None, help="Output file path, if None prints to stdout")
+def main(network_path: Path = typer.Argument(..., dir_okay=False, readable=True, help="Path to graph definition file"),
+         max_iters: Optional[int] = typer.Option(None, "--max-iters", "-i",
+                                                 help="Maximum iterations, if None stops when no changes occur"),
+         pop_size: int = typer.Option(500, "--pop-size", "-p", help="Initial population size"),
+         selection_threshold: float = typer.Option(0.75, "--selection-threshold", "-t",
+                                                   help="Percent of population that will participate in selection"),
+         selection_factor: float = typer.Option(2, "--selection-factor", "-f",
+                                                help="Relative size of selected population"),
+         pm: float = typer.Option(0.002, "--pm", "-m", help="Probability of mutation"),
+         pc: float = typer.Option(0.99, "--pc", "-c", help="Probability of crossover"),
+         alpha: float = typer.Option(25, "--alpha", "-a",
+                                     help="Alpha parameter of the objective function (undersupplying)"),
+         beta: float = typer.Option(7.5, "--beta", "-b",
+                                    help="Beta parameter of the objective function (exceeding fiber capacity)"),
+         lam: int = typer.Option(96, "--lam", "-l", help="Maximum capacity of wavelengths (lambdas) in a single fiber"),
+         max_paths: int = typer.Option(4, "--max-paths", "-P",
+                                       help="Maximum paths to generate if there are no admissiblePaths in XML"),
+         max_trans: int = typer.Option(1, "--max-trans", "-T",
+                                       help="Maximum number of transponder on a path that can be drawn during "
+                                            "initialization"),
+         succ_prob: float = typer.Option(0.9, "--succ-prob", "-s",
+                                         help="Success probability used in geometric distribution while drawing "
+                                              "the number of transponders on a path"),
+         config_path: Optional[Path] = typer.Option(None, "--config-path", "-c", dir_okay=False, readable=True,
+                                                    help="Path to configuration file"),
+         out_path: Optional[Path] = typer.Option(None, "--out-path", "-o", writable=True,
+                                                 help="Output file path, if None prints to stdout")
          ) -> Optional[int]:
     """Command line interface for genetwork."""
 
