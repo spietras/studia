@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  postgres:
+    build: ./database/postgres/
+    ports:
+      - "${POSTGRES_MAPPED_PORT:-5432}:5432"
+    environment:
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}"
+    volumes:
+      - postgres-data:/usr/app/postgres/data/
+
+volumes:
+  postgres-data:
