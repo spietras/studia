@@ -25,3 +25,6 @@
 [submodule "mgr/1/AMHE/genetwork"]
 	path = mgr/1/AMHE/genetwork
 	url = https://github.com/spietras/genetwork
+[submodule "mgr/1/NLP/textgen"]
+	path = mgr/1/NLP/textgen
+	url = https://github.com/spietras/textgen
