@@ -9,6 +9,19 @@ services:
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}"
     volumes:
       - postgres-data:/usr/app/postgres/data/
+  pgadmin:
+    build: ./database/pgadmin/
+    ports:
+      - "${PGADMIN_MAPPED_PORT:-5433}:80"
+    environment:
+      - "PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}"
+      - "PGADMIN_POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin/
+    depends_on:
+      - postgres
+
 
 volumes:
   postgres-data:
+  pgadmin-data:
