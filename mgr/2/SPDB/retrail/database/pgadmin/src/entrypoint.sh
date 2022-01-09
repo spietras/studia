@@ -26,14 +26,14 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-export PGADMIN_DEFAULT_EMAIL=admin@admin.admin # set the default email
-export PGADMIN_DISABLE_POSTFIX=yes             # disable mail server
+# save database credentials
+echo "postgres:5432:*:postgres:$password" >/tmp/pgpassfile && chmod 600 /tmp/pgpassfile
 
-cp -p ./conf/config.py /pgadmin4/config_local.py # copy configuration file
-cp -p ./conf/servers.json /pgadmin4/servers.json # copy servers list
-
-echo "postgres:5432:*:postgres:$password" >/tmp/pgpassfile && chmod 600 /tmp/pgpassfile # save database credentials
+# restore saved data
+mv -n ./data/* /var/lib/pgadmin/
 
 cd /pgadmin4/
 
-/entrypoint.sh
+# this is copied from original entrypoint
+TIMEOUT=$(/venv/bin/python3 -c 'import config; print(config.SESSION_EXPIRATION_TIME * 60 * 60 * 24)')
+exec /venv/bin/gunicorn --timeout "${TIMEOUT}" --bind "${PGADMIN_LISTEN_ADDRESS:-[::]}":"${PGADMIN_LISTEN_PORT:-80}" -w 1 --threads "${PGADMIN_GUNICORN_THREADS:-25}" --access-logfile "${PGADMIN_GUNICORN_ACCESS_LOGFILE:--}" -c gunicorn_config.py run_pgadmin:app

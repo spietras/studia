@@ -2,26 +2,20 @@ version: "3.9"
 
 services:
   postgres:
-    build: ./database/postgres/
+    build:
+      context: ./database/postgres/
     ports:
       - "${POSTGRES_MAPPED_PORT:-5432}:5432"
     environment:
-      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}"
-    volumes:
-      - postgres-data:/usr/app/postgres/data/
+      - "POSTGRES_ADMIN_PASSWORD=${POSTGRES_ADMIN_PASSWORD:-postgres}"
   pgadmin:
-    build: ./database/pgadmin/
+    build:
+      context: ./database/pgadmin/
+      args:
+        - "PGADMIN_ADMIN_PASSWORD=${PGADMIN_ADMIN_PASSWORD:-admin}"
     ports:
       - "${PGADMIN_MAPPED_PORT:-5433}:80"
     environment:
-      - "PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}"
-      - "PGADMIN_POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin/
+      - "PGADMIN_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD:-postgres}"
     depends_on:
       - postgres
-
-
-volumes:
-  postgres-data:
-  pgadmin-data:

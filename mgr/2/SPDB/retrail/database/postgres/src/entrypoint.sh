@@ -4,13 +4,20 @@ print_usage() {
   # Prints script usage
 
   cat <<EOF
-Usage: $0 [-h]
+Usage: $0 [-p PASSWORD] [-h]
+    -p, --password                        password to the database for postgres user (default: postgres)
     -h, --help                            prints this message
 EOF
 }
 
+password="${POSTGRES_ADMIN_PASSWORD:-postgres}"
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
+  -p | --password)
+    shift
+    password="$1"
+    ;;
   -h | --help)
     print_usage
     exit
@@ -22,9 +29,23 @@ done
 config_path=$(realpath ./conf/postgresql.conf)
 data_path=$(realpath ./data/)
 
-export PGDATA="$data_path"    # set data directory to 'data'
-export POSTGRES_USER=postgres # set the default user to postgres
+# set data directory to 'data'
+export PGDATA="$data_path"
 
-cp -a ./init/. /docker-entrypoint-initdb.d/ # copy initialization sql files from 'init' directory
+# run postgres in background and save pid
+postgres -c config_file="$config_path" &
+pid="$!"
 
-docker-entrypoint.sh postgres -c config_file="$config_path"
+# wait until postgres is ready
+until pg_isready 2>/dev/null; do
+  echo >&2 "Postgres is unavailable - sleeping for 1 second"
+  sleep 1
+done
+
+# update postgres password
+# prone to sql injection but why would you try to hurt yourself?
+psql -c "ALTER USER postgres WITH PASSWORD '$password';"
+rm -f ~/.psql_history
+
+# bring postgres to foreground
+wait "$pid"
