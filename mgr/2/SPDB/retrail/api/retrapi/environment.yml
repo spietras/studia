@@ -1,0 +1,3 @@
+name: retrapi
+dependencies:
+  - python==3.9.7

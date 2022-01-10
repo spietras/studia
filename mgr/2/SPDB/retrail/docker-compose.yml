@@ -34,3 +34,8 @@ services:
       - "SUPERSET_POSTGRES_DATABASE=retrail"
     depends_on:
       - postgres
+  retrapi:
+    build:
+      context: ./api/retrapi/
+    depends_on:
+      - postgres

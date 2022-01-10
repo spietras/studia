@@ -1,0 +1,5 @@
+*
+!/src/**
+!environment.yml
+!pyproject.toml
+!poetry.lock
