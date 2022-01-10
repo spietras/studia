@@ -47,3 +47,10 @@ services:
       - "RETRAPI_POSTGRES_DATABASE=retrail"
     depends_on:
       - postgres
+  hoppscotch:
+    build:
+      context: ./api/hoppscotch/
+    ports:
+      - "${HOPPSCOTCH_MAPPED_PORT:-11000}:3000"
+    depends_on:
+      - retrapi
