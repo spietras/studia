@@ -8,17 +8,23 @@ import sys
 from typing import Optional
 
 import typer
+import uvicorn
+
+from retrapi.app import app
+from retrapi.models.config import DatabaseConfig
 
 cli = typer.Typer()  # this is actually callable and thus can be an entry point
 
 
 @cli.command()
-def main(x: int = typer.Option(default=1, help="Dummy argument.")) -> Optional[int]:
+def main() -> Optional[int]:
     """Command line interface for retrapi."""
 
-    typer.echo(x)  # typer.echo instead of print, because it's better
+    config = DatabaseConfig()
+    typer.echo(config.uri)
+
+    uvicorn.run(app, host="0.0.0.0", port=8080)
 
 
 if __name__ == '__main__':
-    # entry point for "python -m"
     sys.exit(cli())

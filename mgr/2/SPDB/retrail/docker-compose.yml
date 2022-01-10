@@ -37,5 +37,13 @@ services:
   retrapi:
     build:
       context: ./api/retrapi/
+    ports:
+      - "${RETRAPI_MAPPED_PORT:-10000}:8080"
+    environment:
+      - "RETRAPI_POSTGRES_USER=app"
+      - "RETRAPI_POSTGRES_PASSWORD=${POSTGRES_APP_PASSWORD:-app}"
+      - "RETRAPI_POSTGRES_HOST=postgres"
+      - "RETRAPI_POSTGRES_PORT=5432"
+      - "RETRAPI_POSTGRES_DATABASE=retrail"
     depends_on:
       - postgres
