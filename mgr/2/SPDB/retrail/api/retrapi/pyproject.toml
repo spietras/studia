@@ -12,9 +12,10 @@ python = "^3.9"
 typer = { version = "^0.4", extras = ["all"] }
 pydantic = "^1.9"
 fastapi = "^0.71"
-peewee = "^3.14"
-psycopg2-binary = "^2.9"
+SQLAlchemy = "^1.4"
+databases = { version = "^0.5", extras = ["postgresql"] }
 uvicorn = "^0.16"
+geopy = "^2.2"
 
 # dev
 
