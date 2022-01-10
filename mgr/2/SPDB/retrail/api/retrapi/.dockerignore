@@ -1,5 +1,6 @@
 *
 !/src/**
 !environment.yml
+!requirements.txt
 !pyproject.toml
 !poetry.lock
