@@ -19,3 +19,12 @@ services:
       - "PGADMIN_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD:-postgres}"
     depends_on:
       - postgres
+  superset:
+    build:
+      context: ./database/superset/
+    ports:
+      - "${SUPERSET_MAPPED_PORT:-5434}:8088"
+    environment:
+      - "SUPERSET_ADMIN_PASSWORD=${SUPERSET_ADMIN_PASSWORD:-admin}"
+    depends_on:
+      - postgres
