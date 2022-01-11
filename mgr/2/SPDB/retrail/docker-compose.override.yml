@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  pgadmin:
+    build:
+      context: ./database/pgadmin/
+      args:
+        - "PGADMIN_ADMIN_PASSWORD=${PGADMIN_ADMIN_PASSWORD:-admin}"
+    ports:
+      - "${PGADMIN_MAPPED_PORT:-5433}:80"
+    environment:
+      - "PGADMIN_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD:-postgres}"
+    depends_on:
+      - postgres
+  superset:
+    build:
+      context: ./database/superset/
+    ports:
+      - "${SUPERSET_MAPPED_PORT:-5434}:8088"
+    environment:
+      - "SUPERSET_ADMIN_PASSWORD=${SUPERSET_ADMIN_PASSWORD:-admin}"
+      - "SUPERSET_POSTGRES_USER=app"
+      - "SUPERSET_POSTGRES_PASSWORD=${POSTGRES_APP_PASSWORD:-app}"
+      - "SUPERSET_POSTGRES_HOST=postgres"
+      - "SUPERSET_POSTGRES_PORT=5432"
+      - "SUPERSET_POSTGRES_DATABASE=retrail"
+    depends_on:
+      - postgres
+  proxyscotch:
+    build:
+      context: ./api/proxyscotch/
+    ports:
+      - "${PROXYSCOTCH_MAPPED_PORT:-8766}:9159"
+    depends_on:
+      - retrapi
+  hoppscotch:
+    build:
+      context: ./api/hoppscotch/
+    ports:
+      - "${HOPPSCOTCH_MAPPED_PORT:-8767}:3000"
+    environment:
+      - "HOPPSCOTCH_BASE_URL=http://localhost:${HOPPSCOTCH_MAPPED_PORT:-8767}"
+      - "HOPPSCOTCH_PROXY_URL=http://localhost:${PROXYSCOTCH_MAPPED_PORT:-8766}"
+    depends_on:
+      - proxyscotch
