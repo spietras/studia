@@ -64,3 +64,12 @@ services:
       - "HOPPSCOTCH_PROXY_URL=http://localhost:${PROXYSCOTCH_MAPPED_PORT:-8766}"
     depends_on:
       - proxyscotch
+  webtrail:
+    build:
+      context: ./ui/webtrail/
+    ports:
+      - "${WEBTRAIL_MAPPED_PORT:-9876}:3000"
+    environment:
+      - "WEBTRAIL_RETRAPI_URL=http://retrapi:8080"
+    depends_on:
+      - retrapi
