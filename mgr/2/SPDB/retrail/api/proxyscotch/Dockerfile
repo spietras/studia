@@ -1,6 +1,6 @@
-FROM hoppscotch/hoppscotch:v2.1.0
+FROM hoppscotch/proxyscotch:latest
 
-WORKDIR /usr/app/hoppscotch/
+WORKDIR /usr/app/proxyscotch/
 
 COPY ./src/setup.sh ./setup.sh
 

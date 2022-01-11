@@ -38,7 +38,7 @@ services:
     build:
       context: ./api/retrapi/
     ports:
-      - "${RETRAPI_MAPPED_PORT:-10000}:8080"
+      - "${RETRAPI_MAPPED_PORT:-8765}:8080"
     environment:
       - "RETRAPI_POSTGRES_USER=app"
       - "RETRAPI_POSTGRES_PASSWORD=${POSTGRES_APP_PASSWORD:-app}"
@@ -47,10 +47,20 @@ services:
       - "RETRAPI_POSTGRES_DATABASE=retrail"
     depends_on:
       - postgres
+  proxyscotch:
+    build:
+      context: ./api/proxyscotch/
+    ports:
+      - "${PROXYSCOTCH_MAPPED_PORT:-8766}:9159"
+    depends_on:
+      - retrapi
   hoppscotch:
     build:
       context: ./api/hoppscotch/
     ports:
-      - "${HOPPSCOTCH_MAPPED_PORT:-11000}:3000"
+      - "${HOPPSCOTCH_MAPPED_PORT:-8767}:3000"
+    environment:
+      - "HOPPSCOTCH_BASE_URL=http://localhost:${HOPPSCOTCH_MAPPED_PORT:-8767}"
+      - "HOPPSCOTCH_PROXY_URL=http://localhost:${PROXYSCOTCH_MAPPED_PORT:-8766}"
     depends_on:
-      - retrapi
+      - proxyscotch
