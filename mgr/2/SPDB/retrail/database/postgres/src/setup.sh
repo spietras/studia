@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 print_usage() {
   # Prints script usage
 
@@ -25,6 +27,10 @@ data_path=$(realpath ./data/)
 export PGDATA="$data_path"        # set data directory to 'data'
 export POSTGRES_USER=postgres     # set the default user to postgres
 export POSTGRES_PASSWORD=postgres # set the default password to postgres
+
+# set default user and password also in .pgpass file
+echo "*:*:*:postgres:postgres" >~/.pgpass
+chmod u=rw ~/.pgpass
 
 # execute almost everything in entrypoint except running postgres at the end
 # this results in the database being fully initialized
