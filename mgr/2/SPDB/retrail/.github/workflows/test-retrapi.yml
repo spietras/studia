@@ -6,22 +6,18 @@ on:
       - main
     # trigger only on changes to the following files
     paths:
-      - "api/retrapi/src/**"
-      - "api/retrapi/tests/**"
-      - "api/retrapi/environment.yml"
-      - "api/retrapi/retrapi/poetry.lock"
-      - "api/retrapi/retrapi/pyproject.toml"
+      - "api/retrapi/**"
+      - "!api/retrapi/.dockerignore"
+      - "!api/retrapi/Dockerfile"
       - ".github/workflows/test-retrapi.yml"
   pull_request: # trigger only on main branch
     branches:
       - main
     # trigger only on changes to the following files
     paths:
-      - "api/retrapi/src/**"
-      - "api/retrapi/tests/**"
-      - "api/retrapi/environment.yml"
-      - "api/retrapi/retrapi/poetry.lock"
-      - "api/retrapi/retrapi/pyproject.toml"
+      - "api/retrapi/**"
+      - "!api/retrapi/.dockerignore"
+      - "!api/retrapi/Dockerfile"
       - ".github/workflows/test-retrapi.yml"
 
 # env for all jobs

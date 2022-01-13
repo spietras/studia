@@ -1,5 +1,7 @@
+# poetry requirements, especially for CI
 CacheControl==0.12.10
 cachy==0.3.0
+certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.10
 cleo==0.8.1
@@ -19,8 +21,12 @@ pastel==0.2.1
 pexpect==4.8.0
 pkginfo==1.8.2
 platformdirs==2.4.1
-poetry==1.1.12
-poetry-core==1.0.7
+# specific peotry and poetry-core versions, see:
+# https://github.com/python-poetry/poetry/issues/4566
+# https://github.com/python-poetry/poetry/issues/4409
+# https://github.com/python-poetry/poetry/issues/4085
+poetry==1.1.8
+poetry-core==1.0.4
 ptyprocess==0.7.0
 pycparser==2.21
 pylev==1.4.0
