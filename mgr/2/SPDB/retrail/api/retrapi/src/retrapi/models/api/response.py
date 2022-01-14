@@ -9,3 +9,4 @@ class ClosestResponse(BaseModel):
 
 class FindResponse(BaseModel):
     path: Path
+    cost: float
