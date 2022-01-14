@@ -1,12 +1,20 @@
 import Head from 'next/head'
 import Layout from '../components/layout'
-import Button from '../components/button'
+import Map from '../components/map'
 
-export default function Index() {
+export default function Index({apiKey}) {
     return (<Layout>
         <Head>
             <title>{"webtrail"}</title>
         </Head>
-        <Button>Click</Button>
+        <Map apiKey={apiKey}/>
     </Layout>)
+}
+
+export async function getServerSideProps() {
+    return {
+        props: {
+            apiKey: process.env.WEBTRAIL_MAPBOX_API_KEY || null
+        }
+    }
 }

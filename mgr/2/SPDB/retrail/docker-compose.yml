@@ -29,5 +29,6 @@ services:
       - "${WEBTRAIL_MAPPED_PORT:-9876}:3000"
     environment:
       - "WEBTRAIL_RETRAPI_URL=http://retrapi:8080"
+      - "WEBTRAIL_MAPBOX_API_KEY"
     depends_on:
       - retrapi

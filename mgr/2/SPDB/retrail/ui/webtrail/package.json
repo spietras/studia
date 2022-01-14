@@ -6,15 +6,19 @@
     "start": "next start -p ${PORT:=3000}"
   },
   "dependencies": {
+    "geojson": "^0.5.0",
     "http-proxy-middleware": "^2.0.1",
     "next": "^12.0.8-canary.20",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-map-gl": "^6.1.18",
     "sharp": "^0.29.3"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.8",
     "@types/node": "^17.0.8",
     "@types/react": "^17.0.38",
+    "@types/react-map-gl": "^6.1.1",
     "typescript": "^4.5.4"
   }
 }
