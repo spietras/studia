@@ -3,6 +3,11 @@ import os
 from pydantic import BaseModel
 
 
+class AppConfig(BaseModel):
+    title: str = os.getenv("RETRAPI_TITLE", "retrapi")
+    description: str = os.getenv("RETRAPI_DESCRIPTION", "retrail api")
+
+
 class DatabaseConfig(BaseModel):
     user: str = os.getenv("RETRAPI_POSTGRES_USER", "app")
     password: str = os.getenv("RETRAPI_POSTGRES_PASSWORD", "app")

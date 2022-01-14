@@ -11,20 +11,15 @@ import typer
 import uvicorn
 
 from retrapi.app import app
-from retrapi.models.config import DatabaseConfig
 
 cli = typer.Typer()  # this is actually callable and thus can be an entry point
 
 
 @cli.command()
-def main() -> Optional[int]:
+def main(host: str = "0.0.0.0", port: int = 8080) -> Optional[int]:
     """Command line interface for retrapi."""
-
-    config = DatabaseConfig()
-    typer.echo(config.uri)
-
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host=host, port=port)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(cli())

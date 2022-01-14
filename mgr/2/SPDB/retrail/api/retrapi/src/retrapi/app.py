@@ -1,29 +1,35 @@
 from fastapi import FastAPI
 
+from retrapi import config, database
+from retrapi.handlers.about import handle as handle_about
+from retrapi.handlers.closest import handle as handle_closest
+from retrapi.handlers.find import handle as handle_find
 from retrapi.models.api.request import ClosestRequest, FindRequest
 from retrapi.models.api.response import ClosestResponse, FindResponse
-from retrapi.models.data import Line, Path
 
-app = FastAPI(title="retrapi", description="retrail api")
+app = FastAPI(title=config.app.title, description=config.app.description)
+
+
+@app.on_event("startup")
+async def startup():
+    await database.on_startup()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.on_shutdown()
 
 
 @app.get("/about", response_model=str)
 async def about():
-    return app.title
+    return await handle_about()
 
 
 @app.post("/closest", response_model=ClosestResponse)
 async def closest(request: ClosestRequest):
-    return ClosestResponse(point=request.point)
+    return await handle_closest(request)
 
 
 @app.post("/find", response_model=FindResponse)
 async def find(request: FindRequest):
-    return FindResponse(
-        path=Path(
-            lines=[
-                Line(start=p1, end=p2)
-                for p1, p2 in zip(request.points, request.points[1:])
-            ]
-        )
-    )
+    return await handle_find(request)
