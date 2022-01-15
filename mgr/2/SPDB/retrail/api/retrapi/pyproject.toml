@@ -19,6 +19,7 @@ geopy = "^2.2"
 numpy = "^1.22"
 scipy = "^1.7"
 aiofiles = "^0.8"
+networkx = "^2.6"
 
 # dev
 
