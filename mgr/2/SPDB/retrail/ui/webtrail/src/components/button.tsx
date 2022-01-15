@@ -1,16 +1,10 @@
 import styles from './button.module.css'
 
-export default function Button({children}: { children: React.ReactNode }) {
-    const handleClick = async () => {
-        const response = await fetch('/api/about')
-        const text = await response.text()
-        console.log(text)
-    }
-
-    return (<button
+export default function Button({children, onClick = null}) {
+    return <button
         className={styles.button}
         role={"button"}
-        onClick={handleClick}>
+        onClick={onClick}>
         {children}
-    </button>)
+    </button>
 }
