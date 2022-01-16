@@ -1,4 +1,4 @@
-const defaultMargin = 16
+const defaultMargin = '16px'
 
 export default function Margin({children, margin = defaultMargin}) {
     return <div
