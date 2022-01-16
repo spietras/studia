@@ -29,7 +29,7 @@ wget -O /tmp/mazovia.osm.pbf "$osm_url"
 echo "$osm_sha */tmp/mazovia.osm.pbf" | sha256sum -c -
 
 # convert pbf format to raw osm and cut to Warsaw only
-osmconvert /tmp/mazovia.osm.pbf -B=./conf/warsaw.poly --drop-author --drop-version --out-osm -o=/tmp/warsaw.osm
+osmconvert /tmp/mazovia.osm.pbf -B=./conf/warsaw.poly --drop-author --drop-version --complete-ways --out-osm -o=/tmp/warsaw.osm
 
 # import into the database
 osm2pgrouting -f /tmp/warsaw.osm -c ./conf/mapconfig.xml -d retrail -U postgres -h /var/run/postgresql/

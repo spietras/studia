@@ -156,11 +156,11 @@ SELECT array_length(routes, 1) INTO r_count;
 routes[1]._x = src_x;
 routes[1]._y = src_y;
 
-if routes[r_count]._x then
-	routes := routes || (r_count, trg_x, trg_y, 0)::route;	
-else
+if routes[r_count]._x IS NULL then
 	routes[r_count]._x = trg_x;
 	routes[r_count]._y = trg_y;
+else
+	routes := routes || (r_count, trg_x, trg_y, 0)::route;	
 END if;
 
 RETURN QUERY SELECT _x as x, _y as y, _cost_from as cost_from FROM unnest(routes);
