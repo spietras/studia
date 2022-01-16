@@ -20,6 +20,7 @@ services:
       - "RETRAPI_POSTGRES_HOST=postgres"
       - "RETRAPI_POSTGRES_PORT=5432"
       - "RETRAPI_POSTGRES_DATABASE=retrail"
+      - "PYTHONUNBUFFERED=1"
     depends_on:
       - postgres
   webtrail:

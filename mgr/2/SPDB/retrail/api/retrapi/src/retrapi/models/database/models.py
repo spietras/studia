@@ -9,4 +9,5 @@ class Point(BaseModel):
 class PathRow(BaseModel):
     x: float
     y: float
-    cost: float
+    cost_from: float
+

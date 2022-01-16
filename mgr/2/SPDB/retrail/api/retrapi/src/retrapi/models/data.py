@@ -1,5 +1,5 @@
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 from geopy.distance import geodesic
 from pydantic import BaseModel, conlist
@@ -17,7 +17,7 @@ class Point(BaseModel):
 class Line(BaseModel):
     start: Point
     end: Point
-    cost: Optional[float] = None
+    cost: float = 0
 
     @property
     def geodesic_distance(self) -> float:

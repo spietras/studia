@@ -10,7 +10,7 @@ from retrapi.models.api.response import ClosestResponse
 
 
 def create_closest_query(point: data_models.Point) -> sql.ClauseElement:
-    return select(func.closest(point.x, point.y).table_valued("x", "y"))
+    return select(func.closest_point(point.x, point.y).table_valued("x", "y"))
 
 
 def parse_closest_result(record: Mapping) -> database_models.Point:

@@ -28,11 +28,11 @@ def order_points(
 
 
 def create_find_path_query(
-    start: data_models.Point, end: data_models.Point
+    start: data_models.Point, end: data_models.Point, by_time: bool = False
 ) -> sql.ClauseElement:
     return select(
-        func.find_path(start.x, start.y, end.x, end.y).table_valued(
-            "x", "y", "cost"
+        func.find_path(start.x, start.y, end.x, end.y, by_time).table_valued(
+            "x", "y", "cost_from"
         )
     )
 
@@ -42,9 +42,9 @@ def parse_find_path_result(record: Mapping) -> database_models.PathRow:
 
 
 async def query_find_path(
-    start: data_models.Point, end: data_models.Point
+    start: data_models.Point, end: data_models.Point, by_time: bool = False
 ) -> List[database_models.PathRow]:
-    query = create_find_path_query(start, end)
+    query = create_find_path_query(start, end, by_time)
     results = await database.fetch_all(query)
     return [parse_find_path_result(result) for result in results]
 
@@ -55,7 +55,7 @@ def parse_path(path: List[database_models.PathRow]) -> data_models.Path:
             data_models.Line(
                 start=data_models.Point(x=p1.x, y=p1.y),
                 end=data_models.Point(x=p2.x, y=p2.y),
-                cost=p2.cost - p1.cost,
+                cost=p2.cost_from,
             )
             for p1, p2 in zip(path, path[1:])
         ]
@@ -66,10 +66,10 @@ def combine_paths(paths: Sequence[data_models.Path]) -> data_models.Path:
     return reduce((lambda x, y: x + y), paths)
 
 
-async def find_path(points: Sequence[data_models.Point]) -> data_models.Path:
+async def find_path(points: Sequence[data_models.Point], by_time: bool = False) -> data_models.Path:
     paths = []
     for p1, p2 in zip(points, points[1:]):
-        path = await query_find_path(p1, p2)
+        path = await query_find_path(p1, p2, by_time)
         paths.append(parse_path(path))
     return combine_paths(paths)
 
