@@ -1,5 +1,4 @@
 import {Marker as MapGLMarker} from "react-map-gl"
-import * as React from "react"
 
 export default function Marker(props) {
     const {x, y, width = 30, height = 30, ...rest} = props

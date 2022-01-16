@@ -1,35 +1,59 @@
-import Head from 'next/head'
+import * as React from "react"
 import Layout from '../components/layout'
 import TrailMap from '../components/trailMap'
-import Button from "../components/button";
-import Floating from "../components/floating";
-import * as React from "react";
-import {getBorder, postFind} from "../lib/api";
+import Button from "../components/button"
+import Floating from "../components/floating"
+import Margin from "../components/margin"
+import CornerPanel from "../components/cornerPanel"
+import Label from "../components/label"
+import {getBorder, postFind} from "../lib/api"
+
+const title = 'webtrail'
 
 export default function Index({apiKey}) {
     const [border, setBorder] = React.useState([])
     const [points, setPoints] = React.useState([])
     const [path, setPath] = React.useState([])
+    const [cost, setCost] = React.useState(undefined)
     const [viewport, setViewport] = React.useState(undefined)
 
     const loadBorder = async () => setBorder((await getBorder()).border.lines)
-    const getPath = async () => (await postFind({points: points})).path.lines
+    const getPath = async () => {
+        if (points.length < 2) {
+            setPath([])
+            setCost(undefined)
+        } else {
+            const foundPath = await postFind({points: points})
+            setPath(foundPath.path.lines)
+            setCost(foundPath.cost)
+        }
+    }
 
     const handleResetClick = () => setPoints([])
+
+    const costLabel = (cost) => `Distance: ${cost.toFixed(2)} km`
 
     React.useEffect(() => {
         loadBorder().then()
     }, [])
 
-    return (<Layout>
-        <Head>
-            <title>{"webtrail"}</title>
-        </Head>
+    React.useMemo(() => {
+        getPath().then()
+    }, [points])
+
+    return (<Layout title={title}>
         <Floating>
-            <div style={{margin: 10}}>
+            <Margin>
                 <Button onClick={handleResetClick}>Reset</Button>
-            </div>
+            </Margin>
         </Floating>
+        {(cost || cost === 0) && <Floating position='top-right'>
+            <CornerPanel position='top-right'>
+                <Margin>
+                    <Label>{costLabel(cost)}</Label>
+                </Margin>
+            </CornerPanel>
+        </Floating>}
         <TrailMap
             border={border}
             points={points}
@@ -37,7 +61,6 @@ export default function Index({apiKey}) {
             viewport={viewport}
             getPath={getPath}
             onPointsChange={setPoints}
-            onPathChange={setPath}
             onViewportChange={setViewport}
             apiKey={apiKey}
         />

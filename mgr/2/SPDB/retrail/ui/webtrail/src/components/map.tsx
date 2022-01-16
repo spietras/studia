@@ -1,11 +1,9 @@
-import * as React from 'react'
 import MapGL from 'react-map-gl'
 
 const defaultViewport = {
     longitude: undefined, latitude: undefined, zoom: 10
 }
 const defaultMapStyle = 'mapbox://styles/mapbox/streets-v11'
-
 
 export default function Map(props) {
     const {
