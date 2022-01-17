@@ -67,13 +67,13 @@ export default function TrailMap(props) {
     >
         <Line
             id='border'
-            line-color={colors.border}
+            paint={{'line-color': colors.border}}
             data={parseLines(border)}
         />
         {markers}
         <Line
             id='path'
-            line-color={colors.path}
+            paint={{'line-color': colors.path}}
             data={parseLines(path)}
         />
     </Map>
