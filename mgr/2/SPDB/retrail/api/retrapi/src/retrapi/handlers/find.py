@@ -62,7 +62,7 @@ def parse_path(
             data_models.WeightedLine(
                 start=data_models.Point(x=p1.x, y=p1.y),
                 end=data_models.Point(x=p2.x, y=p2.y),
-                cost=p2.cost_from,
+                cost=p1.cost_from,
             )
             for p1, p2 in zip(path, path[1:])
         ]
