@@ -36,7 +36,7 @@ export default function Index({apiKey}) {
             setPath([])
             setCost(undefined)
         } else {
-            const foundPath = await postFind({points: points})
+            const foundPath = await postFind({points: points, mode: mode})
             setPath(foundPath.path.lines)
             setCost(foundPath.cost)
         }
@@ -55,6 +55,7 @@ export default function Index({apiKey}) {
 
     React.useMemo(() => {
         setPath([])
+        setCost(undefined)
         getPath().then()
     }, [points, mode])
 

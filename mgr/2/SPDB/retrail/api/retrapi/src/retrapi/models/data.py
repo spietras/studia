@@ -1,8 +1,11 @@
+import copy
 import math
-from typing import Tuple
+from abc import ABC
+from typing import Generic, Tuple, TypeVar
 
 from geopy.distance import geodesic
 from pydantic import BaseModel, conlist
+from pydantic.generics import GenericModel
 
 
 class Point(BaseModel):
@@ -17,7 +20,6 @@ class Point(BaseModel):
 class Line(BaseModel):
     start: Point
     end: Point
-    cost: float = 0
 
     @property
     def geodesic_distance(self) -> float:
@@ -28,8 +30,15 @@ class Line(BaseModel):
         return math.dist(self.start.tuple, self.end.tuple)
 
 
-class Path(BaseModel):
-    lines: conlist(Line, min_items=1)
+class WeightedLine(Line):
+    cost: float = 0
+
+
+T = TypeVar("T", bound=Line)
+
+
+class BasePath(GenericModel, ABC, Generic[T]):
+    lines: conlist(T, min_items=1)
 
     @property
     def geodesic_distance(self) -> float:
@@ -47,17 +56,26 @@ class Path(BaseModel):
     def n_points(self) -> int:
         return self.n_lines + 1
 
-    @property
-    def cost(self) -> float:
-        return sum(line.cost or 0 for line in self.lines)
-
-    def __add__(self, other: "Path"):
+    def __add__(self, other: "BasePath") -> "BasePath":
         self_end, other_start = self.lines[-1].end, other.lines[0].start
         if self_end == other_start:
-            return Path(lines=self.lines + other.lines)
+            lines = self.lines + other.lines
         else:
-            return Path(
-                lines=self.lines
+            lines = (
+                self.lines
                 + [Line(start=self_end, end=other_start)]
                 + other.lines
             )
+        path = copy.deepcopy(self)
+        path.lines = lines
+        return path
+
+
+class Path(BasePath[Line]):
+    pass
+
+
+class WeightedPath(BasePath[WeightedLine]):
+    @property
+    def cost(self) -> float:
+        return sum(line.cost or 0 for line in self.lines)

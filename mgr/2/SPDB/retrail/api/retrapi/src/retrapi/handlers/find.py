@@ -49,10 +49,12 @@ async def query_find_path(
     return [parse_find_path_result(result) for result in results]
 
 
-def parse_path(path: List[database_models.PathRow]) -> data_models.Path:
-    return data_models.Path(
+def parse_path(
+    path: List[database_models.PathRow],
+) -> data_models.WeightedPath:
+    return data_models.WeightedPath(
         lines=[
-            data_models.Line(
+            data_models.WeightedLine(
                 start=data_models.Point(x=p1.x, y=p1.y),
                 end=data_models.Point(x=p2.x, y=p2.y),
                 cost=p2.cost_from,
@@ -62,11 +64,15 @@ def parse_path(path: List[database_models.PathRow]) -> data_models.Path:
     )
 
 
-def combine_paths(paths: Sequence[data_models.Path]) -> data_models.Path:
+def combine_paths(
+    paths: Sequence[data_models.WeightedPath],
+) -> data_models.WeightedPath:
     return reduce((lambda x, y: x + y), paths)
 
 
-async def find_path(points: Sequence[data_models.Point], by_time: bool = False) -> data_models.Path:
+async def find_path(
+    points: Sequence[data_models.Point], by_time: bool = False
+) -> data_models.WeightedPath:
     paths = []
     for p1, p2 in zip(points, points[1:]):
         path = await query_find_path(p1, p2, by_time)
@@ -76,5 +82,5 @@ async def find_path(points: Sequence[data_models.Point], by_time: bool = False) 
 
 async def handle(request: FindRequest) -> FindResponse:
     ordered_points = order_points(request.points)
-    path = await find_path(ordered_points)
+    path = await find_path(ordered_points, request.mode == "time")
     return FindResponse(path=path, cost=path.cost)

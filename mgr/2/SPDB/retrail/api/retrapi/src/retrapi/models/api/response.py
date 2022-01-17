@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 
-from retrapi.models.data import Path, Point
+from retrapi.models.data import Path, Point, WeightedPath
 
 
 class BorderResponse(BaseModel):
@@ -18,5 +18,5 @@ class ClosestResponse(BaseModel):
 
 
 class FindResponse(BaseModel):
-    path: Path
+    path: WeightedPath
     cost: float
