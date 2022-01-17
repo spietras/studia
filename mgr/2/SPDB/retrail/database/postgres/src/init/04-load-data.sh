@@ -21,8 +21,8 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-osm_url='https://download.geofabrik.de/europe/poland/mazowieckie-220110.osm.pbf'
-osm_sha='877213057583b22b7e9b074c7208f399078a0326370b850bf286f315a7183d4a'
+osm_url='https://download.geofabrik.de/europe/poland/mazowieckie-220101.osm.pbf'
+osm_sha='b3fc973643202f30b799bbc773c5f3d73c223590999d412ab9324035210cc5d3'
 
 # download mazovia OSM data in pbf format
 wget -O /tmp/mazovia.osm.pbf "$osm_url"

@@ -1,8 +1,8 @@
 -- Connect to proper database
 \c retrail
 
-CREATE OR REPLACE VIEW ways_cost AS SELECT gid as id, source, target, cost, reverse_cost FROM ways;
-CREATE OR REPLACE VIEW ways_cost_time AS SELECT gid as id, source, target, cost_s as cost, reverse_cost_s as reverse_cost FROM ways;
+CREATE OR REPLACE VIEW ways_cost_length AS SELECT gid as id, source, target, length_m as cost, (CASE WHEN one_way = 1 THEN -length_m ELSE length_m END) as reverse_cost FROM ways;
+CREATE OR REPLACE VIEW ways_cost_time AS SELECT gid as id, source, target, cost_s * 1.5 as cost, reverse_cost_s * 1.5 as reverse_cost FROM ways;
 
 create type route as (  
 	_seq	INTEGER,
@@ -106,7 +106,7 @@ BEGIN
 if by_time then
    SELECT 'SELECT id::INTEGER, source::INTEGER, target::INTEGER, cost, reverse_cost FROM ways_cost_time' INTO ways_sql;
 else
-  SELECT 'SELECT id::INTEGER, source::INTEGER, target::INTEGER, cost, reverse_cost FROM ways_cost' INTO ways_sql;
+  SELECT 'SELECT id::INTEGER, source::INTEGER, target::INTEGER, cost, reverse_cost FROM ways_cost_length' INTO ways_sql;
 END if;
 
 SELECT way_gid, newpt_geom, way_geom INTO src_way_gid, src_pt_geom, src_way_geom
