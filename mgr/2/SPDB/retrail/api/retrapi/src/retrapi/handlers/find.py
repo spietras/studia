@@ -2,6 +2,8 @@ from functools import reduce
 from typing import List, Mapping, Sequence
 
 import networkx as nx
+from asyncache import cached
+from cachetools import LRUCache
 from scipy.spatial import distance
 from sqlalchemy import func, select, sql
 
@@ -10,6 +12,8 @@ import retrapi.models.database.models as database_models
 from retrapi.database import database
 from retrapi.models.api.request import FindRequest
 from retrapi.models.api.response import FindResponse
+
+CACHE_MAXSIZE = 1000
 
 
 def order_points(
@@ -41,6 +45,7 @@ def parse_find_path_result(record: Mapping) -> database_models.PathRow:
     return database_models.PathRow.parse_obj(record)
 
 
+@cached(LRUCache(maxsize=CACHE_MAXSIZE))
 async def query_find_path(
     start: data_models.Point, end: data_models.Point, by_time: bool = False
 ) -> List[database_models.PathRow]:

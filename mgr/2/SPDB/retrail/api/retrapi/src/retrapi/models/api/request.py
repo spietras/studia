@@ -1,7 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, conlist
+from pydantic import conlist
 
+from retrapi.models.base import BaseModel
 from retrapi.models.data import Point
 
 

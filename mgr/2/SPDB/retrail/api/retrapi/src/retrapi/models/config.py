@@ -1,6 +1,6 @@
 import os
 
-from pydantic import BaseModel
+from retrapi.models.base import BaseModel
 
 
 class AppConfig(BaseModel):

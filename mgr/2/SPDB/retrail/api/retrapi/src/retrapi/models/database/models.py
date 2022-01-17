@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from retrapi.models.base import BaseModel
 
 
 class Point(BaseModel):
@@ -10,4 +10,3 @@ class PathRow(BaseModel):
     x: float
     y: float
     cost_from: float
-

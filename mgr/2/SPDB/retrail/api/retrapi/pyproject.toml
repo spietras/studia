@@ -20,6 +20,8 @@ numpy = "^1.22"
 scipy = "^1.7"
 aiofiles = "^0.8"
 networkx = "^2.6"
+cachetools = "^5.0"
+asyncache = "^0.1"
 
 # dev
 

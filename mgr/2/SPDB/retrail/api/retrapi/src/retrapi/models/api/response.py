@@ -1,5 +1,6 @@
-from pydantic import BaseModel, validator
+from pydantic import validator
 
+from retrapi.models.base import BaseModel
 from retrapi.models.data import Path, Point, WeightedPath
 
 

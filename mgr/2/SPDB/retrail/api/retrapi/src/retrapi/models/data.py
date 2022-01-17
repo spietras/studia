@@ -4,8 +4,9 @@ from abc import ABC
 from typing import Generic, Tuple, TypeVar
 
 from geopy.distance import geodesic
-from pydantic import BaseModel, conlist
-from pydantic.generics import GenericModel
+from pydantic import conlist
+
+from retrapi.models.base import BaseModel, GenericModel
 
 
 class Point(BaseModel):
@@ -59,16 +60,15 @@ class BasePath(GenericModel, ABC, Generic[T]):
     def __add__(self, other: "BasePath") -> "BasePath":
         self_end, other_start = self.lines[-1].end, other.lines[0].start
         if self_end == other_start:
-            lines = self.lines + other.lines
+            return self.__class__(lines=self.lines + other.lines)
         else:
-            lines = (
-                self.lines
-                + [Line(start=self_end, end=other_start)]
-                + other.lines
+            return self.__class__(
+                lines=(
+                    self.lines
+                    + [Line(start=self_end, end=other_start)]
+                    + other.lines
+                )
             )
-        path = copy.deepcopy(self)
-        path.lines = lines
-        return path
 
 
 class Path(BasePath[Line]):
