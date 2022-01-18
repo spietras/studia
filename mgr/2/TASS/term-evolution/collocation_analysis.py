@@ -9,46 +9,51 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-text1 = "I do not like green eggs and ham, I do not like them Sam I am!"
+text1 = "I do not like green eggs and ham and cheese, I do not like them Sam I am!"
 text2 = "Sir, I protest. I am not a merry man!"
 
 stop_words = stopwords.words("english")  # 179 words
 
 # Read from file
-#f = open('second_variety.txt')
-#raw_text = f.read()
+#f1 = open('second_variety.txt')
+#f2 = open('hamlet.txt')
+#text1 = f1.read()
+#text2 = f2.read()
 
 
 # Prepare data and draw first graph
 tokens = word_tokenize(text1)
 bigram_measures = BigramAssocMeasures()
 finder = BigramCollocationFinder.from_words(tokens)
-#finder.apply_freq_filter(5)
+#finder.apply_freq_filter(3)
 #finder.apply_word_filter(lambda w: len(w) < 3 or w.casefold() in stop_words)
-scored = finder.score_ngrams(bigram_measures.raw_freq)  # now simply bigram's freq is used as edge's weight
-print('Bigrams with weights (corpus 1): ',scored)
-nodes = [(node[0][0], node[0][1], {'weight':node[1]}) for node in scored]
-G1 = nx.Graph()
+scored_bigrams = finder.score_ngrams(bigram_measures.jaccard)
+print('Bigrams with weights (corpus 1): ',scored_bigrams)
+nodes = [(node[0][0], node[0][1], {'weight':node[1]}) for node in scored_bigrams]
+G1 = nx.DiGraph()
 G1.add_edges_from(nodes)
 plt.figure()
 plt.title('Graph 1')
-nx.draw(G1, with_labels=True, font_weight='bold')
-#pos = nx.spring_layout(G)
-#nx.draw_networkx_edge_labels(G,pos)
+pos = nx.kamada_kawai_layout(G1)
+nx.draw(G1, pos=pos, with_labels=True, font_weight='bold')
+#nx.draw_networkx_edge_labels(G1,pos)
 
 
 # Prepare data and draw second graph
 tokens2 = word_tokenize(text2)
 bigram_measures2 = BigramAssocMeasures()
 finder2 = BigramCollocationFinder.from_words(tokens2)
-scored2 = finder2.score_ngrams(bigram_measures2.raw_freq)  # now simply bigram's freq is used as edge's weight
-print('Bigrams with weights (corpus 2): ', scored2)
-nodes2 = [(node[0][0], node[0][1], {'weight': node[1]}) for node in scored2]
-G2 = nx.Graph()
+#finder2.apply_freq_filter(3)
+#finder2.apply_word_filter(lambda w: len(w) < 3 or w.casefold() in stop_words)
+scored_bigrams2 = finder2.score_ngrams(bigram_measures2.jaccard)
+print('Bigrams with weights (corpus 2): ', scored_bigrams2)
+nodes2 = [(node[0][0], node[0][1], {'weight': node[1]}) for node in scored_bigrams2]
+G2 = nx.DiGraph()
 G2.add_edges_from(nodes2)
 plt.figure()
 plt.title('Graph 2')
-nx.draw(G2, with_labels=True, font_weight='bold')
+pos2 = nx.kamada_kawai_layout(G2)
+nx.draw(G2, pos=pos2, with_labels=True, font_weight='bold')
 
 
 # Create copies of graphs with no edges
@@ -80,7 +85,7 @@ assert G11.number_of_nodes()==G22.number_of_nodes()
 # Create and sort list of all words in graphs
 word_list = list(G11.nodes())
 word_list.sort()
-print("Common word list: ", word_list)
+print("Common word list (from 2 graphs): ", word_list)
 word_list2 = list(G22.nodes())
 word_list2.sort()
 assert word_list==word_list2
@@ -92,15 +97,31 @@ A2 = nx.convert_matrix.to_numpy_matrix(G22, nodelist=word_list)
 
 
 # Calculate cosine similarity
+# a_ij - strength of collocation between i-th and j-th word
+# Primary version - take into account only outgoing edges (i-th row) for i-th word
 cos_sim = {}  # key - word; val - cosine similarity
 for i in range(A1.shape[0]):
     norm1 = np.linalg.norm(A1[i,:])
-    norm2 = np.linalg.norm(A2[:,i])
+    norm2 = np.linalg.norm(A2[i,:])
     if norm1 == 0 or norm2 == 0:
         cos_sim[word_list[i]]=0.0
     else:
-        cos_sim[word_list[i]] = float( np.dot(A1[i,:], A2[:,i]) / (norm1*norm2) )
-# Sort dict by values
+        cos_sim[word_list[i]] = float(np.dot(A1[i,:], A2[i,:].T) / (norm1*norm2))
+
+'''
+# Alternate version - take into account both outgoing (i-th row) and incoming (i-th column) edges for i-th word
+for i in range(A1.shape[0]):
+    v1 = np.concatenate((A1[i,:],A1[:,i].T)).flatten()
+    v2 = np.concatenate((A2[i,:],A2[:,i].T)).flatten()
+    norm1 = np.linalg.norm(v1)
+    norm2 = np.linalg.norm(v2)
+    if norm1 == 0 or norm2 == 0:
+        cos_sim[word_list[i]]=0.0
+    else:
+        cos_sim[word_list[i]] = float(np.dot(v1, v2.T) / (norm1*norm2))
+'''
+
+# Sort dict by values, words with lowest values are likely to have changed their meaning
 cos_sim_sorted = sorted(cos_sim.items(), key=lambda a:a[1], reverse=True)
 print("Cos similarity dict: ", cos_sim_sorted)
 
