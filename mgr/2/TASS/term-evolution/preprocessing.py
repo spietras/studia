@@ -5,18 +5,18 @@ import spacy
 from spacy import Language
 from spacy.tokens import Token
 
+SPACY_EXCLUDED_PIPELINES = ['parser', 'ner', 'entity_linker', 'entity_ruler',
+                            'textcat', 'textcat_multilabel', 'senter',
+                            'sentencizer', 'tok2vec', 'transformer']
 
-def load_spacy() -> Language:
-    model = 'en_core_web_sm'
+
+def load_spacy(model: str) -> Language:
     if not spacy.util.is_package(model):
         spacy.cli.download(model, False, False, ["--quiet"])
     return spacy.load(
         model,
-        exclude=['tok2vec', 'parser', 'ner']
+        exclude=SPACY_EXCLUDED_PIPELINES
     )
-
-
-nlp = load_spacy()
 
 
 def is_irrelevant(token: Token) -> bool:
@@ -33,8 +33,10 @@ def is_irrelevant(token: Token) -> bool:
 
 
 def tokenize(
-        texts: Iterable[str]
+        texts: Iterable[str],
+        model: str = 'en_core_web_sm'
 ) -> Tuple[List[List[str]], List[str]]:
+    nlp = load_spacy(model)
     nlp.max_length = max(len(text) for text in texts) + 1
     tokens = [
         [token.lemma_ for token in doc if not is_irrelevant(token)]
