@@ -2,29 +2,14 @@ from typing import (
     Callable,
     Container,
     Dict,
-    Iterable,
-    List,
     Sequence,
     Tuple,
 )
 
 import networkx as nx
-import nltk
 import numpy as np
-from nltk import BigramAssocMeasures, BigramCollocationFinder, word_tokenize
+from nltk import BigramAssocMeasures, BigramCollocationFinder
 from tqdm import tqdm
-
-nltk.download('punkt', quiet=True)
-
-
-def tokenize(
-        texts: Iterable[str]
-) -> Tuple[List[List[str]], List[str]]:
-    tokens, vocabulary = [], set()
-    for text in texts:
-        tokens.append(word_tokenize(text))
-        vocabulary.update(tokens[-1])
-    return tokens, sorted(vocabulary)
 
 
 def score_collocations(
