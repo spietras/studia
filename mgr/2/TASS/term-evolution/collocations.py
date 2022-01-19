@@ -12,6 +12,7 @@ import networkx as nx
 import nltk
 import numpy as np
 from nltk import BigramAssocMeasures, BigramCollocationFinder, word_tokenize
+from tqdm import tqdm
 
 nltk.download('punkt', quiet=True)
 
@@ -48,28 +49,35 @@ def make_graph(
     return graph
 
 
-def weights_matrix(graph: nx.Graph, nodes: Sequence[str]) -> np.ndarray:
-    return nx.convert_matrix.to_numpy_array(graph, nodelist=nodes)
+def adjacency_vector(
+        graph: nx.DiGraph,
+        node: str,
+        nodes_order: Sequence[str]
+) -> np.ndarray:
+    index = {n: i for i, n in enumerate(nodes_order)}
+    array = np.zeros(len(nodes_order))
+    for neighbour, attribute in graph[node].items():
+        array[index[neighbour]] = attribute["weight"]
+    return array
 
 
-def matrix_cosine(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    norm = np.linalg.norm(x, axis=1) * np.linalg.norm(y, axis=1)
-    sums = np.einsum('ij,ij->i', x, y)
-    return np.divide(sums, norm, out=np.zeros_like(sums), where=norm != 0)
+def vector_cosine(x: np.ndarray, y: np.ndarray) -> float:
+    norm = np.linalg.norm(x) * np.linalg.norm(y)
+    return x @ y.T / norm if norm != 0.0 else 0.0
 
 
 def cosine_similarities(
         graph1: nx.DiGraph,
         graph2: nx.DiGraph,
-        nodes_order: Sequence[str]
+        nodes_order: Sequence[str],
+        progress: bool = True
 ) -> Dict[str, float]:
     if graph1.nodes != graph2.nodes:
         raise ValueError("Graphs must have the same nodes")
-    scores = matrix_cosine(
-        weights_matrix(graph1, nodes_order),
-        weights_matrix(graph2, nodes_order)
-    )
     return {
-        node: score
-        for node, score in zip(nodes_order, scores)
+        node: vector_cosine(
+            adjacency_vector(graph1, node, nodes_order),
+            adjacency_vector(graph2, node, nodes_order)
+        )
+        for node in tqdm(nodes_order, disable=not progress)
     }
