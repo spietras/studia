@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Iterable, List, Sequence, Tuple, TypeVar
 
 import spacy
@@ -14,6 +15,18 @@ SPACY_EXCLUDED_PIPELINES = ['parser', 'ner', 'entity_linker', 'entity_ruler',
 
 def chunks(seq: Sequence[T], chunksize: int) -> T:
     return (seq[pos:pos + chunksize] for pos in range(0, len(seq), chunksize))
+
+
+def clean_gutenberg(text: str) -> str:
+    start = re.search(
+        r"\*\*\* START OF (THE|THIS) PROJECT GUTENBERG EBOOK .* \*\*\*",
+        text
+    ).end()
+    stop = re.search(
+        r"\*\*\* END OF (THE|THIS) PROJECT GUTENBERG EBOOK .* \*\*\*",
+        text
+    ).start()
+    return text[start:stop]
 
 
 def load_spacy(model: str) -> Language:
