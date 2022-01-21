@@ -25,13 +25,13 @@ def make_graph(
         vocabulary: Container[str]
 ) -> nx.DiGraph:
     collocations = score_collocations(tokens)
-    nodes = [
+    edges = [
         (token1, token2, {'weight': score})
         for (token1, token2), score in collocations
     ]
-    graph = nx.DiGraph(nodes)
+    graph = nx.DiGraph(edges)
     graph.add_nodes_from(vocabulary)
-    return graph
+    return graph.subgraph(vocabulary)
 
 
 def adjacency_vector(
