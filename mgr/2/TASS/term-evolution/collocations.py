@@ -9,7 +9,7 @@ from typing import (
 import networkx as nx
 import numpy as np
 from nltk import BigramAssocMeasures, BigramCollocationFinder
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 def score_collocations(
