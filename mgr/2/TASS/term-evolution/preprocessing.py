@@ -1,20 +1,23 @@
-import os
 import re
-from typing import Iterable, List, Sequence, Tuple, TypeVar
+from typing import Iterable, Iterator, List, Tuple
 
 import spacy
 from spacy import Language
 from spacy.tokens import Token
-
-T = TypeVar('T')
+from tqdm.auto import tqdm
 
 SPACY_EXCLUDED_PIPELINES = ['parser', 'ner', 'entity_linker', 'entity_ruler',
                             'textcat', 'textcat_multilabel', 'senter',
-                            'sentencizer', 'tok2vec', 'transformer']
+                            'sentencizer', 'transformer']
 
 
-def chunks(seq: Sequence[T], chunksize: int) -> T:
-    return (seq[pos:pos + chunksize] for pos in range(0, len(seq), chunksize))
+def chunks(text: str, chunksize: int) -> Iterator[str]:
+    start = 0
+    while start < len(text):
+        end = text.find('\n\n', start + chunksize)
+        end = end if end > 0 else len(text)
+        yield text[start:end]
+        start = end
 
 
 def clean_gutenberg(text: str) -> str:
@@ -48,33 +51,36 @@ def is_irrelevant(token: Token) -> bool:
            token.is_currency or \
            token.like_num or \
            token.like_url or \
-           token.like_email
+           token.like_email or \
+           token.pos_ in {'PROPN', 'SYM'}
 
 
 def tokenize_str(
         nlp: Language,
         text: str,
-        chunksize: int = 20000
+        chunksize: int = 1000,
+        progress: bool = True
 ) -> List[str]:
-    old_max_length, nlp.max_length = nlp.max_length, chunksize + 1
-    tokens = [
+    return [
         token.lemma_
-        for doc in nlp.pipe(chunks(text, chunksize), n_process=os.cpu_count())
+        for doc in tqdm(
+            nlp.pipe(chunks(text, chunksize)),
+            disable=not progress
+        )
         for token in doc
         if not is_irrelevant(token)
     ]
-    nlp.max_length = old_max_length
-    return tokens
 
 
 def tokenize(
         texts: Iterable[str],
         model: str = 'en_core_web_sm',
-        chunksize: int = 20000
+        chunksize: int = 1000,
+        progress: bool = True
 ) -> Tuple[List[List[str]], List[str]]:
     nlp = load_spacy(model)
     tokens = [
-        tokenize_str(nlp, text, chunksize)
-        for text in texts
+        tokenize_str(nlp, text, chunksize, progress)
+        for text in tqdm(texts, disable=not progress)
     ]
     return tokens, sorted(set(token for tkns in tokens for token in tkns))
