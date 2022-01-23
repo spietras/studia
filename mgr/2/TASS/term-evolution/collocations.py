@@ -14,10 +14,11 @@ from tqdm.auto import tqdm
 
 def score_collocations(
         tokens: Sequence[str],
-        measure: Callable = BigramAssocMeasures.jaccard
+        measure: Callable = BigramAssocMeasures.jaccard,
+        min_freq: int = 5
 ) -> Dict[Tuple[str, str], float]:
     finder = BigramCollocationFinder.from_words(tokens)
-    finder.apply_freq_filter(5)
+    finder.apply_freq_filter(min_freq)
     return finder.score_ngrams(measure)
 
 
