@@ -17,6 +17,7 @@ def score_collocations(
         measure: Callable = BigramAssocMeasures.jaccard
 ) -> Dict[Tuple[str, str], float]:
     finder = BigramCollocationFinder.from_words(tokens)
+    finder.apply_freq_filter(5)
     return finder.score_ngrams(measure)
 
 
