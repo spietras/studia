@@ -1,0 +1,4 @@
+resolver: ghc-9.0.1
+install-ghc: true
+packages:
+- elka-life
