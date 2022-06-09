@@ -1,6 +1,3 @@
-[submodule "inż/5/PSZT/perceptron"]
-	path = inż/5/PSZT/perceptron
-	url = https://github.com/spietras/perceptron
 [submodule "inż/6/IUM/eShopping"]
 	path = inż/6/IUM/eShopping
 	url = https://github.com/spietras/eshoppping
