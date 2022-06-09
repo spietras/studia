@@ -1,0 +1,16 @@
+
+client/.idea/
+
+client/build/
+
+client/.gradle/
+
+server/.idea/
+
+server/server/__pycache__/
+
+*.pyc
+
+learning/.ipynb_checkpoints/
+
+learning/tools/
