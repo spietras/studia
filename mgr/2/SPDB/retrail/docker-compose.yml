@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  postgres:
+    build:
+      context: ./database/postgres/
+    ports:
+      - "${POSTGRES_MAPPED_PORT:-5432}:5432"
+    environment:
+      - "POSTGRES_ADMIN_PASSWORD=${POSTGRES_ADMIN_PASSWORD:-postgres}"
+      - "POSTGRES_APP_PASSWORD=${POSTGRES_APP_PASSWORD:-app}"
+  retrapi:
+    build:
+      context: ./api/retrapi/
+    ports:
+      - "${RETRAPI_MAPPED_PORT:-8765}:8080"
+    environment:
+      - "RETRAPI_POSTGRES_USER=app"
+      - "RETRAPI_POSTGRES_PASSWORD=${POSTGRES_APP_PASSWORD:-app}"
+      - "RETRAPI_POSTGRES_HOST=postgres"
+      - "RETRAPI_POSTGRES_PORT=5432"
+      - "RETRAPI_POSTGRES_DATABASE=retrail"
+      - "PYTHONUNBUFFERED=1"
+    depends_on:
+      - postgres
+  webtrail:
+    build:
+      context: ./ui/webtrail/
+    ports:
+      - "${WEBTRAIL_MAPPED_PORT:-9876}:3000"
+    environment:
+      - "WEBTRAIL_RETRAPI_URL=http://retrapi:8080"
+      - "WEBTRAIL_MAPBOX_API_KEY"
+    depends_on:
+      - retrapi

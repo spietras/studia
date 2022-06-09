@@ -1,0 +1,29 @@
+.floatingPane {
+    width: 100%;
+    height: 100%
+}
+
+.floatingContainer {
+    position: absolute;
+    z-index: 1;
+}
+
+.topLeft {
+    top: 0;
+    left: 0;
+}
+
+.topRight {
+    right: 0;
+    top: 0;
+}
+
+.bottomLeft {
+    left: 0;
+    bottom: 0;
+}
+
+.bottomRight {
+    right: 0;
+    bottom: 0;
+}

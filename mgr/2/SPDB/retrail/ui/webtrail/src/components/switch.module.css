@@ -1,0 +1,53 @@
+.container {
+    display: grid;
+    height: 48px;
+}
+
+.container > * {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    transform: translate(0, 0);
+}
+
+.switchContainerWrapper {
+    display: inline-block;
+    pointer-events: none;
+}
+
+.switchContainer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    height: 100%;
+}
+
+.switchLabel {
+    padding: 2px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sliderContainer {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.56);
+    border-radius: 24px;
+    cursor: pointer;
+}
+
+.slider {
+    background: #fff;
+    height: 100%;
+    width: 50%;
+    border-radius: 24px;
+    border-style: none;
+    box-shadow: rgba(0, 0, 0, .2) 0 3px 5px -1px, rgba(0, 0, 0, .14) 0 6px 10px 0, rgba(0, 0, 0, .12) 0 1px 18px 0;
+    transition: transform 300ms;
+}
+
+.sliderLeft {
+    transform: translateX(0);
+}
+
+.sliderRight {
+    transform: translateX(100%);
+}
