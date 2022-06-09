@@ -1,0 +1,3 @@
+[submodule "mgr/3/WPAM/concerto"]
+	path = mgr/3/WPAM/concerto
+	url = https://github.com/concerto-app/concerto.git
