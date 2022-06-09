@@ -2,7 +2,7 @@
 
 This ```README``` provides info about the development process.
 
-For more info about the package itself see ```genetwork/README.md``` or [docs](https://spietras.github.io/genetwork).
+For more info about the package itself see ```genetwork/README.md```.
 
 ## Quickstart (on Ubuntu)
 
