@@ -1,0 +1,14 @@
+
+bin/
+
+obj/
+
+.idea/
+
+cmake-build-debug/
+/.vs
+/Debug
+/ZT2-wiatrak.VC.VC.opendb
+/ZT2-wiatrak.VC.db
+/Release
+/.vscode
