@@ -1,0 +1,3 @@
+[submodule "mgr/3/ZUM/fraud-detection"]
+	path = mgr/3/ZUM/fraud-detection
+	url = git@github.com:aljed/ZUM.git
