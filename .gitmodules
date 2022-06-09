@@ -7,9 +7,6 @@
 [submodule "inż/7/ALHE/antcolony"]
 	path = inż/7/ALHE/antcolony
 	url = https://github.com/spietras/antcolony
-[submodule "inż/5/GKOM/opengl-windmill"]
-	path = inż/5/GKOM/opengl-windmill
-	url = https://github.com/spietras/opengl-windmill
 [submodule "mgr/1/AMHE/genetwork"]
 	path = mgr/1/AMHE/genetwork
 	url = https://github.com/spietras/genetwork
