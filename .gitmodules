@@ -1,6 +1,3 @@
-[submodule "inż/7/ALHE/antcolony"]
-	path = inż/7/ALHE/antcolony
-	url = https://github.com/spietras/antcolony
 [submodule "mgr/1/AMHE/genetwork"]
 	path = mgr/1/AMHE/genetwork
 	url = https://github.com/spietras/genetwork
