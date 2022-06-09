@@ -1,0 +1,225 @@
+---
+title: "Uczenie"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Pakiety
+
+```{r, message = FALSE}
+library("tidyverse")
+library("mlr3verse")
+library("future")
+library("progressr")
+library("progress")
+library("data.table")
+```
+
+## Kod pomocniczy
+
+```{r, message = FALSE}
+source("src/data_preparation.R")
+source("src/helpers.R")
+```
+
+## Konfiguracja
+
+```{r}
+plan(list("multisession", "sequential"))
+handlers("progress")
+```
+
+## Wczytanie danych
+
+```{r}
+data <- read_csv("data/creditcard.csv", col_types = c("Class" = "factor"))
+data$Class <- factor(data$Class, labels = c("legit", "fraud"))
+```
+
+## Koszt
+
+```{r}
+costs <- cost_matrix(data)
+costs
+```
+
+## Miara ewaluacyjna
+
+```{r}
+MeasureClassifCostsPatched <- R6::R6Class("MeasureClassifCostsPatched",
+  inherit = MeasureClassifCosts,
+  public = list(
+    initialize = function(...) {
+      super$initialize(...)
+      self$properties <- character()
+    }
+  )
+)
+mlr_measures$add("classif.costs.patched", MeasureClassifCostsPatched)
+```
+
+
+```{r}
+measure <- msr("classif.costs.patched", costs = costs)
+measure
+```
+
+## Modele
+
+### Baseline
+
+```{r}
+baseline <- learner("classif.featureless", method = "sample", id = "featureless")
+```
+
+### K najbliższych sąsiadów
+
+```{r}
+knn <- tunethreshold(learner("classif.kknn"), id = "knn")
+```
+
+### Maszyna wektorów nośnych
+
+```{r}
+svm <- tunethreshold(learner("classif.ksvm", type = "C-svc"), id = "svm")
+```
+
+### Drzewo decyzyjne
+
+```{r}
+rpart <- tunethreshold(learner("classif.rpart"), id = "tree")
+```
+
+### Las losowy
+
+```{r}
+random_forest <- tunethreshold(learner("classif.ranger"), id = "randomforest")
+```
+
+## Benchmark
+
+``` {r}
+scaling_methods <- c("minmax", "zscore", "robust")
+sampling_methods <- c("undersampling", "oversampling", "SMOTE")
+oversampling_rate <- 100
+undersampling_rate <- 0.01
+smote_nn <- 5
+smote_rate <- 100
+
+learners <- c()
+
+for (learner in list(baseline, knn, svm, rpart, random_forest)) {
+  learners <- append(learners, learner)
+
+  for (scaling in scaling_methods) {
+    for (sampling in sampling_methods) {
+      scaling_filter <- scaling_po(scaling)
+      sampling_filter <- sampling_po(sampling, undersampling_rate, oversampling_rate, smote_rate, smote_nn)
+
+      new_learner <- as_learner(
+        scaling_filter %>>%
+          po("filter", filter = flt("importance", learner = lrn("classif.ranger", importance = "impurity")), filter.frac = 0.5) %>>%
+          sampling_filter %>>%
+          learner
+      )
+
+      learners <- append(learners, new_learner)
+    }
+  }
+}
+```
+
+```{r}
+design <- benchmark_grid(
+  tasks = build_class_task(data),
+  learners = learners,
+  resamplings = rsmp("cv", folds = 3)
+)
+design
+```
+
+```{r, warning=FALSE, attr.output='style="max-height: 500px;"'} 
+options(future.globals.onReference = "warning")
+bmr <- with_progress(benchmark(design))
+```
+
+## Ewaluacja
+
+### Miara ewaluacyjna {.tabset}
+
+```{r, warning = FALSE}
+aggregate_benchmark(bmr, measure, descending = FALSE)
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = measure)
+```
+
+### ROC {.tabset}
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = measure, type = "roc", autolimit = FALSE)
+```
+
+### ROC AUC {.tabset}
+
+```{r, warning = FALSE}
+aggregate_benchmark(bmr, msr("classif.auc"))
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("classif.auc"))
+```
+
+### PRC {.tabset}
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = measure, type = "prc", autolimit = FALSE)
+```
+
+### PR AUC {.tabset}
+
+```{r, warning = FALSE}
+aggregate_benchmark(bmr, msr("classif.prauc"))
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("classif.prauc"))
+```
+
+### Precyzja {.tabset}
+
+```{r}
+aggregate_benchmark(bmr, msr("classif.precision"))
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("classif.precision"))
+```
+
+### Czułość {.tabset}
+
+```{r}
+aggregate_benchmark(bmr, msr("classif.recall"))
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("classif.recall"))
+```
+
+### F1 {.tabset}
+
+```{r}
+aggregate_benchmark(bmr, msr("classif.fbeta"))
+```
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("classif.fbeta"))
+```
+
+### Czas trenowania {.tabset}
+
+```{r, results='asis', echo = FALSE, warning = FALSE}
+plot_modifiers_in_tabs(bmr, measure = msr("time_train"))
+```
