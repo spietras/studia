@@ -1,0 +1,16 @@
+{
+  "transponders": [
+    {
+      "capacity": 10,
+      "cost": 1
+    },
+    {
+      "capacity": 40,
+      "cost": 3
+    },
+    {
+      "capacity": 100,
+      "cost": 5
+    }
+  ]
+}

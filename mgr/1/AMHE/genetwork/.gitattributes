@@ -1,0 +1,3 @@
+docs/** linguist-documentation
+genetwork/docs/** linguist-documentation
+*.ipynb linguist-documentation
