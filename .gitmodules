@@ -1,0 +1,3 @@
+[submodule "mgr/2/SPDB/retrail"]
+	path = mgr/2/SPDB/retrail
+	url = https://github.com/spietras/retrail
