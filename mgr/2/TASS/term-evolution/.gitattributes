@@ -1,2 +1,4 @@
+data/** linguist-vendored
+*.html linguist-documentation
 *.ipynb linguist-documentation
 *.pdf linguist-documentation

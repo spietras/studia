@@ -1,2 +1,2 @@
 docs/** linguist-documentation
-test_lib/** linguist-vendored
+gradle/** linguist-vendored

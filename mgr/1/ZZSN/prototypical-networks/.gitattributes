@@ -1,3 +1,4 @@
 docs/** linguist-documentation
 figures/** linguist-documentation
 *.ipynb linguist-documentation
+data/** linguist-vendored
