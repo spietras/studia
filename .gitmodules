@@ -1,3 +1,7 @@
+[submodule "inż/7/praca/makeup-recommendation"]
+	path = inż/7/praca/makeup-recommendation
+	url = https://github.com/spietras/makeup-recommendation.git
+
 [submodule "mgr/3/WPAM/concerto"]
 	path = mgr/3/WPAM/concerto
 	url = https://github.com/concerto-app/concerto.git
