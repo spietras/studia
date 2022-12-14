@@ -5,3 +5,7 @@
 [submodule "mgr/3/WPAM/concerto"]
 	path = mgr/3/WPAM/concerto
 	url = https://github.com/concerto-app/concerto.git
+
+[submodule "mgr/4/praca/kilroybot"]
+	path = mgr/4/praca/kilroybot
+	url = https://github.com/kilroybot/kilroy.git
