@@ -1,11 +1,11 @@
-[submodule "inż/7/praca/makeup-recommendation"]
-	path = inż/7/praca/makeup-recommendation
-	url = https://github.com/spietras/makeup-recommendation.git
+[submodule "bachelor/7/thesis/makeup-recommendation"]
+path = bachelor/7/thesis/makeup-recommendation
+url = https://github.com/spietras/makeup-recommendation.git
 
-[submodule "mgr/3/WPAM/concerto"]
-	path = mgr/3/WPAM/concerto
-	url = https://github.com/concerto-app/concerto.git
+[submodule "master/3/WPAM/concerto"]
+path = master/3/WPAM/concerto
+url = https://github.com/concerto-app/concerto.git
 
-[submodule "mgr/4/praca/kilroybot"]
-	path = mgr/4/praca/kilroybot
-	url = https://github.com/kilroybot/kilroy.git
+[submodule "master/4/thesis/kilroybot"]
+path = master/4/thesis/kilroybot
+url = https://github.com/kilroybot/kilroy.git
